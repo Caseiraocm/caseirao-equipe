@@ -1243,5 +1243,145 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 .sheet:has(#driverLoginButton) > .sheeth{padding-top:0}
 .sheet:has(#driverLoginButton) > .sheeth .x{display:none!important}
 </style>
+<style id="driver-one-tap-delivery">
+/* Operação rápida do entregador: uma única ação para concluir a entrega. */
+.driverOneTapHint{margin:8px 0 0;color:#69717a;font-size:11px;line-height:1.4}
+.driverDeliverButton{background:linear-gradient(135deg,#2b9b5d,#197542)!important;color:#fff!important;border-color:#23834d!important;box-shadow:0 8px 20px rgba(25,117,66,.2)!important}
+.driverDeliverButton:disabled{opacity:.72!important;cursor:wait!important}
+</style>
+<script>
+/*
+ * Entrega em um toque. O sistema percorre internamente as etapas exigidas pela
+ * API, registra o horário final e evita que dois toques contabilizem o pedido.
+ */
+(()=>{
+  const deliveryLocks=new Set();
+
+  driverOrderCard=function(a){
+    const o=a.orders||{},hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
+    const finished=['delivered','returned','settled'].includes(a.status);
+    const action=finished
+      ? `<button class="primary" disabled>✓ ENTREGA CONCLUÍDA</button>`
+      : `<button class="primary driverDeliverButton" data-driver-deliver="${a.id}">✓ MARCAR COMO ENTREGUE</button><div class="driverOneTapHint">Um toque confirma a entrega, registra o horário e atualiza o fechamento.</div>`;
+    return `<div class="driverOrder">
+      <div class="driverQuickTop">
+        <div class="grow"><h3>Pedido #${esc(o.order_number||'—')}</h3><div class="driverStatus">${esc(deliveryStatusLabel(a.status))}</div></div>
+        <b class="driverFee">${fee?fmt(fee):'—'}</b>
+      </div>
+      <div class="driverQuickLine"><span class="driverQuickChip">📍 ${esc(hood)}</span><span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span></div>
+      <div class="driverNextAction">${action}${!finished?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
+      <details class="driverDetails"><summary>Ver endereço e detalhes</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}<div class="addressBoxAdmin">${esc(orderAddress(o))}</div><a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank">ABRIR MAPA</a><div class="driverCompactMeta"><div><small>Cliente</small><b>${esc(o.customer_name||'—')}</b></div><div><small>Total</small><b>${fmt(o.total)}</b></div></div><button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR GPS</button></div></details>
+    </div>`;
+  };
+
+  async function deliverInOneTap(id,button){
+    if(deliveryLocks.has(id))return;
+    const assignment=(driverSnapshot?.assignments||[]).find(x=>String(x.id)===String(id));
+    if(!assignment||['delivered','returned','settled'].includes(assignment.status))return;
+    deliveryLocks.add(id);button.disabled=true;button.textContent='CONFIRMANDO ENTREGA...';
+    try{
+      let current=assignment.status;
+      if(current==='assigned'||current==='problem'){
+        await driverAppApi('status',{assignment_id:id,status:'route'});
+        current='route';
+      }
+      if(current==='route'){
+        await driverAppApi('status',{assignment_id:id,status:'arrived'});
+        current='arrived';
+      }
+      if(current==='arrived'){
+        const order=assignment.orders||{};
+        const payload={assignment_id:id,status:'delivered',payment_confirmed:true};
+        if(order.payment==='Dinheiro'){
+          payload.cash_received=Number(order.total||0);
+          payload.change_given=0;
+        }
+        await driverAppApi('status',payload);
+      }
+      stopDriverAreaGps();
+      showAppToast('Entrega confirmada e contabilizada.','ok');
+      await renderDriverArea();
+    }catch(e){
+      button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';
+      alert(e.message||'Não foi possível confirmar a entrega.');
+    }finally{deliveryLocks.delete(id)}
+  }
+
+  const baseRenderDriverArea=renderDriverArea;
+  renderDriverArea=async function(){
+    const result=await baseRenderDriverArea();
+    document.querySelectorAll('[data-driver-deliver]').forEach(button=>{
+      button.onclick=()=>deliverInOneTap(button.dataset.driverDeliver,button);
+    });
+    return result;
+  };
+})();
+</script>
+<script>
+/* Alerta do ADM quando o entregador conclui uma entrega em outro aparelho. */
+(()=>{
+  let deliveryAlertTimer=null,deliveryAlertBusy=false,deliveryAlertReady=false;
+  const knownDelivered=new Set();
+  const deliveredKey=a=>`${a.id}:${a.delivered_at||'delivered'}`;
+  const isDelivered=a=>['delivered','returned','settled'].includes(a.status)&&Boolean(a.delivered_at||a.status==='delivered');
+
+  function nativeDeliveryNotification(assignment){
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    const order=assignment.orders||{},driver=assignment.drivers||{};
+    try{
+      const notification=new Notification(`Entrega concluída • Pedido #${order.order_number||'—'}`,{
+        body:`${driver.name||'Entregador'} confirmou a entrega.`,
+        tag:`caseirao-delivery-${assignment.id}`,
+        renotify:true,
+        requireInteraction:true,
+        vibrate:[250,120,250]
+      });
+      notification.onclick=()=>{window.focus();notification.close();adminTab='entregas';renderAdmin()};
+    }catch{}
+  }
+
+  async function checkDeliveredOrders(){
+    if(deliveryAlertBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;
+    deliveryAlertBusy=true;
+    try{
+      const snapshot=await driverAppApi('admin_snapshot',{},true);
+      const completed=(snapshot.assignments||[]).filter(isDelivered);
+      if(!deliveryAlertReady){
+        completed.forEach(a=>knownDelivered.add(deliveredKey(a)));
+        deliveryAlertReady=true;
+        return;
+      }
+      const fresh=completed.filter(a=>!knownDelivered.has(deliveredKey(a)));
+      completed.forEach(a=>knownDelivered.add(deliveredKey(a)));
+      if(!fresh.length)return;
+      deliveryHub=snapshot;
+      for(const assignment of fresh){
+        const order=assignment.orders||{},driver=assignment.drivers||{};
+        const message=`Pedido #${order.order_number||'—'} entregue por ${driver.name||'entregador'}.`;
+        playOrderSound();
+        showAppToast(message,'ok');
+        nativeDeliveryNotification(assignment);
+      }
+      if(adminTab==='entregas'){
+        const box=$('#admContent');
+        if(box)await renderDeliveryHub(box);
+      }
+    }catch{}finally{deliveryAlertBusy=false}
+  }
+
+  function startDeliveryAlerts(){
+    if(deliveryAlertTimer)return;
+    checkDeliveredOrders();
+    deliveryAlertTimer=setInterval(checkDeliveredOrders,5000);
+  }
+
+  const baseRenderAdminForDeliveryAlerts=renderAdmin;
+  renderAdmin=function(){
+    const result=baseRenderAdminForDeliveryAlerts();
+    startDeliveryAlerts();
+    return result;
+  };
+})();
+</script>
 </body>
 </html>
