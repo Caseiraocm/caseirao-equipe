@@ -1,0 +1,18 @@
+{
+  "name": "caseirao-equipe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicativo interno do O Caseirão Burger",
+  "scripts": {
+    "serve": "npx serve .",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "7.4.3",
+    "@capacitor/core": "7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.4.3"
+  }
+}

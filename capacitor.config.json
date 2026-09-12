@@ -1,0 +1,8 @@
+{
+  "appId": "br.com.ocaseirao.equipe",
+  "appName": "Caseirão Equipe",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
