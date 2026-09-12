@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-10-premium-interface-v2">
+<meta name="caseirao-build" content="2026-09-12-driver-one-tap-v2">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1315,6 +1315,11 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     });
     return result;
   };
+
+  /* O painel pode ter sido restaurado antes deste aprimoramento carregar. */
+  if(document.querySelector('.driverScreenNew')&&localStorage.getItem(driverTokenKey)){
+    setTimeout(()=>renderDriverArea(),0);
+  }
 })();
 </script>
 <script>
@@ -1385,3 +1390,4 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 </script>
 </body>
 </html>
+
