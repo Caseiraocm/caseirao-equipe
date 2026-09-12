@@ -683,6 +683,38 @@ renderPromotionsAdmin=function(box){
   box.querySelectorAll('[data-disable-promo]').forEach(button=>button.onclick=async()=>{const p=(admin.products||[]).find(item=>String(item.id)===String(button.dataset.disablePromo));if(!p||!confirm(`Desativar a promoção de ${p.name}?`))return;try{button.disabled=true;button.textContent='DESATIVANDO...';await adminCall('upsert_product',promotionProductPayload(p,null));admin=await adminCall('snapshot');await catalog();adminTab='promocoes';renderAdmin();showAppToast('Promoção desativada e retirada da página do cliente.','ok')}catch(error){button.disabled=false;button.textContent='DESATIVAR PROMOÇÃO';alert(error.message||String(error))}});
 };
 
+/* Retorno visual global para ações administrativas assíncronas. */
+const adminActionFeedbackStyle=document.createElement('style');adminActionFeedbackStyle.textContent=`
+@keyframes caseiraoSpin{to{transform:rotate(360deg)}}
+button{position:relative;-webkit-tap-highlight-color:transparent}
+button:active{transform:translateY(1px) scale(.985)!important;filter:brightness(.96)}
+.adminActionLoading{pointer-events:none!important;cursor:wait!important;opacity:.82!important;color:transparent!important;text-shadow:none!important}
+.adminActionLoading:before{content:'';position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-12px 0 0 -12px;border:3px solid rgba(255,255,255,.38);border-top-color:#fff;border-radius:50%;animation:caseiraoSpin .7s linear infinite;z-index:2}
+.adminActionLoading.secondary:before,.adminActionLoading.editbtn:before,.adminActionLoading.deactivatePromotion:before,.adminActionLoading.danger:before{border-color:rgba(43,48,54,.2);border-top-color:#30363d}
+.adminActionLoading:after{content:'PROCESSANDO';position:absolute;left:50%;top:calc(50% + 11px);transform:translateX(-50%);color:currentColor;font-size:0}
+`;document.head.appendChild(adminActionFeedbackStyle);
+const adminActionSelector=[
+  '#saveP','#delP','#saveN','#delN','#saveA','#delA','#saveC','#delC','#saveStore','#saveEta','#saveBanner','#toggleStoreNow',
+  '#confirmCloseTable','#saveTableOrder','#saveManualOrder','#confirmCloseShift','#startDeliveryTracking','#stopDeliveryTracking','#newDriverLink',
+  '#saveEmployee','#deleteEmployee','#confirmPayment','#finishCashOrder',
+  '[data-save-promo]','[data-disable-promo]','[data-stockp]','[data-st]','[data-kitchen]','[data-payment]','[data-action]'
+].join(',');
+function clearAdminActionFeedback(button){if(!button)return;button.classList.remove('adminActionLoading');button.removeAttribute('aria-busy');if(button.dataset.feedbackDisabled!=='1')button.disabled=false;delete button.dataset.feedbackDisabled}
+document.addEventListener('click',event=>{
+  const button=event.target.closest('button');
+  if(!button||button.disabled||!button.closest('.sheet')||!button.matches(adminActionSelector))return;
+  button.dataset.feedbackDisabled=button.disabled?'1':'0';
+  requestAnimationFrame(()=>{if(!button.isConnected)return;button.classList.add('adminActionLoading');button.setAttribute('aria-busy','true');button.disabled=true});
+  let checks=0;
+  const watcher=setInterval(()=>{
+    checks++;
+    if(!button.isConnected){clearInterval(watcher);return}
+    if(checks>=3&&!button.disabled){clearInterval(watcher);clearAdminActionFeedback(button);return}
+    if(checks>=80){clearInterval(watcher);clearAdminActionFeedback(button)}
+  },200);
+},true);
+const caseiraoNativeAlert=window.alert.bind(window);window.alert=function(...args){document.querySelectorAll('.adminActionLoading').forEach(clearAdminActionFeedback);return caseiraoNativeAlert(...args)};
+
 restoreCart();lastCartCount=cartCount();updateCartBar();
 $('#search').addEventListener('input',e=>{search=e.target.value;renderCatalog()});$('#cartBtn').onclick=renderCart;$('#trackBtn').onclick=()=>openTracking();$('#adminBtn').onclick=openAdmin;$('#homeBtn').onclick=goHome;$('#promotionsBtn').onclick=openDailyPromotions;$('#loyaltyBtn').onclick=openCustomerLoyalty;$('#installBtn').onclick=installApp;
 $('#teamEmployeeBtn').onclick=()=>employeeToken()?openEmployeePanel():openEmployeeLogin();
