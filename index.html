@@ -90,8 +90,8 @@ body.teamApp .overlay{position:fixed;inset:0;z-index:50}
     <div class="teamLogo" aria-hidden="true">CB</div>
     <h1>Caseirão Equipe</h1>
     <p>Escolha sua área para iniciar o expediente.</p>
-    <button id="teamEmployeeBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
     <button id="teamAdminBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">⚙️</span><span><strong>Central ADM</strong><small>Gestão completa, relatórios, cardápio e configurações.</small></span></button>
+    <button id="teamEmployeeBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
     <button id="teamInstallBtn" class="teamInstall" type="button">↓ Instalar este aplicativo</button>
     <div class="teamVersion">© 2026 O Caseirão Burger • Todos os direitos reservados.</div>
   </div>
@@ -871,7 +871,7 @@ function startDriverAreaGps(assignmentId,button){if(!navigator.geolocation)retur
 
 const renderAdminDeliveryBase=renderAdmin;renderAdmin=function(){if(admin&&adminTab)setInternalResume('admin:'+adminTab);const result=renderAdminDeliveryBase();const bar=document.querySelector('.admbar');if(bar&&!bar.querySelector('[data-tab="entregas"]')){const b=document.createElement('button');b.dataset.tab='entregas';b.className=adminTab==='entregas'?'on':'';b.textContent='Entregas';b.onclick=()=>{adminTab='entregas';renderAdmin()};const caixa=bar.querySelector('[data-tab="caixa"]');caixa?caixa.after(b):bar.appendChild(b)}if(adminTab==='entregas'){const box=$('#admContent');if(box)renderDeliveryHub(box)}return result};
 const renderAdminTabDeliveryBase=renderAdminTab;renderAdminTab=function(){if(adminTab==='entregas'){const box=$('#admContent');if(box)renderDeliveryHub(box);return}return renderAdminTabDeliveryBase()};
-const driverChoice=document.createElement('button');driverChoice.id='teamDriverBtn';driverChoice.className='teamChoice driverAccessChoice';driverChoice.type='button';driverChoice.innerHTML='<span class="teamChoiceIcon">🛵</span><span><strong>Acesso do entregador</strong><small>Rotas, GPS, pagamentos, troco e retorno.</small></span>';$('#teamAdminBtn').before(driverChoice);driverChoice.onclick=()=>localStorage.getItem(driverTokenKey)?renderDriverArea():openDriverLogin();
+const driverChoice=document.createElement('button');driverChoice.id='teamDriverBtn';driverChoice.className='teamChoice driverAccessChoice';driverChoice.type='button';driverChoice.innerHTML='<span class="teamChoiceIcon">🛵</span><span><strong>Acesso do entregador</strong><small>Rotas, GPS, pagamentos, troco e retorno.</small></span>';$('#teamEmployeeBtn').after(driverChoice);driverChoice.onclick=()=>localStorage.getItem(driverTokenKey)?renderDriverArea():openDriverLogin();
 
 /* CASEIRÃO ENTREGAS PRO — tabela própria por bairro, gasolina e fechamento */
 const deliveryProStyle=document.createElement('style');deliveryProStyle.textContent=`
@@ -1390,4 +1390,5 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 </script>
 </body>
 </html>
+
 
