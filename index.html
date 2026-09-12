@@ -1146,5 +1146,29 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   polishAdminLabels();
 })();
 </script>
+<style id="driver-login-navigation-polish">
+/* Navegação exclusiva da tela de acesso do entregador. */
+.sheet:has(#driverLoginButton) > .modalNav{
+  width:100%;display:flex;align-items:center;gap:10px;
+  margin:0 0 20px;padding:0;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-smart-back]{
+  min-height:42px;padding:8px 2px;border:0;border-radius:9px;
+  background:transparent;color:#424a54;box-shadow:none;
+  font-size:13px;font-weight:850;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-modal-home]{
+  width:42px;height:42px;min-width:42px;margin-left:auto;padding:0;
+  display:grid;place-items:center;overflow:hidden;
+  border:1px solid #dfe3e8;border-radius:12px;background:#fff;color:#303741;
+  box-shadow:0 3px 10px rgba(24,31,40,.06);font-size:0;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-modal-home]::before{
+  content:'⌂';font-size:20px;line-height:1;
+}
+.sheet:has(#driverLoginButton) > .modalNav button:active{transform:translateY(1px)}
+.sheet:has(#driverLoginButton) > .sheeth{padding-top:0}
+.sheet:has(#driverLoginButton) > .sheeth .x{display:none!important}
+</style>
 </body>
 </html>
