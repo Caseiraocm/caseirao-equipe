@@ -1146,6 +1146,79 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   polishAdminLabels();
 })();
 </script>
+<style id="smart-order-workflow-style">
+/* Fluxo operacional guiado: uma ação principal por vez. */
+.smartOrderFlow{margin-top:14px;padding:13px;border:1px solid #dfe3e7;border-radius:16px;background:#f8f9fa}
+.smartFlowTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.smartFlowTop b{color:#2b3036;font-size:12px;font-weight:950}
+.smartFlowTop span{color:#727a84;font-size:10px;font-weight:800}
+.smartFlowSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:11px}
+.smartFlowStep{height:5px;border-radius:99px;background:#dfe3e7}
+.smartFlowStep.done{background:#e15a18}
+.smartNextAction{width:100%;min-height:54px;border:0;border-radius:13px;background:linear-gradient(135deg,#ec6a25,#ca4710);color:#fff;font-size:14px;font-weight:950;letter-spacing:.01em;box-shadow:0 7px 18px rgba(207,76,18,.22)}
+.smartNextAction[data-next="pronto"]{background:linear-gradient(135deg,#746bc7,#51489e);box-shadow:0 7px 18px rgba(81,72,158,.2)}
+.smartNextAction[data-next="em_rota"]{background:linear-gradient(135deg,#2781bd,#155d90);box-shadow:0 7px 18px rgba(21,93,144,.2)}
+.smartNextAction[data-next="entregue"]{background:linear-gradient(135deg,#2b9b5d,#197542);box-shadow:0 7px 18px rgba(25,117,66,.2)}
+.smartNextAction:disabled{opacity:.65}
+.statusAdvancedOptions{margin-top:8px;border:0}
+.statusAdvancedOptions>summary{list-style:none;text-align:center;padding:8px;color:#6d747d;font-size:10px;font-weight:900;cursor:pointer}
+.statusAdvancedOptions>summary::-webkit-details-marker{display:none}
+.statusAdvancedOptions>summary:after{content:'  ▾'}
+.statusAdvancedOptions[open]>summary:after{content:'  ▴'}
+.statusAdvancedOptions .statusWorkflow{margin-top:4px!important}
+@media(max-width:480px){.smartOrderFlow{padding:11px}.smartNextAction{min-height:52px;font-size:13px}}
+</style>
+<script>
+/* Mantém todas as ações existentes, mas apresenta somente a próxima etapa como destaque. */
+(()=>{
+  const flow=['confirmado','preparando','pronto','em_rota','entregue'];
+  const nextFor=order=>{
+    if(!order)return null;
+    if(order.status==='novo'||order.status==='confirmado')return'preparando';
+    if(order.status==='preparando')return'pronto';
+    if(order.status==='pronto')return order.type==='delivery'?'em_rota':'entregue';
+    if(order.status==='em_rota')return'entregue';
+    return null;
+  };
+  const actionLabel=(order,next)=>({
+    preparando:'🔥 INICIAR PREPARO',
+    pronto:'✓ MARCAR COMO PRONTO',
+    em_rota:'🛵 ENVIAR PARA ROTA',
+    entregue:order?.type==='pickup'?'✓ FINALIZAR RETIRADA':order?.type==='local'?'✓ FINALIZAR CONSUMO':'✓ CONFIRMAR ENTREGA'
+  }[next]||'AVANÇAR PEDIDO');
+  const ageLabel=order=>{
+    const minutes=Math.max(0,Math.floor((Date.now()-new Date(order.created_at).getTime())/60000));
+    return minutes<1?'chegou agora':`há ${minutes} min`;
+  };
+  const enhance=box=>{
+    box.querySelectorAll('.orderactions.statusWorkflow').forEach(actions=>{
+      if(actions.closest('.finishedOrder')||actions.closest('.smartOrderFlow'))return;
+      const id=actions.querySelector('[data-oid]')?.dataset.oid;
+      const order=(admin?.orders||[]).find(item=>String(item.id)===String(id));
+      const next=nextFor(order);
+      if(!order||!next)return;
+      const target=actions.querySelector(`[data-st="${next}"]`);
+      if(!target)return;
+      actions.previousElementSibling?.classList.contains('statusSectionTitle')&&actions.previousElementSibling.remove();
+      const currentIndex=Math.max(0,flow.indexOf(order.status));
+      const guide=document.createElement('div');
+      guide.className='smartOrderFlow';
+      guide.innerHTML=`<div class="smartFlowTop"><b>PRÓXIMA AÇÃO</b><span>Pedido ${ageLabel(order)}</span></div><div class="smartFlowSteps" aria-label="Progresso do pedido">${[0,1,2,3].map((_,i)=>`<span class="smartFlowStep ${i<currentIndex?'done':''}"></span>`).join('')}</div><button type="button" class="smartNextAction" data-next="${next}">${actionLabel(order,next)}</button><details class="statusAdvancedOptions"><summary>Corrigir status ou cancelar</summary></details>`;
+      const advanced=guide.querySelector('.statusAdvancedOptions');
+      actions.parentNode.insertBefore(guide,actions);
+      advanced.appendChild(actions);
+      guide.querySelector('.smartNextAction').onclick=event=>{
+        const button=event.currentTarget;
+        button.disabled=true;
+        button.textContent='ATUALIZANDO...';
+        target.click();
+      };
+    });
+  };
+  const base=renderOrders;
+  renderOrders=function(box){const result=base(box);enhance(box);return result};
+})();
+</script>
 <style id="driver-login-navigation-polish">
 /* Navegação exclusiva da tela de acesso do entregador. */
 .sheet:has(#driverLoginButton) > .modalNav{
