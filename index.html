@@ -93,7 +93,7 @@ body.teamApp .overlay{position:fixed;inset:0;z-index:50}
     <button id="teamEmployeeBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
     <button id="teamAdminBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">⚙️</span><span><strong>Central ADM</strong><small>Gestão completa, relatórios, cardápio e configurações.</small></span></button>
     <button id="teamInstallBtn" class="teamInstall" type="button">↓ Instalar este aplicativo</button>
-    <div class="teamVersion">Uso interno • O Caseirão Burger</div>
+    <div class="teamVersion">© 2026 O Caseirão Burger • Todos os direitos reservados.</div>
   </div>
 </section>
 <header class="top"><div class="topin"><div class="brand"><div class="brandMark" aria-hidden="true">CB</div><h1 id="storeName">O Caseirão Burger</h1><div id="storeStatus" class="status">Carregando cardápio...</div></div><button class="headbtn" id="trackBtn">Acompanhar</button><button class="headbtn" id="adminBtn">ADM</button></div></header>
@@ -682,6 +682,27 @@ renderPromotionsAdmin=function(box){
   box.querySelectorAll('[data-save-promo]').forEach(button=>button.onclick=async()=>{const p=(admin.products||[]).find(item=>String(item.id)===String(button.dataset.savePromo)),input=box.querySelector(`[data-promo-price="${CSS.escape(button.dataset.savePromo)}"]`);try{const value=input.value.trim()===''?null:num(input.value);if(value!==null&&(value<=0||value>=Number(p.price)))throw new Error('O preço promocional precisa ser maior que zero e menor que o preço normal.');button.disabled=true;button.textContent='SALVANDO...';await adminCall('upsert_product',promotionProductPayload(p,value));admin=await adminCall('snapshot');await catalog();adminTab='promocoes';renderAdmin();showAppToast(value===null?'Promoção removida.':'Promoção publicada para os clientes.','ok')}catch(error){button.disabled=false;button.textContent=Number(p?.promo_price)>0?'ATUALIZAR':'ATIVAR';alert(error.message||String(error))}});
   box.querySelectorAll('[data-disable-promo]').forEach(button=>button.onclick=async()=>{const p=(admin.products||[]).find(item=>String(item.id)===String(button.dataset.disablePromo));if(!p||!confirm(`Desativar a promoção de ${p.name}?`))return;try{button.disabled=true;button.textContent='DESATIVANDO...';await adminCall('upsert_product',promotionProductPayload(p,null));admin=await adminCall('snapshot');await catalog();adminTab='promocoes';renderAdmin();showAppToast('Promoção desativada e retirada da página do cliente.','ok')}catch(error){button.disabled=false;button.textContent='DESATIVAR PROMOÇÃO';alert(error.message||String(error))}});
 };
+
+/* Identificação do proprietário e copyright nas áreas internas. */
+const internalIdentityStyle=document.createElement('style');internalIdentityStyle.textContent=`
+.adminIdentityField{position:relative}.adminIdentityField .in{padding-left:46px;background:#eef1f4!important;color:#30353b!important;font-weight:850}.adminIdentityField:before{content:'👤';position:absolute;left:15px;bottom:14px;z-index:1;font-size:18px}.internalCopyright{margin:26px 0 5px;padding:18px 10px 4px;border-top:1px solid #dde1e5;color:#757c84;text-align:center;font-size:11px;font-weight:700;line-height:1.5}.loginCopyright{margin-top:24px;padding-top:16px}.adminOwnerBadge{display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:6px 10px;border:1px solid #e7d3c5;border-radius:999px;background:#fff7f1;color:#9b4217;font-size:11px;font-weight:850}
+`;document.head.appendChild(internalIdentityStyle);
+const openAdminIdentityBase=openAdmin;openAdmin=function(){
+  openAdminIdentityBase();
+  const login=$('.loginbox'),pinField=$('#adminPin')?.closest('.field');
+  if(login&&pinField&&!$('#adminIdentity')){
+    pinField.insertAdjacentHTML('beforebegin',`<div class="field adminIdentityField"><label>Identificação do administrador</label><input id="adminIdentity" class="in" value="Romário Caseirão ADM" readonly aria-readonly="true"></div>`);
+    login.insertAdjacentHTML('beforeend','<div class="internalCopyright loginCopyright">© 2026 O Caseirão Burger<br>Todos os direitos reservados.</div>');
+    const title=modalRoot.querySelector('.sheeth h2');if(title)title.textContent='Login da Central ADM';
+  }
+};
+function addInternalCopyright(area){
+  const box=$('#admContent')||$('#employeeContent')||modalRoot.querySelector('.sheet.full');
+  if(!box||box.querySelector('.internalCopyright'))return;
+  box.insertAdjacentHTML('beforeend',`<div class="internalCopyright"><span class="adminOwnerBadge">👤 ${esc(area)}</span><br><br>© 2026 O Caseirão Burger • Todos os direitos reservados.</div>`);
+}
+const renderAdminCopyrightBase=renderAdmin;renderAdmin=function(){const result=renderAdminCopyrightBase();addInternalCopyright('Romário Caseirão ADM');return result};
+const renderEmployeeCopyrightBase=renderEmployeePanel;renderEmployeePanel=function(){const result=renderEmployeeCopyrightBase();addInternalCopyright('Equipe Caseirão');return result};
 
 /* Retorno visual global para ações administrativas assíncronas. */
 const adminActionFeedbackStyle=document.createElement('style');adminActionFeedbackStyle.textContent=`
