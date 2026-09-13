@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-delivery-central-alert-v2">
+<meta name="caseirao-build" content="2026-09-13-delivery-central-alert-v3">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -603,7 +603,7 @@ const renderAdminTabPromotionsBase=renderAdminTab;renderAdminTab=function(){if(a
 
 /* Sincronização rápida do ADM: inclui pedidos lançados por funcionários nas mesas. */
 let adminOrderSyncBusy=false;
-checkNewOrders=async function(){if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;adminOrderSyncBusy=true;try{const fresh=await adminCall('snapshot'),newOrders=(fresh.orders||[]).filter(o=>!knownOrderIds.has(o.id));(fresh.orders||[]).forEach(o=>knownOrderIds.add(o.id));admin=fresh;if(newOrders.length){playOrderSound();showOrderToast(newOrders[0]);const box=$('#admContent');if(box){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box)}}}catch(e){}finally{adminOrderSyncBusy=false}};
+checkNewOrders=async function(){if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;adminOrderSyncBusy=true;try{const previousStatus=new Map((admin?.orders||[]).map(o=>[String(o.id),String(o.status||'')])),fresh=await adminCall('snapshot'),newOrders=(fresh.orders||[]).filter(o=>!knownOrderIds.has(o.id)),justDelivered=(fresh.orders||[]).filter(o=>String(o.status)==='entregue'&&previousStatus.has(String(o.id))&&previousStatus.get(String(o.id))!=='entregue');(fresh.orders||[]).forEach(o=>knownOrderIds.add(o.id));admin=fresh;if(justDelivered.length){for(const order of justDelivered){playOrderSound();showAppToast(`Pedido #${order.order_number||'—'} entregue por entregador.`,'ok')}}if(newOrders.length){playOrderSound();showOrderToast(newOrders[0])}const box=$('#admContent');if(box&&(newOrders.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}}catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}};
 startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));orderWatcher=setInterval(checkNewOrders,2500);checkNewOrders()};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))checkNewOrders()});
 
@@ -1418,9 +1418,8 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   }
 
   function startDeliveryAlerts(){
-    if(deliveryAlertTimer)return;
-    checkDeliveredOrders();
-    deliveryAlertTimer=setInterval(checkDeliveredOrders,5000);
+    /* O detector principal agora usa a sincronização do ADM, que já roda a cada 2,5 s. */
+    return;
   }
 
   const baseRenderAdminForDeliveryAlerts=renderAdmin;
@@ -1465,6 +1464,9 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     layer.innerHTML=`<section class="deliveryCentralAlertCard"><div class="deliveryCentralAlertHead"><div class="deliveryCentralAlertIcon">✓</div><div><b>Entrega concluída!</b><span>Confirmação recebida do entregador</span></div></div><div class="deliveryCentralAlertBody"><div class="deliveryCentralAlertMessage">${esc(message)}</div><div class="deliveryCentralAlertTime">Recebido às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div class="deliveryCentralAlertActions"><button class="primary" data-open-deliveries>ABRIR ENTREGAS</button><button class="secondary" data-ack-delivery>OK, ENTENDI</button></div></div></section>`;
     document.body.appendChild(layer);
     try{navigator.vibrate?.([300,120,300,120,500])}catch{}
+    if('Notification' in window&&Notification.permission==='granted'){
+      try{new Notification('Entrega concluída • Caseirão',{body:message,tag:'caseirao-central-'+message,renotify:true,requireInteraction:true,vibrate:[300,120,400]})}catch{}
+    }
     layer.querySelector('[data-ack-delivery]').onclick=()=>layer.remove();
     layer.querySelector('[data-open-deliveries]').onclick=()=>{layer.remove();adminTab='entregas';renderAdmin()};
   };
@@ -1482,6 +1484,8 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 (()=>{
   if(window.__caseiraoDeliveryFallback)return;
   window.__caseiraoDeliveryFallback=true;
+  /* Mantido apenas como histórico de compatibilidade. A sincronização central é a fonte única. */
+  return;
   const seenKey='caseirao_seen_delivered_orders_v2';
   let busy=false,initialized=false;
   const seen=new Set();
