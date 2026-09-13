@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-delivery-history-v5">
+<meta name="caseirao-build" content="2026-09-13-database-delivery-history-v6">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1577,6 +1577,29 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   const observer=new MutationObserver(mount);observer.observe(document.body,{childList:true,subtree:true});
   window.addEventListener('caseirao-delivery-alert-saved',()=>{mount();updateBadge()});
   mount();
+})();
+</script>
+<script>
+/* Histórico oficial no Supabase: compartilhado entre aparelhos e apagado somente pelo ADM. */
+(()=>{
+  let dbHistory=[],syncBusy=false;
+  const normalize=row=>({id:row.id,message:row.message||`Pedido #${row.order_number||'—'} entregue por ${row.driver_name||'entregador'}.`,time:row.created_at,read:Boolean(row.read_at)});
+  const updateDbBadge=()=>{const badge=document.querySelector('.deliveryNotificationBadge');if(!badge)return;const count=dbHistory.filter(item=>!item.read).length,label=count>99?'99+':String(count);if(badge.textContent!==label)badge.textContent=label;badge.classList.toggle('hide',count===0)};
+  async function syncDbHistory(){if(syncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return dbHistory;syncBusy=true;try{const snapshot=await driverAppApi('admin_snapshot',{},true);dbHistory=(snapshot.notifications||[]).map(normalize);updateDbBadge();return dbHistory}finally{syncBusy=false}}
+  async function openDbCenter(){
+    document.querySelector('.deliveryNotificationLayer')?.remove();
+    const loading=document.createElement('div');loading.className='deliveryNotificationLayer';loading.innerHTML='<aside class="deliveryNotificationPanel"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>Carregando histórico do banco...</span></div><button data-close-db-notifications>×</button></div></aside>';document.body.appendChild(loading);loading.querySelector('[data-close-db-notifications]').onclick=()=>loading.remove();
+    try{await syncDbHistory()}catch(e){loading.querySelector('span').textContent='Falha ao carregar: '+(e.message||e);return}
+    loading.remove();const history=dbHistory,layer=document.createElement('div');layer.className='deliveryNotificationLayer';
+    layer.innerHTML=`<aside class="deliveryNotificationPanel" role="dialog" aria-modal="true"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>${history.length?`${history.length} notificações salvas no banco`:'Nenhuma notificação salva'}</span></div><button data-close-db-notifications>×</button></div><div class="deliveryNotificationList">${history.length?history.map(item=>`<article class="deliveryNotificationItem ${item.read?'':'unread'}"><div class="deliveryNotificationItemIcon">✓</div><div><b>${esc(item.message)}</b><time>${new Date(item.time).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</time></div><button class="deliveryNotificationDelete" data-db-delete="${esc(item.id)}" aria-label="Apagar esta notificação">🗑</button></article>`).join(''):'<div class="deliveryNotificationEmpty"><b>Nenhuma entrega notificada</b>As próximas confirmações ficarão salvas aqui.</div>'}</div>${history.length?'<div class="deliveryNotificationFooter"><button data-db-clear>APAGAR TODO O HISTÓRICO</button></div>':''}</aside>`;document.body.appendChild(layer);
+    const unread=history.filter(item=>!item.read).map(item=>item.id);if(unread.length){driverAppApi('admin_read_notifications',{ids:unread},true).then(()=>{dbHistory=dbHistory.map(item=>({...item,read:true}));updateDbBadge()}).catch(()=>{})}
+    layer.querySelector('[data-close-db-notifications]').onclick=()=>layer.remove();layer.onclick=event=>{if(event.target===layer)layer.remove()};
+    layer.querySelectorAll('[data-db-delete]').forEach(button=>button.onclick=async()=>{button.disabled=true;try{await driverAppApi('admin_delete_notification',{id:button.dataset.dbDelete},true);dbHistory=dbHistory.filter(item=>String(item.id)!==String(button.dataset.dbDelete));layer.remove();openDbCenter()}catch(e){button.disabled=false;alert(e.message||e)}});
+    layer.querySelector('[data-db-clear]')?.addEventListener('click',async()=>{if(!confirm('Apagar definitivamente todas as notificações de entrega?'))return;try{await driverAppApi('admin_clear_notifications',{},true);dbHistory=[];layer.remove();openDbCenter()}catch(e){alert(e.message||e)}})
+  }
+  document.addEventListener('click',event=>{const bell=event.target.closest?.('.deliveryNotificationBell');if(!bell)return;event.preventDefault();event.stopImmediatePropagation();openDbCenter()},true);
+  window.addEventListener('caseirao-delivery-alert-saved',()=>setTimeout(syncDbHistory,700));
+  setInterval(syncDbHistory,10000);window.addEventListener('focus',syncDbHistory);document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDbHistory()});setTimeout(syncDbHistory,500);
 })();
 </script>
 <style id="urgent-operation-fixes-style">
