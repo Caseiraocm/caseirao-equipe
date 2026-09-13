@@ -436,6 +436,29 @@ async function renderLoyaltyAdmin(box){box.innerHTML='<div class="notice">Carreg
 
 function editAddon(a){a=a||{name:'',price:'',active:true};modal(`<div class="sheeth"><div><h2>${a.id?'Editar adicional':'Novo adicional'}</h2><div class="adminSub">Cadastro seguro</div></div><button class="x" data-close>×</button></div><div class="field"><label>Nome *</label><input id="aName" class="in" value="${esc(a.name)}" placeholder="Ex.: Bacon"></div><div class="field"><label>Preço *</label><input id="aPrice" class="in" inputmode="decimal" value="${esc(a.price)}" placeholder="0,00"></div><label class="addon"><input id="aActive" type="checkbox" ${a.active?'checked':''}><span>Disponível para venda</span></label><div id="addonError"></div><div class="twoBtns"><button id="saveA" class="primary">SALVAR ADICIONAL</button>${a.id?'<button id="delA" class="secondary danger">Excluir</button>':'<button class="secondary" data-close>Cancelar</button>'}</div>`);bindClose();$('#saveA').onclick=async()=>{const btn=$('#saveA'),name=$('#aName').value.trim(),raw=$('#aPrice').value.trim(),price=num(raw),error=$('#addonError');try{error.innerHTML='';if(name.length<2)throw new Error('Informe o nome do adicional.');if(raw===''||price<0)throw new Error('Informe um preço válido.');btn.disabled=true;btn.textContent='SALVANDO...';await adminCall('upsert_addon',{id:a.id||null,name,price,active:$('#aActive').checked});admin=await adminCall('snapshot');adminTab='adicionais';renderAdmin()}catch(e){error.innerHTML=`<div class="err" style="margin-bottom:10px">${esc(e.message||String(e))}</div>`;btn.disabled=false;btn.textContent='TENTAR SALVAR NOVAMENTE'}};if($('#delA'))$('#delA').onclick=async()=>{if(!confirm(`Excluir o adicional “${a.name}”?`))return;try{$('#delA').disabled=true;await adminCall('delete_addon',{id:a.id});admin=await adminCall('snapshot');adminTab='adicionais';renderAdmin()}catch(e){alert(e.message||String(e));$('#delA').disabled=false}}}
 
+/* Correção definitiva da fidelidade: nome e telefone são escritos juntos no
+   mesmo bloco visível de cada cartão. */
+const renderLoyaltyAdminWithNames=renderLoyaltyAdmin;
+renderLoyaltyAdmin=async function(box){
+  await renderLoyaltyAdminWithNames(box);
+  const reveal=()=>{
+    box.querySelectorAll('.loyaltyCardTop .grow').forEach(grow=>{
+      const originalName=grow.querySelector('b');
+      const details=grow.querySelector('.mini');
+      if(!details||details.dataset.customerIdentity==='ready')return;
+      const name=String(originalName?.textContent||'').trim()||'Nome não cadastrado';
+      const phoneAndOrders=String(details.textContent||'').trim();
+      details.dataset.customerIdentity='ready';
+      details.innerHTML=`<strong style="display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:18px!important;font-weight:950!important;line-height:1.25!important">${esc(name)}</strong><span style="display:block!important;color:#626b75!important;-webkit-text-fill-color:#626b75!important;font-size:13px!important">${esc(phoneAndOrders)}</span>`;
+      if(originalName)originalName.remove();
+    });
+  };
+  reveal();
+  box._loyaltyNameObserver?.disconnect();
+  box._loyaltyNameObserver=new MutationObserver(reveal);
+  box._loyaltyNameObserver.observe(box,{childList:true,subtree:true});
+};
+
 /* CASEIRAO EXPERIENCE V1 — navegação, carrinho, instalação e avisos */
 let installPrompt=null,apiPending=0,apiTimer=null,lastCartCount=0;
 const nativeAlert=window.alert.bind(window);
