@@ -778,7 +778,7 @@ $('#teamEmployeeBtn').onclick=()=>employeeToken()?openEmployeePanel():openEmploy
 $('#teamAdminBtn').onclick=openAdmin;
 $('#teamInstallBtn').onclick=installApp;
 catalog();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260913-1508',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
@@ -1783,6 +1783,43 @@ document.addEventListener('input',event=>{
   clearInterval(syncTimer);syncTimer=setInterval(()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))syncLabel()},1000);
   const validTabsFinal=new Set(['visao','pedidos','producao','caixa','gestao','fidelidade','relatorios','produtos','bairros','adicionais','cupons','banner','loja','mesas','funcionarios','promocoes','entregas']);
   try{const area=sessionStorage.getItem(internalResumeKey)||'';if(area.startsWith('admin:')&&!validTabsFinal.has(area.slice(6)))sessionStorage.setItem(internalResumeKey,'admin:pedidos')}catch{}
+})();
+</script>
+<style id="loyalty-name-guarantee">
+/* Regra final e isolada: nenhuma regra visual anterior pode ocultar o nome. */
+#admContent .loyaltyCustomerVisibleName{display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important;line-height:1.25!important}
+</style>
+<script>
+/* Garantia independente para cadastros antigos: identifica o cartão pelo
+   telefone, procura o nome no histórico e escreve uma linha visível. */
+(()=>{
+  const phoneKey=value=>String(value||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'').slice(-11);
+  const orderNameMap=()=>{
+    const names=new Map();
+    [...(typeof admin!=='undefined'&&admin?.orders?admin.orders:[])].sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)).forEach(order=>{
+      const key=phoneKey(order.customer_phone||order.phone),name=String(order.customer_name||order.name||'').trim();
+      if(key&&name)names.set(key,name);
+    });
+    return names;
+  };
+  const exposeNames=()=>{
+    const root=document.querySelector('#admContent');
+    if(!root||!document.querySelector('[data-tab="fidelidade"].on'))return;
+    const names=orderNameMap();
+    root.querySelectorAll('.loyaltyCardTop .grow').forEach(grow=>{
+      const details=grow.querySelector('.mini'),key=phoneKey(details?.textContent||'');
+      const original=grow.querySelector('b'),existing=String(original?.textContent||'').trim();
+      const name=(existing&&existing.toLowerCase()!=='cliente'?existing:'')||names.get(key)||'Nome não cadastrado';
+      let visible=grow.querySelector('.loyaltyCustomerVisibleName');
+      if(!visible){visible=document.createElement('div');visible.className='loyaltyCustomerVisibleName';grow.prepend(visible)}
+      visible.textContent=`Cliente: ${name}`;
+      if(original)original.style.display='none';
+    });
+  };
+  const observer=new MutationObserver(()=>queueMicrotask(exposeNames));
+  observer.observe(document.body,{subtree:true,childList:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')exposeNames()});
+  setInterval(exposeNames,1500);
 })();
 </script>
 </body>
