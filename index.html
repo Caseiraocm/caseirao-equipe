@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-delivery-notification-center-v4">
+<meta name="caseirao-build" content="2026-09-13-delivery-history-v5">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -603,7 +603,7 @@ const renderAdminTabPromotionsBase=renderAdminTab;renderAdminTab=function(){if(a
 
 /* Sincronização rápida do ADM: inclui pedidos lançados por funcionários nas mesas. */
 let adminOrderSyncBusy=false;
-checkNewOrders=async function(){if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;adminOrderSyncBusy=true;try{const previousStatus=new Map((admin?.orders||[]).map(o=>[String(o.id),String(o.status||'')])),fresh=await adminCall('snapshot'),newOrders=(fresh.orders||[]).filter(o=>!knownOrderIds.has(o.id)),justDelivered=(fresh.orders||[]).filter(o=>String(o.status)==='entregue'&&previousStatus.has(String(o.id))&&previousStatus.get(String(o.id))!=='entregue');(fresh.orders||[]).forEach(o=>knownOrderIds.add(o.id));admin=fresh;if(justDelivered.length){for(const order of justDelivered){playOrderSound();showAppToast(`Pedido #${order.order_number||'—'} entregue por entregador.`,'ok')}}if(newOrders.length){playOrderSound();showOrderToast(newOrders[0])}const box=$('#admContent');if(box&&(newOrders.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}}catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}};
+checkNewOrders=async function(){if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;adminOrderSyncBusy=true;try{const previousStatus=new Map((admin?.orders||[]).map(o=>[String(o.id),String(o.status||'')])),fresh=await adminCall('snapshot'),newOrders=(fresh.orders||[]).filter(o=>!knownOrderIds.has(o.id)),justDelivered=(fresh.orders||[]).filter(o=>String(o.status)==='entregue'&&previousStatus.has(String(o.id))&&previousStatus.get(String(o.id))!=='entregue');(fresh.orders||[]).forEach(o=>knownOrderIds.add(o.id));admin=fresh;if(justDelivered.length){for(const order of justDelivered){const message=`Pedido #${order.order_number||'—'} entregue por entregador.`;window.caseiraoSaveDeliveryNotification?.(message,order.id||order.order_number);playOrderSound();showAppToast(message,'ok')}}if(newOrders.length){playOrderSound();showOrderToast(newOrders[0])}const box=$('#admContent');if(box&&(newOrders.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}}catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}};
 startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));orderWatcher=setInterval(checkNewOrders,2500);checkNewOrders()};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))checkNewOrders()});
 
@@ -1447,14 +1447,17 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   const historyKey='caseirao_delivery_alert_history';
   const originalToast=showAppToast;
   let lastDeliveryMessage='',lastDeliveryMessageAt=0;
-  const saveAlert=message=>{
+  const saveAlert=(message,id='')=>{
     try{
       const history=JSON.parse(localStorage.getItem(historyKey)||'[]');
-      history.unshift({message,time:new Date().toISOString(),read:false});
+      const now=Date.now(),duplicate=history.some(item=>(id&&String(item.id||'')===String(id))||(!id&&item.message===message&&now-new Date(item.time||0).getTime()<20000));
+      if(duplicate)return;
+      history.unshift({id:String(id||crypto.randomUUID?.()||now),message,time:new Date().toISOString(),read:false});
       localStorage.setItem(historyKey,JSON.stringify(history.slice(0,50)));
       window.dispatchEvent(new CustomEvent('caseirao-delivery-alert-saved'));
     }catch{}
   };
+  window.caseiraoSaveDeliveryNotification=saveAlert;
   const centralAlert=message=>{
     saveAlert(message);
     document.querySelector('.deliveryCentralAlert')?.remove();
@@ -1540,6 +1543,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 .deliveryNotificationPanelHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:18px;background:#fff;border-bottom:1px solid #dde1e5}.deliveryNotificationPanelHead>div{flex:1}.deliveryNotificationPanelHead h2{margin:0;font-size:21px}.deliveryNotificationPanelHead span{display:block;margin-top:3px;color:#707780;font-size:12px}.deliveryNotificationPanelHead button{width:42px;height:42px;border:1px solid #dce0e4;border-radius:12px;background:#f5f6f7;font-size:19px}
 .deliveryNotificationList{padding:13px}.deliveryNotificationItem{display:grid;grid-template-columns:43px minmax(0,1fr);gap:11px;margin-bottom:9px;padding:13px;border:1px solid #dce1e5;border-radius:15px;background:#fff;box-shadow:0 4px 14px rgba(24,30,37,.04)}.deliveryNotificationItem.unread{border-left:5px solid #1e9657;background:#f7fff9}.deliveryNotificationItemIcon{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:#e5f7ec;color:#197746;font-size:21px;font-weight:950}.deliveryNotificationItem b{display:block;font-size:14px;line-height:1.4}.deliveryNotificationItem time{display:block;margin-top:5px;color:#737b84;font-size:11px}.deliveryNotificationEmpty{padding:45px 20px;text-align:center;color:#747c85}.deliveryNotificationEmpty b{display:block;margin-bottom:5px;color:#343a40;font-size:17px}
 .deliveryNotificationFooter{padding:4px 13px 20px}.deliveryNotificationFooter button{width:100%;min-height:48px;border:1px solid #d9dde1;border-radius:13px;background:#fff;color:#545c65;font-weight:900}
+.deliveryNotificationItem{grid-template-columns:43px minmax(0,1fr) 38px;align-items:start}.deliveryNotificationDelete{display:grid;place-items:center;width:38px;height:38px;border:1px solid #edd0d2;border-radius:11px;background:#fff3f3;color:#b8373e;font-size:16px}
 @keyframes deliveryPanelIn{from{transform:translateX(35px);opacity:.6}to{transform:none;opacity:1}}
 @media(max-width:430px){.deliveryNotificationBell{width:42px!important;height:42px!important;min-width:42px!important}.deliveryNotificationPanel{width:100%}}
 </style>
@@ -1555,12 +1559,13 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     document.querySelector('.deliveryNotificationLayer')?.remove();
     const history=read(),layer=document.createElement('div');
     layer.className='deliveryNotificationLayer';
-    layer.innerHTML=`<aside class="deliveryNotificationPanel" role="dialog" aria-modal="true" aria-label="Notificações de entrega"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>${history.length?`${history.length} avisos guardados`:'Nenhum aviso recebido'}</span></div><button data-close-notifications aria-label="Fechar">×</button></div><div class="deliveryNotificationList">${history.length?history.map(item=>`<article class="deliveryNotificationItem ${item.read?'':'unread'}"><div class="deliveryNotificationItemIcon">✓</div><div><b>${esc(item.message||'Entrega concluída.')}</b><time>${esc(timeLabel(item.time))}</time></div></article>`).join(''):'<div class="deliveryNotificationEmpty"><b>Nenhuma entrega notificada</b>As confirmações dos entregadores aparecerão aqui.</div>'}</div>${history.length?'<div class="deliveryNotificationFooter"><button data-clear-read>Limpar avisos lidos</button></div>':''}</aside>`;
+    layer.innerHTML=`<aside class="deliveryNotificationPanel" role="dialog" aria-modal="true" aria-label="Notificações de entrega"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>${history.length?`${history.length} avisos guardados`:'Nenhum aviso recebido'}</span></div><button data-close-notifications aria-label="Fechar">×</button></div><div class="deliveryNotificationList">${history.length?history.map((item,index)=>`<article class="deliveryNotificationItem ${item.read?'':'unread'}"><div class="deliveryNotificationItemIcon">✓</div><div><b>${esc(item.message||'Entrega concluída.')}</b><time>${esc(timeLabel(item.time))}</time></div><button class="deliveryNotificationDelete" data-delete-notification="${index}" aria-label="Apagar esta notificação">🗑</button></article>`).join(''):'<div class="deliveryNotificationEmpty"><b>Nenhuma entrega notificada</b>As confirmações dos entregadores aparecerão aqui.</div>'}</div>${history.length?'<div class="deliveryNotificationFooter"><button data-clear-history>APAGAR TODO O HISTÓRICO</button></div>':''}</aside>`;
     document.body.appendChild(layer);
     write(history.map(item=>({...item,read:true})));updateBadge();
     layer.querySelector('[data-close-notifications]').onclick=()=>layer.remove();
     layer.onclick=event=>{if(event.target===layer)layer.remove()};
-    layer.querySelector('[data-clear-read]')?.addEventListener('click',()=>{write(read().filter(item=>!item.read));layer.remove();openCenter()});
+    layer.querySelectorAll('[data-delete-notification]').forEach(button=>button.onclick=()=>{const current=read();current.splice(Number(button.dataset.deleteNotification),1);write(current);layer.remove();openCenter()});
+    layer.querySelector('[data-clear-history]')?.addEventListener('click',()=>{if(!confirm('Apagar todas as notificações de entrega?'))return;write([]);layer.remove();openCenter()});
   }
   function mount(){
     if(!sessionStorage.getItem('caseirao_admin_pin'))return;
