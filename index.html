@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-admin-contrast-v10">
+<meta name="caseirao-build" content="2026-09-13-delivery-alert-no-bell-v8">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -826,45 +826,6 @@ function driverDailySummaryHtml(){
   return `<section class="driverDaySummary"><div class="driverDaySummaryHead"><div><h3>🛵 Resumo de hoje</h3><div class="mini">${completed.length} ${completed.length===1?'entrega concluída':'entregas concluídas'}</div></div><strong>${fmt(total)}</strong></div>${completed.length?`<div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} × ${fmt(h.fee)}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div><div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>`:'<div class="mini" style="margin-top:10px">Nenhuma entrega concluída ainda.</div>'}</section>`;
 }
 async function renderDriverArea(){try{driverSnapshot=await driverAppApi('snapshot');setInternalResume('driver');modal(`<div class="sheeth"><div><h2>Olá, ${esc(driverSnapshot.driver.name)}</h2><div class="adminSub">Suas entregas de hoje</div></div><button id="driverLogout" class="secondary adminLogout">Sair</button></div><div class="driverScreenNew">${driverPremiumHeroHtml()}${driverDailySummaryHtml()}<div class="driverSectionHead"><h3>Entregas</h3><span>${(driverSnapshot?.assignments||[]).filter(a=>['assigned','route','arrived','problem'].includes(a.status)).length} ATIVAS</span></div>${(driverSnapshot.assignments||[]).map(driverOrderCard).join('')||'<div class="empty"><b>Nenhuma entrega atribuída.</b><span>Os pedidos aparecerão aqui quando o ADM enviar.</span></div>'}</div>`,true);$('#driverLogout').onclick=async()=>{await driverAppApi('logout').catch(()=>{});localStorage.removeItem(driverTokenKey);clearInternalResume();stopDriverAreaGps();openDriverLogin()};document.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));document.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));}catch(e){if(/expirado/i.test(e.message)){localStorage.removeItem(driverTokenKey);clearInternalResume();openDriverLogin()}else modal(`<div class="err">${esc(e.message)}</div>`,true)}}
-let automaticDriverSyncTimer=null,automaticDriverKnown=new Set();
-function startAutomaticDriverSync(){
-  if(automaticDriverSyncTimer)return;
-  automaticDriverKnown=new Set((driverSnapshot?.assignments||[]).map(a=>String(a.id)));
-  automaticDriverSyncTimer=setInterval(async()=>{
-    if(!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
-    try{
-      const fresh=await driverAppApi('snapshot');
-      const active=(fresh.assignments||[]).filter(a=>['assigned','route','arrived','problem'].includes(a.status));
-      const incoming=active.filter(a=>!automaticDriverKnown.has(String(a.id)));
-      (fresh.assignments||[]).forEach(a=>automaticDriverKnown.add(String(a.id)));
-      if(!incoming.length)return;
-      driverSnapshot=fresh;
-      playOrderSound();
-      const first=incoming[0].orders||{};
-      showAppToast(incoming.length===1?`Nova entrega #${first.order_number||'—'} recebida automaticamente.`:`${incoming.length} novas entregas recebidas automaticamente.`,'ok');
-      if('Notification' in window&&Notification.permission==='granted'){
-        try{new Notification('Nova rota • Caseirão',{body:incoming.length===1?`Pedido #${first.order_number||'—'} já está na sua tela.`:`${incoming.length} novos pedidos já estão nas suas rotas.`,tag:'caseirao-driver-auto-route',renotify:true,requireInteraction:true,vibrate:[250,120,350]})}catch{}
-      }
-      await renderDriverArea();
-    }catch(e){console.warn('Falha temporária na atualização automática do entregador:',e)}
-  },3500);
-}
-const automaticDriverUiObserver=new MutationObserver(()=>{
-  if(document.querySelector('.driverScreenNew')){
-    startAutomaticDriverSync();
-    document.querySelectorAll('.driverScreenNew .empty span').forEach(span=>{
-      if(span.textContent.includes('quando o ADM enviar'))span.textContent='Os novos pedidos aparecerão aqui automaticamente.';
-    });
-  }
-  document.querySelectorAll('.deliveryPanel h3').forEach(title=>{
-    if(title.textContent.trim()!=='Pedidos disponíveis')return;
-    title.textContent='Distribuição automática';
-    const panel=title.closest('.deliveryPanel'),empty=panel?.querySelector('.empty');
-    if(empty)empty.innerHTML='<b>✓ Integração ativa</b><span>Todos os pedidos de entrega entram automaticamente nas rotas do entregador.</span>';
-  });
-});
-automaticDriverUiObserver.observe(document.body,{childList:true,subtree:true});
-
 function driverOrderCard(a){
   const o=a.orders||{},money=o.payment==='Dinheiro',
         hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',
@@ -1645,9 +1606,6 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 <style id="urgent-operation-fixes-style">
 /* Totais financeiros sempre contidos nos três cartões, inclusive em celulares estreitos. */
 .deliveryNotificationBell,.deliveryNotificationLayer{display:none!important}
-.sheet.full:has(.adminHead) .addressBoxAdmin{color:#34495a!important}
-.sheet.full:has(.adminHead) .addressBoxAdmin b{color:#29343e!important;font-weight:950!important}
-.sheet.full:has(.adminHead) .orderItemPrice{color:#20252a!important;font-size:14px!important;font-weight:950!important}
 .sheet.full:has(.adminHead) .paymentMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;min-width:0}
 .sheet.full:has(.adminHead) .paymentMetric{min-width:0;overflow:hidden}
 .sheet.full:has(.adminHead) .paymentMetric b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,19px);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
