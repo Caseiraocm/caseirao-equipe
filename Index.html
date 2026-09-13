@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-loyalty-database-v12">
+<meta name="caseirao-build" content="2026-09-13-loyalty-participants-v13">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1863,6 +1863,35 @@ document.addEventListener('input',event=>{
     card.classList.toggle('hide',Boolean(term)&&!card.textContent.toLocaleLowerCase('pt-BR').includes(term));
   });
 },true);
+</script>
+<style id="loyalty-participants-v13-style">
+.loyaltyParticipantsButton{width:100%;min-height:58px;margin:12px 0 16px;border:0;border-radius:15px;background:linear-gradient(135deg,#22272d,#111418);color:#fff;font-size:15px;font-weight:950;box-shadow:0 9px 22px rgba(24,29,34,.16)}
+.loyaltyParticipantsLayer{position:fixed;z-index:2200;inset:0;background:rgba(15,18,22,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px)}
+.loyaltyParticipantsPanel{width:min(100%,720px);max-height:94vh;overflow:auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#f5f6f8;color:#20242a}
+.loyaltyParticipantsHead{display:flex;align-items:center;gap:10px;margin-bottom:12px}.loyaltyParticipantsHead>div{flex:1}.loyaltyParticipantsHead h2{margin:0;font-size:23px}.loyaltyParticipantsHead p{margin:4px 0 0;color:#6d747d;font-size:12px}.loyaltyParticipantsClose{width:44px;height:44px;border:1px solid #d7dce1;border-radius:12px;background:#fff;color:#252a30;font-size:22px}
+.loyaltyParticipantsSearch{width:100%;min-height:52px;margin-bottom:12px;padding:13px 15px;border:2px solid #d8dde2;border-radius:14px;background:#fff;color:#20242a;font-size:15px;outline:none}.loyaltyParticipantsSearch:focus{border-color:#e76620}
+.loyaltyParticipant{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:9px 0;padding:15px;border:1px solid #dfe3e7;border-radius:16px;background:#fff;box-shadow:0 4px 14px rgba(25,31,38,.045)}.loyaltyParticipant strong{display:block!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;font-size:17px;font-weight:950;line-height:1.3}.loyaltyParticipant span{display:block;margin-top:4px;color:#68717b;font-size:13px}.loyaltyParticipantCount{min-width:76px;padding:9px 10px;border-radius:12px;background:#fff0e7;color:#bd4712;text-align:center}.loyaltyParticipantCount b{display:block;font-size:20px}.loyaltyParticipantCount small{display:block;font-size:9px;font-weight:900;text-transform:uppercase}.loyaltyParticipantsEmpty{padding:30px 15px;text-align:center;color:#717981}
+</style>
+<script id="loyalty-participants-v13-ui">
+(()=>{
+  const phone=value=>typeof phoneMask==='function'?phoneMask(value):String(value||'');
+  async function openLoyaltyParticipants(){
+    document.querySelector('.loyaltyParticipantsLayer')?.remove();
+    const layer=document.createElement('div');layer.className='loyaltyParticipantsLayer';
+    layer.innerHTML='<section class="loyaltyParticipantsPanel"><div class="loyaltyParticipantsHead"><div><h2>Clientes participantes</h2><p>Nome, WhatsApp e quantidade contabilizada</p></div><button class="loyaltyParticipantsClose" aria-label="Fechar">×</button></div><div class="notice">Carregando participantes...</div></section>';
+    document.body.appendChild(layer);layer.querySelector('.loyaltyParticipantsClose').onclick=()=>layer.remove();layer.onclick=event=>{if(event.target===layer)layer.remove()};
+    try{
+      const result=await loyaltyAdmin('snapshot'),customers=(result.customers||[]).slice().sort((a,b)=>Number(b.order_count||0)-Number(a.order_count||0));
+      const panel=layer.querySelector('.loyaltyParticipantsPanel');
+      panel.innerHTML=`<div class="loyaltyParticipantsHead"><div><h2>Clientes participantes</h2><p>${customers.length} clientes participando da fidelidade</p></div><button class="loyaltyParticipantsClose" aria-label="Fechar">×</button></div><input class="loyaltyParticipantsSearch" placeholder="Buscar nome ou WhatsApp..." autocomplete="off"><div class="loyaltyParticipantsList">${customers.map(customer=>{const name=String(customer.display_name||customer.name||'Cliente sem nome').trim(),number=String(customer.phone||''),count=Number(customer.order_count||0),search=`${name} ${number}`.toLocaleLowerCase('pt-BR');return `<article class="loyaltyParticipant" data-participant data-search="${esc(search)}"><div><strong>${esc(name)}</strong><span>${esc(phone(number))}</span></div><div class="loyaltyParticipantCount"><b>${count}</b><small>${count===1?'pedido':'pedidos'}</small></div></article>`}).join('')||'<div class="loyaltyParticipantsEmpty">Nenhum cliente participante.</div>'}</div>`;
+      panel.querySelector('.loyaltyParticipantsClose').onclick=()=>layer.remove();
+      panel.querySelector('.loyaltyParticipantsSearch').addEventListener('input',event=>{const term=event.target.value.trim().toLocaleLowerCase('pt-BR');panel.querySelectorAll('[data-participant]').forEach(card=>card.classList.toggle('hide',Boolean(term)&&!card.dataset.search.includes(term)))});
+    }catch(error){layer.querySelector('.loyaltyParticipantsPanel').innerHTML=`<div class="loyaltyParticipantsHead"><div><h2>Clientes participantes</h2><p>Não foi possível carregar agora</p></div><button class="loyaltyParticipantsClose">×</button></div><div class="err">${esc(error.message||String(error))}</div>`;layer.querySelector('.loyaltyParticipantsClose').onclick=()=>layer.remove()}
+  }
+  const mountButton=()=>{if(typeof adminTab==='undefined'||adminTab!=='fidelidade')return;const box=document.querySelector('#admContent');if(!box||box.querySelector('.loyaltyParticipantsButton'))return;const button=document.createElement('button');button.type='button';button.className='loyaltyParticipantsButton';button.textContent='👥 VER CLIENTES PARTICIPANTES';button.onclick=openLoyaltyParticipants;box.prepend(button)};
+  new MutationObserver(()=>queueMicrotask(mountButton)).observe(document.body,{subtree:true,childList:true});
+  setInterval(mountButton,1000);
+})();
 </script>
 </body>
 </html>
