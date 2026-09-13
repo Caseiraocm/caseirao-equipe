@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-delivery-central-alert-v1">
+<meta name="caseirao-build" content="2026-09-13-delivery-central-alert-v2">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1447,6 +1447,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 (()=>{
   const historyKey='caseirao_delivery_alert_history';
   const originalToast=showAppToast;
+  let lastDeliveryMessage='',lastDeliveryMessageAt=0;
   const saveAlert=message=>{
     try{
       const history=JSON.parse(localStorage.getItem(historyKey)||'[]');
@@ -1468,9 +1469,62 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     layer.querySelector('[data-open-deliveries]').onclick=()=>{layer.remove();adminTab='entregas';renderAdmin()};
   };
   showAppToast=function(message,type='info'){
+    const isDelivery=/^Pedido #.+ entregue por .+\.$/i.test(String(message||''));
+    if(isDelivery&&String(message)===lastDeliveryMessage&&Date.now()-lastDeliveryMessageAt<15000)return;
+    if(isDelivery){lastDeliveryMessage=String(message);lastDeliveryMessageAt=Date.now()}
     originalToast(message,type);
-    if(/^Pedido #.+ entregue por .+\.$/i.test(String(message||'')))centralAlert(String(message));
+    if(isDelivery)centralAlert(String(message));
   };
+})();
+</script>
+<script>
+/* Detector redundante: acompanha Entregas e Pedidos para não depender de uma única resposta da API. */
+(()=>{
+  if(window.__caseiraoDeliveryFallback)return;
+  window.__caseiraoDeliveryFallback=true;
+  const seenKey='caseirao_seen_delivered_orders_v2';
+  let busy=false,initialized=false;
+  const seen=new Set();
+  try{JSON.parse(localStorage.getItem(seenKey)||'[]').forEach(id=>seen.add(String(id)))}catch{}
+  const persist=()=>{try{localStorage.setItem(seenKey,JSON.stringify([...seen].slice(-300)))}catch{}};
+  const assignmentRows=snapshot=>snapshot?.assignments||snapshot?.deliveries||snapshot?.data?.assignments||snapshot?.data?.deliveries||[];
+  const orderRows=snapshot=>snapshot?.orders||snapshot?.data?.orders||[];
+  const completedAssignment=a=>['delivered','returned','settled','entregue'].includes(String(a.status||'').toLowerCase())||Boolean(a.delivered_at);
+  const recent=date=>{const time=new Date(date||0).getTime();return Number.isFinite(time)&&time>0&&Date.now()-time<120000};
+  function emit(orderId,number,driverName,deliveredAt){
+    const id=String(orderId||number||'');
+    if(!id||seen.has(id))return;
+    seen.add(id);persist();
+    const message=`Pedido #${number||'—'} entregue por ${driverName||'entregador'}.`;
+    playOrderSound();
+    showAppToast(message,'ok');
+    if('Notification' in window&&Notification.permission==='granted'){
+      try{new Notification(`Entrega concluída • Pedido #${number||'—'}`,{body:message,tag:`caseirao-delivered-${id}`,renotify:true,requireInteraction:true,vibrate:[300,120,400],timestamp:new Date(deliveredAt||Date.now()).getTime()})}catch{}
+    }
+  }
+  async function poll(){
+    if(busy||!sessionStorage.getItem('caseirao_admin_pin'))return;
+    busy=true;
+    try{
+      let deliverySnapshot=null,adminSnapshot=null;
+      try{deliverySnapshot=await driverAppApi('admin_snapshot',{},true)}catch{}
+      try{adminSnapshot=await adminCall('snapshot')}catch{}
+      const completed=assignmentRows(deliverySnapshot).filter(completedAssignment);
+      const deliveredOrders=orderRows(adminSnapshot).filter(o=>String(o.status||'').toLowerCase()==='entregue');
+      if(!initialized&&seen.size===0){
+        completed.filter(a=>!recent(a.delivered_at)).forEach(a=>seen.add(String(a.order_id||a.orders?.id||a.id)));
+        deliveredOrders.filter(o=>!recent(o.updated_at||o.delivered_at)).forEach(o=>seen.add(String(o.id||o.order_number)));
+        persist();
+      }
+      completed.forEach(a=>{const o=a.orders||{};emit(a.order_id||o.id||a.id,o.order_number||a.order_number,a.drivers?.name||a.driver_name,a.delivered_at)});
+      deliveredOrders.forEach(o=>emit(o.id||o.order_number,o.order_number,'entregador',o.delivered_at||o.updated_at));
+      initialized=true;
+    }finally{busy=false}
+  }
+  poll();
+  setInterval(poll,4000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+  window.addEventListener('focus',poll);
 })();
 </script>
 <style id="urgent-operation-fixes-style">
