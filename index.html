@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-delivery-central-alert-v3">
+<meta name="caseirao-build" content="2026-09-13-delivery-notification-center-v4">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1452,6 +1452,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
       const history=JSON.parse(localStorage.getItem(historyKey)||'[]');
       history.unshift({message,time:new Date().toISOString(),read:false});
       localStorage.setItem(historyKey,JSON.stringify(history.slice(0,50)));
+      window.dispatchEvent(new CustomEvent('caseirao-delivery-alert-saved'));
     }catch{}
   };
   const centralAlert=message=>{
@@ -1529,6 +1530,48 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   setInterval(poll,4000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
   window.addEventListener('focus',poll);
+})();
+</script>
+<style id="delivery-notification-center-style">
+.deliveryNotificationBell{position:relative;display:grid;place-items:center;width:46px!important;height:46px!important;min-width:46px!important;padding:0!important;border:1px solid #d9dde2!important;border-radius:14px!important;background:#fff!important;color:#30363d!important;font-size:21px!important;box-shadow:0 4px 13px rgba(27,33,40,.06)}
+.deliveryNotificationBadge{position:absolute;right:-5px;top:-6px;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border:2px solid #fff;border-radius:999px;background:#d83b43;color:#fff;font-size:10px;font-weight:950;line-height:1}.deliveryNotificationBadge.hide{display:none!important}
+.deliveryNotificationLayer{position:fixed;z-index:1100;inset:0;display:flex;justify-content:flex-end;background:rgba(23,27,31,.62);backdrop-filter:blur(5px)}
+.deliveryNotificationPanel{width:min(94vw,440px);height:100%;overflow:auto;background:#f5f6f8;color:#20242a;box-shadow:-18px 0 55px rgba(0,0,0,.25);animation:deliveryPanelIn .2s ease-out}
+.deliveryNotificationPanelHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:18px;background:#fff;border-bottom:1px solid #dde1e5}.deliveryNotificationPanelHead>div{flex:1}.deliveryNotificationPanelHead h2{margin:0;font-size:21px}.deliveryNotificationPanelHead span{display:block;margin-top:3px;color:#707780;font-size:12px}.deliveryNotificationPanelHead button{width:42px;height:42px;border:1px solid #dce0e4;border-radius:12px;background:#f5f6f7;font-size:19px}
+.deliveryNotificationList{padding:13px}.deliveryNotificationItem{display:grid;grid-template-columns:43px minmax(0,1fr);gap:11px;margin-bottom:9px;padding:13px;border:1px solid #dce1e5;border-radius:15px;background:#fff;box-shadow:0 4px 14px rgba(24,30,37,.04)}.deliveryNotificationItem.unread{border-left:5px solid #1e9657;background:#f7fff9}.deliveryNotificationItemIcon{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:#e5f7ec;color:#197746;font-size:21px;font-weight:950}.deliveryNotificationItem b{display:block;font-size:14px;line-height:1.4}.deliveryNotificationItem time{display:block;margin-top:5px;color:#737b84;font-size:11px}.deliveryNotificationEmpty{padding:45px 20px;text-align:center;color:#747c85}.deliveryNotificationEmpty b{display:block;margin-bottom:5px;color:#343a40;font-size:17px}
+.deliveryNotificationFooter{padding:4px 13px 20px}.deliveryNotificationFooter button{width:100%;min-height:48px;border:1px solid #d9dde1;border-radius:13px;background:#fff;color:#545c65;font-weight:900}
+@keyframes deliveryPanelIn{from{transform:translateX(35px);opacity:.6}to{transform:none;opacity:1}}
+@media(max-width:430px){.deliveryNotificationBell{width:42px!important;height:42px!important;min-width:42px!important}.deliveryNotificationPanel{width:100%}}
+</style>
+<script>
+/* Caixa de notificações das entregas, com histórico e contador de não lidas. */
+(()=>{
+  const key='caseirao_delivery_alert_history';
+  const read=()=>{try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch{return[]}};
+  const write=value=>{try{localStorage.setItem(key,JSON.stringify(value.slice(0,50)))}catch{}};
+  const timeLabel=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?'Horário não informado':date.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})};
+  function updateBadge(){const badge=document.querySelector('.deliveryNotificationBadge');if(!badge)return;const count=read().filter(item=>!item.read).length,label=count>99?'99+':String(count);if(badge.textContent!==label)badge.textContent=label;badge.classList.toggle('hide',count===0);badge.closest('button')?.setAttribute('aria-label',count?`${count} notificações de entrega não lidas`:'Notificações de entrega')}
+  function openCenter(){
+    document.querySelector('.deliveryNotificationLayer')?.remove();
+    const history=read(),layer=document.createElement('div');
+    layer.className='deliveryNotificationLayer';
+    layer.innerHTML=`<aside class="deliveryNotificationPanel" role="dialog" aria-modal="true" aria-label="Notificações de entrega"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>${history.length?`${history.length} avisos guardados`:'Nenhum aviso recebido'}</span></div><button data-close-notifications aria-label="Fechar">×</button></div><div class="deliveryNotificationList">${history.length?history.map(item=>`<article class="deliveryNotificationItem ${item.read?'':'unread'}"><div class="deliveryNotificationItemIcon">✓</div><div><b>${esc(item.message||'Entrega concluída.')}</b><time>${esc(timeLabel(item.time))}</time></div></article>`).join(''):'<div class="deliveryNotificationEmpty"><b>Nenhuma entrega notificada</b>As confirmações dos entregadores aparecerão aqui.</div>'}</div>${history.length?'<div class="deliveryNotificationFooter"><button data-clear-read>Limpar avisos lidos</button></div>':''}</aside>`;
+    document.body.appendChild(layer);
+    write(history.map(item=>({...item,read:true})));updateBadge();
+    layer.querySelector('[data-close-notifications]').onclick=()=>layer.remove();
+    layer.onclick=event=>{if(event.target===layer)layer.remove()};
+    layer.querySelector('[data-clear-read]')?.addEventListener('click',()=>{write(read().filter(item=>!item.read));layer.remove();openCenter()});
+  }
+  function mount(){
+    if(!sessionStorage.getItem('caseirao_admin_pin'))return;
+    const head=document.querySelector('.sheet.full .adminHead');if(!head)return;
+    let bell=head.querySelector('.deliveryNotificationBell');
+    if(!bell){bell=document.createElement('button');bell.type='button';bell.className='deliveryNotificationBell';bell.innerHTML='🔔<span class="deliveryNotificationBadge hide">0</span>';bell.onclick=openCenter;const logout=head.querySelector('#adminLogout');logout?head.insertBefore(bell,logout):head.appendChild(bell)}
+    updateBadge();
+  }
+  const observer=new MutationObserver(mount);observer.observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('caseirao-delivery-alert-saved',()=>{mount();updateBadge()});
+  mount();
 })();
 </script>
 <style id="urgent-operation-fixes-style">
