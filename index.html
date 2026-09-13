@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-12-driver-one-tap-v2">
+<meta name="caseirao-build" content="2026-09-13-urgent-operation-fixes-v1">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1110,7 +1110,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   .sheet.full:has(.adminHead) .paymentMetric{min-height:78px;padding:42px 8px 11px}
   .sheet.full:has(.adminHead) .paymentMetric:before{left:10px;top:10px;width:24px;height:24px}
   .sheet.full:has(.adminHead) .paymentMetric span{font-size:10px;white-space:normal}
-  .sheet.full:has(.adminHead) .paymentMetric b{font-size:15px;margin-top:5px}
+  .sheet.full:has(.adminHead) .paymentMetric b{font-size:clamp(12px,3.35vw,15px);margin-top:5px;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.045em}
 }
 
 /* Contraste reforçado nas informações de Cliente e Pagamento dos pedidos. */
@@ -1263,8 +1263,29 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 (()=>{
   const deliveryLocks=new Set();
 
+  /* A API do entregador pode devolver o pedido completo dentro da atribuição,
+     na lista geral de pedidos ou os itens em uma lista separada. Unificamos
+     esses formatos para o motoboy sempre receber a especificação disponível. */
+  function driverFullOrder(assignment){
+    const compact=assignment?.orders||{};
+    const orderId=compact.id||assignment?.order_id;
+    const full=(driverSnapshot?.orders||[]).find(order=>String(order.id)===String(orderId))||{};
+    let directItems=assignment?.order_items||assignment?.items||compact.order_items||compact.items||full.order_items||full.items;
+    if(typeof directItems==='string'){try{directItems=JSON.parse(directItems)}catch{directItems=[]}}
+    const snapshotItems=(driverSnapshot?.order_items||[]).filter(item=>String(item.order_id)===String(orderId));
+    const rawItems=Array.isArray(directItems)?directItems:(snapshotItems.length?snapshotItems:[]);
+    const normalizedItems=rawItems.map(item=>({
+      ...item,
+      quantity:item.quantity??item.qty??1,
+      product_name:item.product_name??item.name??item.product?.name??'Item',
+      note:item.note??item.observation??item.notes??'',
+      order_item_addons:item.order_item_addons??item.addons??item.item_addons??[]
+    }));
+    return {...compact,...full,order_items:normalizedItems};
+  }
+
   driverOrderCard=function(a){
-    const o=a.orders||{},hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
+    const o=driverFullOrder(a),hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
     const finished=['delivered','returned','settled'].includes(a.status);
     const rawPhone=String(o.customer_phone||'').replace(/\D/g,'');
     const phoneHref=rawPhone?`tel:${rawPhone}`:'';
@@ -1410,6 +1431,25 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   };
 })();
 </script>
+<style id="urgent-operation-fixes-style">
+/* Totais financeiros sempre contidos nos três cartões, inclusive em celulares estreitos. */
+.sheet.full:has(.adminHead) .paymentMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;min-width:0}
+.sheet.full:has(.adminHead) .paymentMetric{min-width:0;overflow:hidden}
+.sheet.full:has(.adminHead) .paymentMetric b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,19px);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
+@media(max-width:380px){.sheet.full:has(.adminHead) .paymentMetrics{gap:5px!important}.sheet.full:has(.adminHead) .paymentMetric{padding-left:7px!important;padding-right:7px!important}.sheet.full:has(.adminHead) .paymentMetric b{font-size:12px}}
+</style>
+<script>
+/* Mantém o teclado aberto: a busca filtra os cartões existentes sem recriar a tela. */
+document.addEventListener('input',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement)||input.id!=='orderSearch')return;
+  event.stopImmediatePropagation();
+  const term=input.value.trim().toLocaleLowerCase('pt-BR');
+  const content=input.closest('#admContent')||document;
+  content.querySelectorAll('.orderDetailed').forEach(card=>{
+    card.classList.toggle('hide',Boolean(term)&&!card.textContent.toLocaleLowerCase('pt-BR').includes(term));
+  });
+},true);
+</script>
 </body>
 </html>
-
