@@ -125,6 +125,35 @@ const modalRoot=$('#modalRoot');
 async function api(slug,opts={}){const r=await fetch(FN+slug,{cache:'no-store',...opts});let j={};try{j=await r.json()}catch{}if(!r.ok||j.error)throw new Error(j.error||j.detail||('Erro '+r.status));return j}
 async function loyaltyStatus(trackingCodeOrPhone,phone){const customerPhone=phone||trackingCodeOrPhone;return api('loyalty-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:customerPhone})})}
 async function loyaltyAdmin(action='snapshot',payload={}){const pin=sessionStorage.getItem('caseirao_admin_pin')||'';return api('loyalty-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin,action,payload})})}
+/* A API de fidelidade de versões antigas pode devolver o nome com outra chave
+   ou somente o telefone. Unificamos os campos e recuperamos o nome pelo
+   histórico de pedidos, que é a fonte original informada pelo cliente. */
+function loyaltyCustomerName(customer){
+  const direct=[customer?.name,customer?.customer_name,customer?.full_name,customer?.customerName,customer?.nome]
+    .map(value=>String(value||'').trim())
+    .find(value=>value&&value.toLowerCase()!=='cliente');
+  if(direct)return direct;
+  const phone=digits(customer?.phone||customer?.customer_phone||customer?.whatsapp||'');
+  if(phone){
+    const order=[...(admin?.orders||[])]
+      .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))
+      .find(item=>digits(item.customer_phone||item.phone||'')===phone&&String(item.customer_name||item.name||'').trim());
+    if(order)return String(order.customer_name||order.name).trim();
+  }
+  return 'Nome não informado';
+}
+const loyaltyAdminRequest=loyaltyAdmin;
+loyaltyAdmin=async function(action='snapshot',payload={}){
+  const result=await loyaltyAdminRequest(action,payload);
+  if(action==='snapshot'&&Array.isArray(result?.customers)){
+    result.customers=result.customers.map(customer=>({
+      ...customer,
+      phone:customer.phone||customer.customer_phone||customer.whatsapp||'',
+      name:loyaltyCustomerName(customer)
+    }));
+  }
+  return result;
+};
 function loyaltyTarget(source){const raw=source?.orders_required??source?.target??source?.loyalty_orders_required??source?.rule?.orders_required??data?.settings?.loyalty_orders_required??10;return Math.max(1,Math.min(100,Math.round(Number(raw)||10)))}
 function loyaltyHtml(l){const target=loyaltyTarget(l),progress=Math.max(0,Math.min(target,Number(l?.progress||0))),balance=Number(l?.reward_balance||0),remaining=Number.isFinite(Number(l?.remaining))?Math.max(0,Number(l.remaining)):Math.max(0,target-progress);return `<div class="loyaltyBox ${balance>0?'loyaltyReward':''}"><div class="loyaltyTitle"><b>${balance>0?'🎁 Brinde liberado!':'🍔 Fidelidade Caseirão'}</b><span class="loyaltyCount">${progress}/${target} pedidos</span></div><div class="loyaltyTrack"><div class="loyaltyFill" style="width:${Math.min(100,(progress/target)*100)}%"></div></div><div class="mini">${balance>0?`Você possui ${balance} ${balance===1?'brinde disponível':'brindes disponíveis'}. Avise a equipe ao receber o pedido.`:`Faltam ${remaining} ${remaining===1?'pedido':'pedidos'} para ganhar um brinde.`}</div></div>`}
 async function loadLoyalty(boxId,trackingCode,phone){const box=$('#'+boxId);if(!box)return;try{const result=await loyaltyStatus(trackingCode,phone);if(box)box.innerHTML=loyaltyHtml(result.loyalty)}catch{if(box)box.innerHTML=''}}
