@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-loyalty-participants-v13">
+<meta name="caseirao-build" content="2026-09-13-admin-tabs-sync-v14">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1891,6 +1891,39 @@ document.addEventListener('input',event=>{
   const mountButton=()=>{if(typeof adminTab==='undefined'||adminTab!=='fidelidade')return;const box=document.querySelector('#admContent');if(!box||box.querySelector('.loyaltyParticipantsButton'))return;const button=document.createElement('button');button.type='button';button.className='loyaltyParticipantsButton';button.textContent='👥 VER CLIENTES PARTICIPANTES';button.onclick=openLoyaltyParticipants;box.prepend(button)};
   new MutationObserver(()=>queueMicrotask(mountButton)).observe(document.body,{subtree:true,childList:true});
   setInterval(mountButton,1000);
+})();
+</script>
+<style id="admin-tabs-sync-v14-style">
+.sheet.full:has(.adminHead)>.admbar button.on{background:linear-gradient(135deg,#f4772e,#ca4812)!important;border-color:#ca4812!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;visibility:visible!important;box-shadow:0 6px 15px rgba(203,72,18,.22)!important}
+</style>
+<script id="admin-tabs-sync-v14-ui">
+/* Mantém a aba ativa visível e alinhada ao conteúdo selecionado. */
+(()=>{
+  let requestedTab='';
+  function centerActiveAdminTab(smooth=false){
+    const bar=document.querySelector('.sheet.full>.admbar');
+    if(!bar)return;
+    const active=(requestedTab&&bar.querySelector(`[data-tab="${CSS.escape(requestedTab)}"]`))||bar.querySelector('button.on');
+    if(!active)return;
+    bar.querySelectorAll('button[data-tab]').forEach(button=>button.classList.toggle('on',button===active));
+    const left=Math.max(0,active.offsetLeft-(bar.clientWidth-active.offsetWidth)/2);
+    bar.scrollTo({left,behavior:smooth?'smooth':'auto'});
+    requestedTab=active.dataset.tab||requestedTab;
+  }
+  document.addEventListener('click',event=>{
+    const button=event.target.closest?.('.sheet.full>.admbar button[data-tab]');
+    if(!button)return;
+    requestedTab=button.dataset.tab||'';
+    setTimeout(()=>centerActiveAdminTab(true),20);
+    setTimeout(()=>centerActiveAdminTab(false),140);
+  },true);
+  const observer=new MutationObserver(()=>{
+    if(!document.querySelector('.sheet.full>.admbar'))return;
+    queueMicrotask(()=>centerActiveAdminTab(false));
+  });
+  observer.observe(document.body,{subtree:true,childList:true});
+  window.addEventListener('resize',()=>centerActiveAdminTab(false));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
 })();
 </script>
 </body>
