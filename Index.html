@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-loyalty-customer-name-v9">
+<meta name="caseirao-build" content="2026-09-13-loyalty-database-v12">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -125,6 +125,35 @@ const modalRoot=$('#modalRoot');
 async function api(slug,opts={}){const r=await fetch(FN+slug,{cache:'no-store',...opts});let j={};try{j=await r.json()}catch{}if(!r.ok||j.error)throw new Error(j.error||j.detail||('Erro '+r.status));return j}
 async function loyaltyStatus(trackingCodeOrPhone,phone){const customerPhone=phone||trackingCodeOrPhone;return api('loyalty-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:customerPhone})})}
 async function loyaltyAdmin(action='snapshot',payload={}){const pin=sessionStorage.getItem('caseirao_admin_pin')||'';return api('loyalty-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin,action,payload})})}
+/* A API de fidelidade de versões antigas pode devolver o nome com outra chave
+   ou somente o telefone. Unificamos os campos e recuperamos o nome pelo
+   histórico de pedidos, que é a fonte original informada pelo cliente. */
+function loyaltyCustomerName(customer){
+  const direct=[customer?.name,customer?.customer_name,customer?.full_name,customer?.customerName,customer?.nome]
+    .map(value=>String(value||'').trim())
+    .find(value=>value&&value.toLowerCase()!=='cliente');
+  if(direct)return direct;
+  const phone=digits(customer?.phone||customer?.customer_phone||customer?.whatsapp||'');
+  if(phone){
+    const order=[...(admin?.orders||[])]
+      .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))
+      .find(item=>digits(item.customer_phone||item.phone||'')===phone&&String(item.customer_name||item.name||'').trim());
+    if(order)return String(order.customer_name||order.name).trim();
+  }
+  return 'Nome não informado';
+}
+const loyaltyAdminRequest=loyaltyAdmin;
+loyaltyAdmin=async function(action='snapshot',payload={}){
+  const result=await loyaltyAdminRequest(action,payload);
+  if(action==='snapshot'&&Array.isArray(result?.customers)){
+    result.customers=result.customers.map(customer=>({
+      ...customer,
+      phone:customer.phone||customer.customer_phone||customer.whatsapp||'',
+      name:loyaltyCustomerName(customer)
+    }));
+  }
+  return result;
+};
 function loyaltyTarget(source){const raw=source?.orders_required??source?.target??source?.loyalty_orders_required??source?.rule?.orders_required??data?.settings?.loyalty_orders_required??10;return Math.max(1,Math.min(100,Math.round(Number(raw)||10)))}
 function loyaltyHtml(l){const target=loyaltyTarget(l),progress=Math.max(0,Math.min(target,Number(l?.progress||0))),balance=Number(l?.reward_balance||0),remaining=Number.isFinite(Number(l?.remaining))?Math.max(0,Number(l.remaining)):Math.max(0,target-progress);return `<div class="loyaltyBox ${balance>0?'loyaltyReward':''}"><div class="loyaltyTitle"><b>${balance>0?'🎁 Brinde liberado!':'🍔 Fidelidade Caseirão'}</b><span class="loyaltyCount">${progress}/${target} pedidos</span></div><div class="loyaltyTrack"><div class="loyaltyFill" style="width:${Math.min(100,(progress/target)*100)}%"></div></div><div class="mini">${balance>0?`Você possui ${balance} ${balance===1?'brinde disponível':'brindes disponíveis'}. Avise a equipe ao receber o pedido.`:`Faltam ${remaining} ${remaining===1?'pedido':'pedidos'} para ganhar um brinde.`}</div></div>`}
 async function loadLoyalty(boxId,trackingCode,phone){const box=$('#'+boxId);if(!box)return;try{const result=await loyaltyStatus(trackingCode,phone);if(box)box.innerHTML=loyaltyHtml(result.loyalty)}catch{if(box)box.innerHTML=''}}
@@ -403,9 +432,32 @@ function renderCash(box){const orders=cashOrders(),sales=orders.reduce((s,o)=>s+
 
 function renderManagement(box){const orders=(admin.orders||[]).filter(o=>o.status!=='cancelado'),sales=orders.reduce((s,o)=>s+Number(o.total||0),0),productCount={},addonCount={},hours={};orders.forEach(o=>{hours[String(new Date(o.created_at).getHours()).padStart(2,'0')+'h']=(hours[String(new Date(o.created_at).getHours()).padStart(2,'0')+'h']||0)+1;(o.order_items||[]).forEach(i=>{productCount[i.product_name||'Item']=(productCount[i.product_name||'Item']||0)+Number(i.quantity||1);(i.order_item_addons||[]).forEach(a=>addonCount[a.addon_name||'Adicional']=(addonCount[a.addon_name||'Adicional']||0)+Number(i.quantity||1))})});const rank=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,5);box.innerHTML=`<div class="financeGrid"><div class="financeCard"><span>Vendas carregadas</span><b>${fmt(sales)}</b></div><div class="financeCard"><span>Pedidos válidos</span><b>${orders.length}</b></div><div class="financeCard"><span>Ticket médio</span><b>${fmt(orders.length?sales/orders.length:0)}</b></div></div><div class="sectionTitle">Produtos mais vendidos</div><div class="reportBreak">${rank(productCount).map(([n,q])=>`<div class="rankRow"><b>${esc(n)}</b><span>${q} un.</span></div>`).join('')||'<div class="mini">Sem dados.</div>'}</div><div class="sectionTitle">Adicionais mais escolhidos</div><div class="reportBreak">${rank(addonCount).map(([n,q])=>`<div class="rankRow"><b>${esc(n)}</b><span>${q} un.</span></div>`).join('')||'<div class="mini">Sem dados.</div>'}</div><div class="sectionTitle">Horários com mais pedidos</div><div class="reportBreak">${rank(hours).map(([n,q])=>`<div class="rankRow"><b>${esc(n)}</b><span>${q} pedidos</span></div>`).join('')||'<div class="mini">Sem dados.</div>'}</div>`}
 
-async function renderLoyaltyAdmin(box){box.innerHTML='<div class="notice">Carregando clientes...</div>';try{const result=await loyaltyAdmin('snapshot'),customers=result.customers||[];const loyaltyPhoneKey=value=>String(value||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');const loyaltyNamesByPhone=new Map();(admin?.orders||[]).slice().sort((a,b)=>Date.parse(a.created_at||0)-Date.parse(b.created_at||0)).forEach(order=>{const key=loyaltyPhoneKey(order.customer_phone),name=String(order.customer_name||'').trim();if(key&&name)loyaltyNamesByPhone.set(key,name)});const loyaltyCustomerName=customer=>String(customer?.name||customer?.customer_name||customer?.full_name||loyaltyNamesByPhone.get(loyaltyPhoneKey(customer?.phone||customer?.customer_phone))||'Cliente sem nome').trim();let target=loyaltyTarget(result);const available=customers.reduce((sum,c)=>sum+Math.max(0,Number(c.loyalty_rewards_earned||0)-Number(c.loyalty_rewards_redeemed||0)),0);const draw=(query='')=>{const q=query.toLowerCase(),list=customers.filter(c=>!q||`${loyaltyCustomerName(c)} ${c.phone||c.customer_phone||''}`.toLowerCase().includes(q)).sort((a,b)=>{const ab=Number(a.loyalty_rewards_earned||0)-Number(a.loyalty_rewards_redeemed||0),bb=Number(b.loyalty_rewards_earned||0)-Number(b.loyalty_rewards_redeemed||0);return bb-ab||Number(b.order_count||0)-Number(a.order_count||0)});box.innerHTML=`<div class="financeGrid"><div class="financeCard"><span>Clientes cadastrados</span><b>${customers.length}</b></div><div class="financeCard"><span>Brindes disponíveis</span><b>${available}</b></div><div class="financeCard"><span>Regra atual</span><b>${target} pedidos</b></div></div><div class="loyaltyCard"><div class="sectionTitle" style="margin-top:0">Regra da fidelidade</div><div class="operationHint">Escolha quantos lanches/pedidos o cliente precisa completar para ganhar 1 brinde. A alteração vale para todos os clientes.</div><div class="row"><div class="field"><label>Quantidade para ganhar o brinde</label><input id="loyaltyTarget" class="in" type="number" inputmode="numeric" min="1" max="100" step="1" value="${target}"></div><div class="field" style="display:flex;align-items:flex-end"><button id="saveLoyaltyRule" class="primary">SALVAR REGRA</button></div></div><div id="loyaltyRuleFeedback"></div></div><div class="operationHint">Cada pedido soma automaticamente pelo WhatsApp. Ao completar ${target}, o cliente ganha um brinde.</div><input id="loyaltySearch" class="in" placeholder="Buscar cliente ou WhatsApp..." value="${esc(query)}">${list.map(c=>{const count=Number(c.order_count||0),earned=Number(c.loyalty_rewards_earned||0),redeemed=Number(c.loyalty_rewards_redeemed||0),balance=Math.max(0,earned-redeemed),cycle=count%target,progress=cycle===0&&count>0?target:cycle;return `<div class="loyaltyCard"><div class="loyaltyCardTop"><div class="grow"><b>${esc(loyaltyCustomerName(c))}</b><div class="mini">${esc(phoneMask(c.phone||c.customer_phone))} • ${count} ${count===1?'pedido':'pedidos'}</div></div>${balance>0?`<span class="rewardBadge">🎁 ${balance} disponível</span>`:`<span class="loyaltyCount">${progress}/${target}</span>`}</div><div class="loyaltyTrack"><div class="loyaltyFill" style="width:${Math.min(100,(progress/target)*100)}%"></div></div>${balance>0?`<div class="loyaltyActions"><button class="primary" data-redeem="${c.id}" data-name="${esc(loyaltyCustomerName(c))}">MARCAR BRINDE ENTREGUE</button></div>`:`<div class="mini">Faltam ${cycle===0&&count>0?target:target-cycle} pedidos para o próximo brinde.</div>`}</div>`}).join('')||'<div class="empty">Nenhum cliente encontrado.</div>'}`;$('#loyaltySearch').oninput=e=>draw(e.target.value.trim());$('#saveLoyaltyRule').onclick=async()=>{const btn=$('#saveLoyaltyRule'),feedback=$('#loyaltyRuleFeedback'),value=Math.round(Number($('#loyaltyTarget').value));try{if(!Number.isInteger(value)||value<1||value>100)throw new Error('Informe uma quantidade entre 1 e 100.');btn.disabled=true;btn.textContent='SALVANDO...';const saved=await loyaltyAdmin('save_rule',{orders_required:value});target=loyaltyTarget(saved?.rule||saved);data.settings.loyalty_orders_required=target;if(admin?.settings)admin.settings.loyalty_orders_required=target;feedback.innerHTML='<div class="success" style="margin-top:10px">Regra salva com sucesso.</div>';setTimeout(()=>draw(query),650)}catch(e){feedback.innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message||String(e))}</div>`;btn.disabled=false;btn.textContent='TENTAR SALVAR NOVAMENTE'}};document.querySelectorAll('[data-redeem]').forEach(btn=>btn.onclick=async()=>{if(!confirm(`Confirmar que o brinde de ${btn.dataset.name} foi entregue?`))return;try{btn.disabled=true;await loyaltyAdmin('redeem',{customer_id:btn.dataset.redeem});await renderLoyaltyAdmin(box)}catch(e){btn.disabled=false;alert(e.message||String(e))}})};draw()}catch(e){box.innerHTML=`<div class="err">${esc(e.message||String(e))}</div>`}}
+async function renderLoyaltyAdmin(box){box.innerHTML='<div class="notice">Carregando clientes...</div>';try{const result=await loyaltyAdmin('snapshot'),customers=result.customers||[];let target=loyaltyTarget(result);const available=customers.reduce((sum,c)=>sum+Math.max(0,Number(c.loyalty_rewards_earned||0)-Number(c.loyalty_rewards_redeemed||0)),0);const draw=(query='')=>{const q=query.toLowerCase(),list=customers.filter(c=>!q||`${c.name} ${c.phone}`.toLowerCase().includes(q)).sort((a,b)=>{const ab=Number(a.loyalty_rewards_earned||0)-Number(a.loyalty_rewards_redeemed||0),bb=Number(b.loyalty_rewards_earned||0)-Number(b.loyalty_rewards_redeemed||0);return bb-ab||Number(b.order_count||0)-Number(a.order_count||0)});box.innerHTML=`<div class="financeGrid"><div class="financeCard"><span>Clientes cadastrados</span><b>${customers.length}</b></div><div class="financeCard"><span>Brindes disponíveis</span><b>${available}</b></div><div class="financeCard"><span>Regra atual</span><b>${target} pedidos</b></div></div><div class="loyaltyCard"><div class="sectionTitle" style="margin-top:0">Regra da fidelidade</div><div class="operationHint">Escolha quantos lanches/pedidos o cliente precisa completar para ganhar 1 brinde. A alteração vale para todos os clientes.</div><div class="row"><div class="field"><label>Quantidade para ganhar o brinde</label><input id="loyaltyTarget" class="in" type="number" inputmode="numeric" min="1" max="100" step="1" value="${target}"></div><div class="field" style="display:flex;align-items:flex-end"><button id="saveLoyaltyRule" class="primary">SALVAR REGRA</button></div></div><div id="loyaltyRuleFeedback"></div></div><div class="operationHint">Cada pedido soma automaticamente pelo WhatsApp. Ao completar ${target}, o cliente ganha um brinde.</div><input id="loyaltySearch" class="in" placeholder="Buscar cliente ou WhatsApp..." value="${esc(query)}">${list.map(c=>{const count=Number(c.order_count||0),earned=Number(c.loyalty_rewards_earned||0),redeemed=Number(c.loyalty_rewards_redeemed||0),balance=Math.max(0,earned-redeemed),cycle=count%target,progress=cycle===0&&count>0?target:cycle;return `<div class="loyaltyCard"><div class="loyaltyCardTop"><div class="grow"><b>${esc(c.name)}</b><div class="mini">${esc(phoneMask(c.phone))} • ${count} ${count===1?'pedido':'pedidos'}</div></div>${balance>0?`<span class="rewardBadge">🎁 ${balance} disponível</span>`:`<span class="loyaltyCount">${progress}/${target}</span>`}</div><div class="loyaltyTrack"><div class="loyaltyFill" style="width:${Math.min(100,(progress/target)*100)}%"></div></div>${balance>0?`<div class="loyaltyActions"><button class="primary" data-redeem="${c.id}" data-name="${esc(c.name)}">MARCAR BRINDE ENTREGUE</button></div>`:`<div class="mini">Faltam ${cycle===0&&count>0?target:target-cycle} pedidos para o próximo brinde.</div>`}</div>`}).join('')||'<div class="empty">Nenhum cliente encontrado.</div>'}`;$('#loyaltySearch').oninput=e=>draw(e.target.value.trim());$('#saveLoyaltyRule').onclick=async()=>{const btn=$('#saveLoyaltyRule'),feedback=$('#loyaltyRuleFeedback'),value=Math.round(Number($('#loyaltyTarget').value));try{if(!Number.isInteger(value)||value<1||value>100)throw new Error('Informe uma quantidade entre 1 e 100.');btn.disabled=true;btn.textContent='SALVANDO...';const saved=await loyaltyAdmin('save_rule',{orders_required:value});target=loyaltyTarget(saved?.rule||saved);data.settings.loyalty_orders_required=target;if(admin?.settings)admin.settings.loyalty_orders_required=target;feedback.innerHTML='<div class="success" style="margin-top:10px">Regra salva com sucesso.</div>';setTimeout(()=>draw(query),650)}catch(e){feedback.innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message||String(e))}</div>`;btn.disabled=false;btn.textContent='TENTAR SALVAR NOVAMENTE'}};document.querySelectorAll('[data-redeem]').forEach(btn=>btn.onclick=async()=>{if(!confirm(`Confirmar que o brinde de ${btn.dataset.name} foi entregue?`))return;try{btn.disabled=true;await loyaltyAdmin('redeem',{customer_id:btn.dataset.redeem});await renderLoyaltyAdmin(box)}catch(e){btn.disabled=false;alert(e.message||String(e))}})};draw()}catch(e){box.innerHTML=`<div class="err">${esc(e.message||String(e))}</div>`}}
 
 function editAddon(a){a=a||{name:'',price:'',active:true};modal(`<div class="sheeth"><div><h2>${a.id?'Editar adicional':'Novo adicional'}</h2><div class="adminSub">Cadastro seguro</div></div><button class="x" data-close>×</button></div><div class="field"><label>Nome *</label><input id="aName" class="in" value="${esc(a.name)}" placeholder="Ex.: Bacon"></div><div class="field"><label>Preço *</label><input id="aPrice" class="in" inputmode="decimal" value="${esc(a.price)}" placeholder="0,00"></div><label class="addon"><input id="aActive" type="checkbox" ${a.active?'checked':''}><span>Disponível para venda</span></label><div id="addonError"></div><div class="twoBtns"><button id="saveA" class="primary">SALVAR ADICIONAL</button>${a.id?'<button id="delA" class="secondary danger">Excluir</button>':'<button class="secondary" data-close>Cancelar</button>'}</div>`);bindClose();$('#saveA').onclick=async()=>{const btn=$('#saveA'),name=$('#aName').value.trim(),raw=$('#aPrice').value.trim(),price=num(raw),error=$('#addonError');try{error.innerHTML='';if(name.length<2)throw new Error('Informe o nome do adicional.');if(raw===''||price<0)throw new Error('Informe um preço válido.');btn.disabled=true;btn.textContent='SALVANDO...';await adminCall('upsert_addon',{id:a.id||null,name,price,active:$('#aActive').checked});admin=await adminCall('snapshot');adminTab='adicionais';renderAdmin()}catch(e){error.innerHTML=`<div class="err" style="margin-bottom:10px">${esc(e.message||String(e))}</div>`;btn.disabled=false;btn.textContent='TENTAR SALVAR NOVAMENTE'}};if($('#delA'))$('#delA').onclick=async()=>{if(!confirm(`Excluir o adicional “${a.name}”?`))return;try{$('#delA').disabled=true;await adminCall('delete_addon',{id:a.id});admin=await adminCall('snapshot');adminTab='adicionais';renderAdmin()}catch(e){alert(e.message||String(e));$('#delA').disabled=false}}}
+
+/* Correção definitiva da fidelidade: nome e telefone são escritos juntos no
+   mesmo bloco visível de cada cartão. */
+const renderLoyaltyAdminWithNames=renderLoyaltyAdmin;
+renderLoyaltyAdmin=async function(box){
+  await renderLoyaltyAdminWithNames(box);
+  const reveal=()=>{
+    box.querySelectorAll('.loyaltyCardTop .grow').forEach(grow=>{
+      const originalName=grow.querySelector('b');
+      const details=grow.querySelector('.mini');
+      if(!details||details.dataset.customerIdentity==='ready')return;
+      const name=String(originalName?.textContent||'').trim()||'Nome não cadastrado';
+      const phoneAndOrders=String(details.textContent||'').trim();
+      details.dataset.customerIdentity='ready';
+      details.innerHTML=`<strong style="display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:18px!important;font-weight:950!important;line-height:1.25!important">${esc(name)}</strong><span style="display:block!important;color:#626b75!important;-webkit-text-fill-color:#626b75!important;font-size:13px!important">${esc(phoneAndOrders)}</span>`;
+      if(originalName)originalName.remove();
+    });
+  };
+  reveal();
+  box._loyaltyNameObserver?.disconnect();
+  box._loyaltyNameObserver=new MutationObserver(reveal);
+  box._loyaltyNameObserver.observe(box,{childList:true,subtree:true});
+};
 
 /* CASEIRAO EXPERIENCE V1 — navegação, carrinho, instalação e avisos */
 let installPrompt=null,apiPending=0,apiTimer=null,lastCartCount=0;
@@ -749,7 +801,7 @@ $('#teamEmployeeBtn').onclick=()=>employeeToken()?openEmployeePanel():openEmploy
 $('#teamAdminBtn').onclick=openAdmin;
 $('#teamInstallBtn').onclick=installApp;
 catalog();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260913-1508',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
@@ -826,6 +878,45 @@ function driverDailySummaryHtml(){
   return `<section class="driverDaySummary"><div class="driverDaySummaryHead"><div><h3>🛵 Resumo de hoje</h3><div class="mini">${completed.length} ${completed.length===1?'entrega concluída':'entregas concluídas'}</div></div><strong>${fmt(total)}</strong></div>${completed.length?`<div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} × ${fmt(h.fee)}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div><div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>`:'<div class="mini" style="margin-top:10px">Nenhuma entrega concluída ainda.</div>'}</section>`;
 }
 async function renderDriverArea(){try{driverSnapshot=await driverAppApi('snapshot');setInternalResume('driver');modal(`<div class="sheeth"><div><h2>Olá, ${esc(driverSnapshot.driver.name)}</h2><div class="adminSub">Suas entregas de hoje</div></div><button id="driverLogout" class="secondary adminLogout">Sair</button></div><div class="driverScreenNew">${driverPremiumHeroHtml()}${driverDailySummaryHtml()}<div class="driverSectionHead"><h3>Entregas</h3><span>${(driverSnapshot?.assignments||[]).filter(a=>['assigned','route','arrived','problem'].includes(a.status)).length} ATIVAS</span></div>${(driverSnapshot.assignments||[]).map(driverOrderCard).join('')||'<div class="empty"><b>Nenhuma entrega atribuída.</b><span>Os pedidos aparecerão aqui quando o ADM enviar.</span></div>'}</div>`,true);$('#driverLogout').onclick=async()=>{await driverAppApi('logout').catch(()=>{});localStorage.removeItem(driverTokenKey);clearInternalResume();stopDriverAreaGps();openDriverLogin()};document.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));document.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));}catch(e){if(/expirado/i.test(e.message)){localStorage.removeItem(driverTokenKey);clearInternalResume();openDriverLogin()}else modal(`<div class="err">${esc(e.message)}</div>`,true)}}
+let automaticDriverSyncTimer=null,automaticDriverKnown=new Set();
+function startAutomaticDriverSync(){
+  if(automaticDriverSyncTimer)return;
+  automaticDriverKnown=new Set((driverSnapshot?.assignments||[]).map(a=>String(a.id)));
+  automaticDriverSyncTimer=setInterval(async()=>{
+    if(!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
+    try{
+      const fresh=await driverAppApi('snapshot');
+      const active=(fresh.assignments||[]).filter(a=>['assigned','route','arrived','problem'].includes(a.status));
+      const incoming=active.filter(a=>!automaticDriverKnown.has(String(a.id)));
+      (fresh.assignments||[]).forEach(a=>automaticDriverKnown.add(String(a.id)));
+      if(!incoming.length)return;
+      driverSnapshot=fresh;
+      playOrderSound();
+      const first=incoming[0].orders||{};
+      showAppToast(incoming.length===1?`Nova entrega #${first.order_number||'—'} recebida automaticamente.`:`${incoming.length} novas entregas recebidas automaticamente.`,'ok');
+      if('Notification' in window&&Notification.permission==='granted'){
+        try{new Notification('Nova rota • Caseirão',{body:incoming.length===1?`Pedido #${first.order_number||'—'} já está na sua tela.`:`${incoming.length} novos pedidos já estão nas suas rotas.`,tag:'caseirao-driver-auto-route',renotify:true,requireInteraction:true,vibrate:[250,120,350]})}catch{}
+      }
+      await renderDriverArea();
+    }catch(e){console.warn('Falha temporária na atualização automática do entregador:',e)}
+  },3500);
+}
+const automaticDriverUiObserver=new MutationObserver(()=>{
+  if(document.querySelector('.driverScreenNew')){
+    startAutomaticDriverSync();
+    document.querySelectorAll('.driverScreenNew .empty span').forEach(span=>{
+      if(span.textContent.includes('quando o ADM enviar'))span.textContent='Os novos pedidos aparecerão aqui automaticamente.';
+    });
+  }
+  document.querySelectorAll('.deliveryPanel h3').forEach(title=>{
+    if(title.textContent.trim()!=='Pedidos disponíveis')return;
+    title.textContent='Distribuição automática';
+    const panel=title.closest('.deliveryPanel'),empty=panel?.querySelector('.empty');
+    if(empty)empty.innerHTML='<b>✓ Integração ativa</b><span>Todos os pedidos de entrega entram automaticamente nas rotas do entregador.</span>';
+  });
+});
+automaticDriverUiObserver.observe(document.body,{childList:true,subtree:true});
+
 function driverOrderCard(a){
   const o=a.orders||{},money=o.payment==='Dinheiro',
         hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',
@@ -1085,6 +1176,10 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 .sheet.full:has(.adminHead) #admContent>.operationHint{margin:8px 0 14px;padding:12px 14px;font-size:12px}
 .sheet.full:has(.adminHead) .search,.sheet.full:has(.adminHead) .in,.sheet.full:has(.adminHead) .sel{min-height:50px;border-radius:14px}
 .sheet.full:has(.adminHead) .primary{min-height:50px;border-radius:14px;letter-spacing:-.01em}
+.sheet.full:has(.adminHead) .loyaltyCard{background:#fff;border-color:#dfe3e7;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}
+.sheet.full:has(.adminHead) .loyaltyCardTop .grow>b{color:#171a1e!important;font-size:17px;font-weight:950;line-height:1.25}
+.sheet.full:has(.adminHead) .loyaltyCard .mini{color:#666f79!important;font-size:13px;line-height:1.45}
+.sheet.full:has(.adminHead) .loyaltyCard .loyaltyTrack{background:#e2e6e9}
 .sheet.full:has(.adminHead) .proFilters{gap:7px;padding:3px 0 8px;scrollbar-width:none}
 .sheet.full:has(.adminHead) .proFilters::-webkit-scrollbar{display:none}
 .sheet.full:has(.adminHead) .proFilters button{min-height:42px;padding:9px 14px;border-radius:12px;background:#fff;color:#626a73;border-color:#dfe3e7}
@@ -1606,6 +1701,9 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 <style id="urgent-operation-fixes-style">
 /* Totais financeiros sempre contidos nos três cartões, inclusive em celulares estreitos. */
 .deliveryNotificationBell,.deliveryNotificationLayer{display:none!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin{color:#34495a!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin b{color:#29343e!important;font-weight:950!important}
+.sheet.full:has(.adminHead) .orderItemPrice{color:#20252a!important;font-size:14px!important;font-weight:950!important}
 .sheet.full:has(.adminHead) .paymentMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;min-width:0}
 .sheet.full:has(.adminHead) .paymentMetric{min-width:0;overflow:hidden}
 .sheet.full:has(.adminHead) .paymentMetric b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,19px);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
@@ -1620,6 +1718,148 @@ document.addEventListener('input',event=>{
   const term=input.value.trim().toLocaleLowerCase('pt-BR');
   const content=input.closest('#admContent')||document;
   content.querySelectorAll('.orderDetailed').forEach(card=>{
+    card.classList.toggle('hide',Boolean(term)&&!card.textContent.toLocaleLowerCase('pt-BR').includes(term));
+  });
+},true);
+</script>
+<style id="caseirao-final-professional-upgrade">
+/* Upgrade final: central executiva, SLA, exportação e saúde da operação. */
+.opsConnection{position:fixed;z-index:1200;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #f0b9b9;border-radius:999px;background:#fff1f1;color:#9b292d;font-size:11px;font-weight:950;box-shadow:0 8px 25px rgba(0,0,0,.16)}
+.opsSync{display:inline-flex;align-items:center;gap:6px;margin-top:6px;color:#68717a;font-size:11px;font-weight:750}.opsSync:before{content:'';width:7px;height:7px;border-radius:50%;background:#27a45d;box-shadow:0 0 0 3px #dcf5e7}.opsSync.busy:before{background:#e7862f;box-shadow:0 0 0 3px #fff0df}
+.commandHero{padding:19px;border:1px solid #dfe3e7;border-radius:20px;background:linear-gradient(135deg,#24292f,#171a1e);color:#fff;box-shadow:0 12px 28px rgba(24,29,34,.16)}.commandHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.commandHero h2{margin:0;font-size:24px;letter-spacing:-.04em}.commandHero p{margin:5px 0 0;color:#b9c0c8;font-size:12px}.commandLive{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #40624d;border-radius:999px;background:#21392a;color:#91e5b2;font-size:10px;font-weight:950}.commandLive:before{content:'';width:7px;height:7px;border-radius:50%;background:#42d77c;animation:opsPulse 1.5s infinite}.commandKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}.commandKpi{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.055)}.commandKpi span{display:block;color:#b8bec6;font-size:10px;font-weight:800}.commandKpi b{display:block;margin-top:6px;font-size:21px;letter-spacing:-.035em}.commandGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:11px;margin-top:11px}.commandPanel{padding:16px;border:1px solid #dfe3e7;border-radius:18px;background:#fff;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}.commandPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.commandPanelHead b{font-size:15px}.commandPanelHead small{color:#747c85;font-size:10px;font-weight:850}.commandQueue{display:grid;gap:7px}.commandOrder{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border:1px solid #e4e7ea;border-radius:13px;background:#fafbfc}.commandOrder.critical{border-color:#efc1c3;background:#fff6f6}.commandOrder strong{font-size:13px}.commandOrder span{display:block;margin-top:2px;color:#6e7680;font-size:10px}.commandAge{min-width:52px;padding:6px 7px;border-radius:9px;background:#edf0f2;color:#525a63;text-align:center;font-size:10px;font-weight:950}.critical .commandAge{background:#c83b43;color:#fff}.commandEmpty{padding:22px 8px;text-align:center;color:#747c85;font-size:12px}.commandBars{display:grid;gap:11px}.commandBarTop{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:11px}.commandTrack{height:7px;overflow:hidden;border-radius:99px;background:#eceff1}.commandFill{height:100%;border-radius:99px;background:linear-gradient(90deg,#e66020,#f29a54)}.commandRank{display:grid;grid-template-columns:25px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:12px}.commandRank:last-child{border:0}.commandRank i{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff0e7;color:#bd480f;font-style:normal;font-size:10px;font-weight:950}.commandActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px}.commandActions button{min-height:47px;border:1px solid #dce1e5;border-radius:13px;background:#fff;color:#343a40;font-size:11px;font-weight:950}.commandActions button:first-child{border-color:#df6a32;background:#e35b1a;color:#fff}.slaStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:9px 0 12px}.slaCard{padding:10px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;color:#333a42}.slaCard span{display:block;color:#737b84;font-size:9px;font-weight:900;text-transform:uppercase}.slaCard b{display:block;margin-top:5px;font-size:16px}.slaCard.danger{border-color:#efc5c7;background:#fff7f7}.slaCard.danger b{color:#b73239}.opsTools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.opsTools button,.opsContactRow button,.opsContactRow a{min-height:43px;border:1px solid #dce1e5;border-radius:12px;background:#fff;color:#4a525b;font-size:11px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center}.opsContactRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.opsContactRow a{border-color:#bfe3cc;background:#f1fbf5;color:#197343}.opsSlaBadge{display:inline-flex;align-items:center;margin:5px 0 0;padding:4px 7px;border-radius:8px;background:#edf0f2;color:#59616a;font-size:9px;font-weight:950}.opsSlaBadge.warn{background:#fff0df;color:#a65313}.opsSlaBadge.late{background:#ffe5e6;color:#ad2d34}.opsSlaBadge.ok{background:#e4f6eb;color:#197244}
+@keyframes opsPulse{50%{opacity:.35;transform:scale(.8)}}
+@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:1fr}.slaStrip{grid-template-columns:1fr 1fr}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
+</style>
+<script>
+/* CASEIRÃO PROFESSIONAL FINAL — inteligência operacional sem alterar contratos do backend. */
+(()=>{
+  const finalBuild='2026.09.13-final';
+  let lastSyncAt=new Date(),syncTimer=null;
+  const finalShiftOrders=()=>typeof shiftOrders==='function'?shiftOrders():(admin?.orders||[]).filter(o=>localDay(o.created_at)===todayKey()&&!o.archived_at);
+  const liveOrders=()=>finalShiftOrders().filter(o=>!['entregue','cancelado'].includes(String(o.status||'')));
+  const money=n=>fmt(Number(n||0));
+  const minutes=o=>Math.max(0,Math.floor((Date.now()-new Date(o.created_at).getTime())/60000));
+  const csvCell=value=>`"${String(value??'').replace(/"/g,'""')}"`;
+  const download=(name,content,type='text/plain;charset=utf-8')=>{const blob=new Blob(['\ufeff',content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+  const statusName=status=>statusLabel?.[status]||status||'Não informado';
+
+  function syncLabel(){
+    const head=document.querySelector('.sheet.full .adminHead .grow');if(!head)return;
+    let label=head.querySelector('.opsSync');if(!label){label=document.createElement('div');label.className='opsSync';head.appendChild(label)}
+    label.textContent=`Sincronizado às ${lastSyncAt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+  }
+  function connectionState(){
+    document.querySelector('.opsConnection')?.remove();
+    if(navigator.onLine)return;
+    const el=document.createElement('div');el.className='opsConnection';el.innerHTML='● SEM INTERNET — os dados podem não atualizar';document.body.appendChild(el);
+  }
+  window.addEventListener('online',()=>{connectionState();showAppToast('Internet restabelecida. Atualizando a central…','ok');safeRefresh()});
+  window.addEventListener('offline',connectionState);connectionState();
+
+  function exportOrdersCsv(){
+    const rows=finalShiftOrders(),header=['Pedido','Data','Cliente','Telefone','Tipo','Bairro','Pagamento','Status','Subtotal','Entrega','Desconto','Total','Itens'];
+    const lines=rows.map(o=>[o.order_number,new Date(o.created_at).toLocaleString('pt-BR'),o.customer_name,o.customer_phone,orderTypeLabel(o.type),o.neighborhood_name||'',paymentLabel(o.payment),statusName(o.status),Number(o.subtotal||0).toFixed(2),Number(o.delivery_fee||0).toFixed(2),Number(o.discount||0).toFixed(2),Number(o.total||0).toFixed(2),(o.order_items||[]).map(i=>`${i.quantity||1}x ${i.product_name||'Item'}`).join(' | ')].map(csvCell).join(';'));
+    download(`caseirao-pedidos-${todayKey()}.csv`,[header.map(csvCell).join(';'),...lines].join('\n'),'text/csv;charset=utf-8');showAppToast('Relatório CSV gerado.','ok');
+  }
+  function backupOperational(){
+    const payload={gerado_em:new Date().toISOString(),versao:finalBuild,settings:admin?.settings||{},orders:finalShiftOrders(),products:admin?.products||[],neighborhoods:admin?.neighborhoods||[],addons:admin?.addons||[],coupons:admin?.coupons||[]};
+    download(`caseirao-backup-${todayKey()}.json`,JSON.stringify(payload,null,2),'application/json;charset=utf-8');showAppToast('Backup operacional gerado.','ok');
+  }
+  function productRanking(orders){
+    const map=new Map();orders.filter(o=>o.status!=='cancelado').forEach(o=>(o.order_items||[]).forEach(i=>{const key=i.product_name||'Item';map.set(key,(map.get(key)||0)+Number(i.quantity||1))}));return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  }
+  function shareShift(){
+    const rows=finalShiftOrders().filter(o=>o.status!=='cancelado'),sales=rows.reduce((s,o)=>s+Number(o.total||0),0),done=rows.filter(o=>o.status==='entregue').length;
+    const text=`Fechamento parcial • O Caseirão Burger\n${rows.length} pedidos • ${done} concluídos\nVendas: ${money(sales)}\nAtualizado: ${new Date().toLocaleString('pt-BR')}`;
+    if(navigator.share)navigator.share({title:'Resumo do Caseirão',text}).catch(()=>{});else copyText(text).then(()=>showAppToast('Resumo copiado.','ok'));
+  }
+  async function safeRefresh(){
+    if(!sessionStorage.getItem('caseirao_admin_pin')||!navigator.onLine)return;
+    const label=document.querySelector('.opsSync');label?.classList.add('busy');if(label)label.textContent='Sincronizando…';
+    try{admin=await adminCall('snapshot');lastSyncAt=new Date();renderAdmin()}catch(e){showAppToast('Não foi possível atualizar agora.','err')}finally{syncLabel()}
+  }
+  function renderCommandCenter(box){
+    const all=finalShiftOrders(),valid=all.filter(o=>o.status!=='cancelado'),active=liveOrders(),sales=valid.reduce((s,o)=>s+Number(o.total||0),0),ticket=valid.length?sales/valid.length:0,late=active.filter(o=>minutes(o)>=35),ready=active.filter(o=>o.status==='pronto'),newOnes=active.filter(o=>['novo','confirmado'].includes(o.status));
+    const types=['delivery','pickup','local'].map(type=>({name:orderTypeLabel(type),value:valid.filter(o=>o.type===type).length})),maxType=Math.max(1,...types.map(x=>x.value));
+    const pays=['Pix','Dinheiro','Cartão'].map(name=>({name,value:valid.filter(o=>String(o.payment||'').toLowerCase().includes(name.toLowerCase())).reduce((s,o)=>s+Number(o.total||0),0)})),maxPay=Math.max(1,...pays.map(x=>x.value));
+    const queue=[...active].sort((a,b)=>(minutes(b)>=35)-(minutes(a)>=35)||new Date(a.created_at)-new Date(b.created_at)).slice(0,7),ranking=productRanking(valid);
+    box.innerHTML=`<section class="commandHero"><div class="commandHeroTop"><div><h2>Visão geral do turno</h2><p>Decisões rápidas com os dados da operação de hoje</p></div><span class="commandLive">AO VIVO</span></div><div class="commandKpis"><div class="commandKpi"><span>VENDAS</span><b>${money(sales)}</b></div><div class="commandKpi"><span>PEDIDOS</span><b>${valid.length}</b></div><div class="commandKpi"><span>TICKET MÉDIO</span><b>${money(ticket)}</b></div><div class="commandKpi"><span>EM ANDAMENTO</span><b>${active.length}</b></div></div></section><div class="slaStrip"><div class="slaCard"><span>Novos</span><b>${newOnes.length}</b></div><div class="slaCard"><span>Prontos</span><b>${ready.length}</b></div><div class="slaCard ${late.length?'danger':''}"><span>Atrasados +35 min</span><b>${late.length}</b></div><div class="slaCard"><span>Cancelados</span><b>${all.filter(o=>o.status==='cancelado').length}</b></div></div><div class="commandGrid"><section class="commandPanel"><div class="commandPanelHead"><b>Fila por prioridade</b><small>MAIS URGENTES PRIMEIRO</small></div><div class="commandQueue">${queue.length?queue.map(o=>`<button class="commandOrder ${minutes(o)>=35?'critical':''}" data-command-order="${esc(o.id)}"><strong>#${esc(o.order_number)}</strong><div><strong>${esc(o.customer_name||'Cliente')}</strong><span>${esc(statusName(o.status))} • ${esc(orderTypeLabel(o.type))}</span></div><b class="commandAge">${minutes(o)} min</b></button>`).join(''):'<div class="commandEmpty">✓ Nenhum pedido aguardando. Operação em dia.</div>'}</div></section><section class="commandPanel"><div class="commandPanelHead"><b>Canais de venda</b><small>PEDIDOS</small></div><div class="commandBars">${types.map(x=>`<div><div class="commandBarTop"><span>${esc(x.name)}</span><b>${x.value}</b></div><div class="commandTrack"><div class="commandFill" style="width:${x.value/maxType*100}%"></div></div></div>`).join('')}</div><div class="commandPanelHead" style="margin-top:18px"><b>Recebimentos</b><small>VALOR</small></div><div class="commandBars">${pays.map(x=>`<div><div class="commandBarTop"><span>${x.name}</span><b>${money(x.value)}</b></div><div class="commandTrack"><div class="commandFill" style="width:${x.value/maxPay*100}%"></div></div></div>`).join('')}</div></section><section class="commandPanel"><div class="commandPanelHead"><b>Mais vendidos</b><small>UNIDADES</small></div>${ranking.length?ranking.map(([name,count],i)=>`<div class="commandRank"><i>${i+1}</i><b>${esc(name)}</b><strong>${count}</strong></div>`).join(''):'<div class="commandEmpty">O ranking aparecerá após as vendas.</div>'}</section><section class="commandPanel"><div class="commandPanelHead"><b>Ferramentas do turno</b><small>${esc(finalBuild)}</small></div><p class="mini">Exporte os pedidos para Excel, gere uma cópia de segurança ou compartilhe o resumo parcial.</p><div class="commandActions"><button data-export-csv>BAIXAR RELATÓRIO CSV</button><button data-backup-ops>GERAR BACKUP</button><button data-share-shift>COMPARTILHAR RESUMO</button></div></section></div>`;
+    box.querySelectorAll('[data-command-order]').forEach(button=>button.onclick=()=>{adminTab='pedidos';renderAdmin();requestAnimationFrame(()=>{const target=[...document.querySelectorAll('[data-oid]')].find(x=>String(x.dataset.oid)===String(button.dataset.commandOrder))?.closest('details');if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'start'})}})});
+    box.querySelector('[data-export-csv]')?.addEventListener('click',exportOrdersCsv);box.querySelector('[data-backup-ops]')?.addEventListener('click',backupOperational);box.querySelector('[data-share-shift]')?.addEventListener('click',shareShift);
+  }
+  function addOrderTools(box){
+    const active=liveOrders(),ages=active.map(minutes),average=ages.length?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length):0;
+    const strip=document.createElement('div');strip.className='slaStrip';strip.innerHTML=`<div class="slaCard"><span>Fila ativa</span><b>${active.length}</b></div><div class="slaCard"><span>Espera média</span><b>${average} min</b></div><div class="slaCard ${active.some(o=>minutes(o)>=35)?'danger':''}"><span>Acima de 35 min</span><b>${active.filter(o=>minutes(o)>=35).length}</b></div><div class="slaCard"><span>Prontos / rota</span><b>${active.filter(o=>['pronto','em_rota'].includes(o.status)).length}</b></div>`;box.prepend(strip);
+    const tools=document.createElement('div');tools.className='opsTools';tools.innerHTML='<button data-orders-export>⬇ EXPORTAR PEDIDOS DO TURNO</button><button data-orders-refresh>↻ SINCRONIZAR AGORA</button>';strip.after(tools);tools.querySelector('[data-orders-export]').onclick=exportOrdersCsv;tools.querySelector('[data-orders-refresh]').onclick=safeRefresh;
+    finalShiftOrders().forEach(o=>{const marker=box.querySelector(`[data-oid="${CSS.escape(String(o.id))}"]`),card=marker?.closest('.orderDetailed');if(!card)return;const summary=card.querySelector('.summaryCustomer')||card.querySelector('.ordertop>div');if(summary&&!summary.querySelector('.opsSlaBadge')){const age=minutes(o),badge=document.createElement('span');badge.className=`opsSlaBadge ${['entregue','cancelado'].includes(o.status)?'ok':age>=35?'late':age>=25?'warn':''}`;badge.textContent=['entregue','cancelado'].includes(o.status)?statusName(o.status):`${age} min de espera`;summary.appendChild(badge)}const body=card.querySelector('.orderBody')||card;if(body&&!body.querySelector('.opsContactRow')){const row=document.createElement('div');row.className='opsContactRow';const phone=String(o.customer_phone||'').replace(/\D/g,'');row.innerHTML=`${phone?`<a href="https://wa.me/55${esc(phone.replace(/^55/,''))}" target="_blank" rel="noopener">WHATSAPP DO CLIENTE</a>`:'<button disabled>SEM TELEFONE</button>'}<button data-copy-order="${esc(o.id)}">COPIAR RESUMO</button>`;body.appendChild(row);row.querySelector('[data-copy-order]')?.addEventListener('click',()=>copyText(receiptPlain(o)).then(()=>showAppToast('Resumo do pedido copiado.','ok')))}});
+  }
+
+  const adminBase=renderAdmin;
+  renderAdmin=function(){const result=adminBase();const bar=document.querySelector('.sheet.full>.admbar');if(bar&&!bar.querySelector('[data-tab="visao"]')){const button=document.createElement('button');button.dataset.tab='visao';button.textContent='Visão geral';button.className=adminTab==='visao'?'on':'';button.onclick=()=>{adminTab='visao';renderAdmin()};bar.prepend(button)}if(adminTab==='visao'){const box=$('#admContent');if(box)renderCommandCenter(box)}syncLabel();return result};
+  const tabBase=renderAdminTab;
+  renderAdminTab=function(){if(adminTab==='visao'){const box=$('#admContent');if(box)renderCommandCenter(box);return}return tabBase()};
+  const ordersBase=renderOrders;
+  renderOrders=function(box){const result=ordersBase(box);addOrderTools(box);return result};
+
+  const adminCallBase=adminCall;
+  adminCall=async function(...args){const value=await adminCallBase(...args);lastSyncAt=new Date();queueMicrotask(syncLabel);return value};
+  clearInterval(syncTimer);syncTimer=setInterval(()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))syncLabel()},1000);
+  const validTabsFinal=new Set(['visao','pedidos','producao','caixa','gestao','fidelidade','relatorios','produtos','bairros','adicionais','cupons','banner','loja','mesas','funcionarios','promocoes','entregas']);
+  try{const area=sessionStorage.getItem(internalResumeKey)||'';if(area.startsWith('admin:')&&!validTabsFinal.has(area.slice(6)))sessionStorage.setItem(internalResumeKey,'admin:pedidos')}catch{}
+})();
+</script>
+<style id="loyalty-name-guarantee">
+/* Regra final e isolada: nenhuma regra visual anterior pode ocultar o nome. */
+#admContent .loyaltyCustomerVisibleName{display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important;line-height:1.25!important}
+</style>
+<script>
+/* Garantia independente para cadastros antigos: identifica o cartão pelo
+   telefone, procura o nome no histórico e escreve uma linha visível. */
+(()=>{
+  const phoneKey=value=>String(value||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'').slice(-11);
+  const orderNameMap=()=>{
+    const names=new Map();
+    [...(typeof admin!=='undefined'&&admin?.orders?admin.orders:[])].sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)).forEach(order=>{
+      const key=phoneKey(order.customer_phone||order.phone),name=String(order.customer_name||order.name||'').trim();
+      if(key&&name)names.set(key,name);
+    });
+    return names;
+  };
+  const exposeNames=()=>{
+    const root=document.querySelector('#admContent');
+    if(!root)return;
+    const names=orderNameMap();
+    root.querySelectorAll('.loyaltyCardTop .grow').forEach(grow=>{
+      const details=grow.querySelector('.mini'),key=phoneKey(details?.textContent||'');
+      const original=grow.querySelector('b'),existing=String(original?.textContent||'').trim();
+      const name=(existing&&existing.toLowerCase()!=='cliente'?existing:'')||names.get(key)||'Nome não cadastrado';
+      let visible=grow.querySelector('.loyaltyCustomerVisibleName');
+      if(!visible){visible=document.createElement('div');visible.className='loyaltyCustomerVisibleName';grow.prepend(visible)}
+      visible.textContent=`Cliente: ${name}`;
+      visible.setAttribute('style','display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important;line-height:1.25!important');
+      if(original)original.style.display='none';
+    });
+  };
+  const observer=new MutationObserver(()=>queueMicrotask(exposeNames));
+  observer.observe(document.body,{subtree:true,childList:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')exposeNames()});
+  setInterval(exposeNames,1500);
+})();
+</script>
+<style id="loyalty-database-v12-style">
+#admContent .loyaltyCardTop .grow>b,
+#admContent .loyaltyCustomerVisibleName{display:block!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important}
+</style>
+<script id="loyalty-database-v12-ui">
+/* Filtra os cartões sem reconstruir o campo e sem fechar o teclado. */
+document.addEventListener('input',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement)||input.id!=='loyaltySearch')return;
+  event.stopImmediatePropagation();
+  const term=input.value.trim().toLocaleLowerCase('pt-BR');
+  const root=input.closest('#admContent')||document;
+  root.querySelectorAll('.loyaltyCard').forEach(card=>{
+    if(card.querySelector('#loyaltyTarget'))return;
     card.classList.toggle('hide',Boolean(term)&&!card.textContent.toLocaleLowerCase('pt-BR').includes(term));
   });
 },true);
