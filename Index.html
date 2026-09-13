@@ -1804,7 +1804,7 @@ document.addEventListener('input',event=>{
   };
   const exposeNames=()=>{
     const root=document.querySelector('#admContent');
-    if(!root||!document.querySelector('[data-tab="fidelidade"].on'))return;
+    if(!root)return;
     const names=orderNameMap();
     root.querySelectorAll('.loyaltyCardTop .grow').forEach(grow=>{
       const details=grow.querySelector('.mini'),key=phoneKey(details?.textContent||'');
@@ -1813,6 +1813,7 @@ document.addEventListener('input',event=>{
       let visible=grow.querySelector('.loyaltyCustomerVisibleName');
       if(!visible){visible=document.createElement('div');visible.className='loyaltyCustomerVisibleName';grow.prepend(visible)}
       visible.textContent=`Cliente: ${name}`;
+      visible.setAttribute('style','display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important;line-height:1.25!important');
       if(original)original.style.display='none';
     });
   };
