@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-13-auto-driver-routing-v9">
+<meta name="caseirao-build" content="2026-09-13-admin-contrast-v10">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1645,6 +1645,9 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 <style id="urgent-operation-fixes-style">
 /* Totais financeiros sempre contidos nos três cartões, inclusive em celulares estreitos. */
 .deliveryNotificationBell,.deliveryNotificationLayer{display:none!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin{color:#34495a!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin b{color:#29343e!important;font-weight:950!important}
+.sheet.full:has(.adminHead) .orderItemPrice{color:#20252a!important;font-size:14px!important;font-weight:950!important}
 .sheet.full:has(.adminHead) .paymentMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;min-width:0}
 .sheet.full:has(.adminHead) .paymentMetric{min-width:0;overflow:hidden}
 .sheet.full:has(.adminHead) .paymentMetric b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,19px);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
