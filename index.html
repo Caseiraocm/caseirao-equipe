@@ -1248,6 +1248,12 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 .driverOneTapHint{margin:8px 0 0;color:#69717a;font-size:11px;line-height:1.4}
 .driverDeliverButton{background:linear-gradient(135deg,#2b9b5d,#197542)!important;color:#fff!important;border-color:#23834d!important;box-shadow:0 8px 20px rgba(25,117,66,.2)!important}
 .driverDeliverButton:disabled{opacity:.72!important;cursor:wait!important}
+.driverOrder{padding:18px!important;border-radius:20px!important}
+.driverQuickTop h3{font-size:22px!important;line-height:1.15}.driverQuickTop .driverFee{font-size:21px!important}.driverStatus{font-size:13px!important;margin-top:5px}
+.driverQuickChip{font-size:13px!important;padding:8px 10px!important}.driverNextAction .primary{min-height:58px!important;font-size:16px!important}.driverNextAction .secondary{min-height:50px!important;font-size:13px!important}
+.driverOneTapHint{font-size:12px;line-height:1.5;text-align:center}.driverDetails>summary{font-size:14px!important;padding:12px 2px!important}
+.driverDeliveryInfo{display:grid;gap:10px}.driverInfoBlock{border:1px solid #dfe3e7;background:#f7f8f9;border-radius:14px;padding:13px;color:#24282d}.driverInfoBlock>small{display:block;margin-bottom:5px;color:#68717b;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.04em}.driverInfoBlock>strong{display:block;font-size:17px;line-height:1.4;word-break:break-word}.driverAddressBlock{background:#eef7ff;border-color:#c9dfef}.driverAddressBlock>strong{font-size:18px}.driverReference{display:block;margin-top:7px;color:#4f5963;font-size:14px;font-weight:750}.driverPhoneLink{display:flex;align-items:center;justify-content:center;min-height:50px;margin-top:9px;border-radius:12px;background:#168c4c;color:#fff;text-decoration:none;font-size:15px;font-weight:950}.driverPayGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.driverPayGrid .driverInfoBlock:last-child{background:#fff4e9;border-color:#f1d1b5}.driverItemsTitle{margin:13px 0 7px;font-size:14px;font-weight:950;color:#2b3036}.driverOrder .orderItemsBox{margin-top:0;border-color:#dfe3e7}.driverOrder .orderItemRow{padding:12px;background:#fff;border-color:#e5e8eb;color:#24282d}.driverOrder .orderItemHead b{font-size:15px}.driverOrder .orderAddonLine,.driverOrder .orderItemNote{font-size:13px;line-height:1.45}.driverOrder .notesBoxAdmin{font-size:14px!important;background:#fff8dd!important;color:#4e4017!important;border-color:#ead99b!important}.driverOrder .driverMiniMapBtn{min-height:50px!important;font-size:14px!important;background:#17689d!important;color:#fff!important;border-color:#17689d!important}.driverOrder [data-driver-gps]{min-height:48px;font-size:14px}.driverFinishedCard{opacity:.82}
+@media(max-width:420px){.driverOrder{padding:15px!important}.driverPayGrid{grid-template-columns:1fr}.driverQuickTop h3{font-size:20px!important}.driverAddressBlock>strong{font-size:17px}}
 </style>
 <script>
 /*
@@ -1260,17 +1266,33 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
   driverOrderCard=function(a){
     const o=a.orders||{},hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
     const finished=['delivered','returned','settled'].includes(a.status);
+    const rawPhone=String(o.customer_phone||'').replace(/\D/g,'');
+    const phoneHref=rawPhone?`tel:${rawPhone}`:'';
+    const change=o.change_for?String(o.change_for):'';
+    const street=[o.address_street,o.address_number].filter(Boolean).join(', ')||'Endereço não informado';
+    const complement=o.address_complement?`Complemento: ${o.address_complement}`:'';
+    const reference=o.address_reference?`Referência: ${o.address_reference}`:'';
     const action=finished
       ? `<button class="primary" disabled>✓ ENTREGA CONCLUÍDA</button>`
       : `<button class="primary driverDeliverButton" data-driver-deliver="${a.id}">✓ MARCAR COMO ENTREGUE</button><div class="driverOneTapHint">Um toque confirma a entrega, registra o horário e atualiza o fechamento.</div>`;
-    return `<div class="driverOrder">
+    return `<div class="driverOrder ${finished?'driverFinishedCard':''}">
       <div class="driverQuickTop">
         <div class="grow"><h3>Pedido #${esc(o.order_number||'—')}</h3><div class="driverStatus">${esc(deliveryStatusLabel(a.status))}</div></div>
         <b class="driverFee">${fee?fmt(fee):'—'}</b>
       </div>
       <div class="driverQuickLine"><span class="driverQuickChip">📍 ${esc(hood)}</span><span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span></div>
       <div class="driverNextAction">${action}${!finished?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
-      <details class="driverDetails"><summary>Ver endereço e detalhes</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}<div class="addressBoxAdmin">${esc(orderAddress(o))}</div><a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank">ABRIR MAPA</a><div class="driverCompactMeta"><div><small>Cliente</small><b>${esc(o.customer_name||'—')}</b></div><div><small>Total</small><b>${fmt(o.total)}</b></div></div><button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR GPS</button></div></details>
+      <details class="driverDetails" open><summary>Endereço e detalhes do pedido</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
+        <div class="driverDeliveryInfo">
+          <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
+          <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
+          <div class="driverInfoBlock"><small>👤 Cliente</small><strong>${esc(o.customer_name||'Não informado')}</strong>${phoneHref?`<a class="driverPhoneLink" href="${esc(phoneHref)}">📞 LIGAR PARA ${esc(o.customer_phone)}</a>`:`<span class="driverReference">Telefone não informado</span>`}</div>
+          <div class="driverPayGrid"><div class="driverInfoBlock"><small>💳 Pagamento</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span></div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
+        </div>
+        <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
+        ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
+        <button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR COMPARTILHAMENTO DE GPS</button>
+      </div></details>
     </div>`;
   };
 
@@ -1390,5 +1412,4 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
 </script>
 </body>
 </html>
-
 
