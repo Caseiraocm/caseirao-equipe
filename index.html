@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-14-embalagem-pedido-no-ponto-v17">
+<meta name="caseirao-build" content="2026-09-15-balcao-despachante-legibilidade-v18">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1945,6 +1945,84 @@ document.addEventListener('input',event=>{
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
 })();
 </script>
+<style id="caseirao-v18-legibilidade">
+/* V18 — contraste e leitura reforçados em toda a operação. */
+.sheet,.sheet.full,.loyaltyParticipantsPanel{color:#171a1e!important}
+.sheet .mini,.sheet .adminSub,.sheet small,.sheet label,.sheet .orderMeta,
+.sheet .driverReference,.sheet .operationHint,.sheet .manualSectionTitle{
+  color:#515a64!important;-webkit-text-fill-color:#515a64!important;opacity:1!important
+}
+.sheet .orderNumber,.sheet .summaryCustomer b,.sheet .orderInfo b,
+.sheet .orderItemsBox b,.sheet .addressBoxAdmin,.sheet .notesBoxAdmin,
+.sheet .tableitem b,.sheet .employeeProductInfo>b,.sheet .packItems b,
+.sheet .kitchenItems b,.sheet .financeCard b,.sheet .reportRow b{
+  color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important
+}
+.sheet .orderInfo small,.sheet .summaryCustomer span,.sheet .manualProduct span,
+.sheet .employeeProductInfo>span,.sheet .packOrderTop span{
+  color:#5c6570!important;-webkit-text-fill-color:#5c6570!important;opacity:1!important
+}
+.sheet .in,.sheet .sel,.sheet .ta{font-size:16px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important}
+.sheet button{opacity:1}.sheet button:disabled{opacity:.58}
+.teamChoice strong{color:#fff!important;-webkit-text-fill-color:#fff!important}
+.teamChoice small{color:#c5cbd2!important;-webkit-text-fill-color:#c5cbd2!important}
+.dispatcherAccessChoice{border-color:#6d5fc7;background:linear-gradient(145deg,#24213c,#171722)}
+.dispatcherAccessChoice .teamChoiceIcon{background:#423b78}
+.dispatcherAccessChoice:hover,.dispatcherAccessChoice:focus-visible{border-color:#998fea;background:#292448}
+.manualCounterButton.on{background:#7a4ac7!important;border-color:#6938b7!important;color:#fff!important}
+.counterNotice{margin:10px 0;padding:11px 12px;border:1px solid #d7c4ef;border-radius:12px;background:#f7f0ff;color:#512a82;font-size:13px;font-weight:850}
+@media(max-width:520px){
+  .sheet .mini,.sheet small,.sheet label{font-size:max(12px,1em)}
+  .sheet .orderInfo b,.sheet .summaryCustomer b{font-size:16px!important}
+}
+</style>
+<script id="caseirao-v18-balcao-despachante">
+(()=>{
+  /* Entrada direta e fácil de identificar para a funcionária da embalagem. */
+  const employeeChoice=document.querySelector('#teamEmployeeBtn');
+  if(employeeChoice&&!document.querySelector('#teamDispatcherBtn')){
+    const dispatcher=document.createElement('button');
+    dispatcher.id='teamDispatcherBtn';
+    dispatcher.className='teamChoice dispatcherAccessChoice';
+    dispatcher.type='button';
+    dispatcher.innerHTML='<span class="teamChoiceIcon">📦</span><span><strong>Área da despachante</strong><small>Veja os pedidos e avise à central quando estiverem no ponto.</small></span>';
+    employeeChoice.after(dispatcher);
+    dispatcher.onclick=()=>typeof employeeToken==='function'&&employeeToken()?renderEmployeePanel():openEmployeeLogin();
+  }
+
+  /* Balcão usa o fluxo seguro de retirada da API, mas fica identificado
+     separadamente na operação e na impressão pelas observações do pedido. */
+  const originalOpenManualOrder=window.openManualOrder;
+  window.openManualOrder=function(){
+    originalOpenManualOrder();
+    const segment=document.querySelector('.sheet.full .seg');
+    const pickup=segment?.querySelector('[data-mtype="pickup"]');
+    const notes=document.querySelector('#mNotes');
+    if(!segment||!pickup||segment.querySelector('[data-counter-order]'))return;
+    const counter=document.createElement('button');
+    counter.type='button';
+    counter.dataset.counterOrder='1';
+    counter.className='manualCounterButton';
+    counter.textContent='Balcão';
+    segment.insertBefore(counter,pickup);
+    const notice=document.createElement('div');
+    notice.className='counterNotice hide';
+    notice.textContent='Pedido presencial no balcão — sem entrega e sem mesa.';
+    segment.after(notice);
+    const clearCounter=()=>{
+      counter.classList.remove('on');notice.classList.add('hide');
+      if(notes)notes.value=notes.value.replace(/^\[BALCÃO\]\s*/,'');
+    };
+    segment.querySelectorAll('[data-mtype]').forEach(button=>button.addEventListener('click',clearCounter));
+    counter.onclick=()=>{
+      pickup.click();
+      segment.querySelectorAll('button').forEach(button=>button.classList.toggle('on',button===counter));
+      notice.classList.remove('hide');
+      if(notes&&!/^\[BALCÃO\]/.test(notes.value))notes.value='[BALCÃO] '+notes.value;
+      document.querySelector('#mName')?.focus();
+    };
+  };
+})();
+</script>
 </body>
 </html>
-
