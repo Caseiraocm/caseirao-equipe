@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-15-entregador-legivel-v24">
+<meta name="caseirao-build" content="2026-09-15-controle-troco-v25">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -882,7 +882,7 @@ $('#teamDispatcherBtn').onclick=()=>employeeToken()?openDispatcherPanel():openDi
 $('#teamAdminBtn').onclick=openAdmin;
 $('#teamInstallBtn').onclick=installApp;
 catalog();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260915-v24',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260915-v25',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
@@ -1709,7 +1709,135 @@ document.addEventListener('input',event=>{
   });
   observer.observe(document.body,{subtree:true,childList:true});
   window.addEventListener('resize',()=>centerActiveAdminTab(false));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
+})();
+
+/* CONTROLE FINANCEIRO DO ENTREGADOR — V25
+ * Consolida o valor de troco que sai do caixa e o total que precisa voltar.
+ * Usa os campos já persistidos pela API (change_float, cash_received e
+ * change_given), sem criar dependência de uma migração adicional no banco. */
+(()=>{
+  const moneyNumber=value=>{
+    if(typeof value==='number')return Number.isFinite(value)?value:0;
+    const raw=String(value??'').trim().replace(/R\$|\s/g,'');
+    if(!raw)return 0;
+    const normalized=raw.includes(',')?raw.replace(/\./g,'').replace(',','.'):raw;
+    const parsed=Number(normalized.replace(/[^0-9.-]/g,''));
+    return Number.isFinite(parsed)?parsed:0;
+  };
+  const isCashOrder=order=>String(order?.payment||'').trim().toLocaleLowerCase('pt-BR')==='dinheiro';
+  const suggestedChange=order=>isCashOrder(order)?Math.max(0,moneyNumber(order?.change_for)-moneyNumber(order?.total)):0;
+  const expectedReturn=assignment=>{
+    const order=assignment?.orders||{};
+    const float=Math.max(0,moneyNumber(assignment?.change_float));
+    return isCashOrder(order)?float+Math.max(0,moneyNumber(order.total)):float;
+  };
+  const assignmentFinished=assignment=>['delivered','returned','settled'].includes(assignment?.status);
+
+  const cashControlStyle=document.createElement('style');
+  cashControlStyle.textContent=`
+    .cashControlHint{margin:9px 0;padding:10px 11px;border:1px solid #cfe1ee;border-radius:11px;background:#f1f8fd;color:#31566f;font-size:11px;line-height:1.45}
+    .cashControlHint b{color:#173f59}.cashControlGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}
+    .cashControlBox{padding:10px;border:1px solid #dce2e7;border-radius:11px;background:#f7f9fa}.cashControlBox small{display:block;color:#68727c;font-size:9px;font-weight:900;text-transform:uppercase}.cashControlBox b{display:block;margin-top:4px;color:#1f252b;font-size:16px}.cashControlBox.return b{color:#147342}
+    .cashControlTotals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:11px 0}.cashControlTotal{padding:12px;border:1px solid #dce2e7;border-radius:13px;background:#fff}.cashControlTotal small{display:block;color:#68727c;font-size:9px;font-weight:900;text-transform:uppercase}.cashControlTotal b{display:block;margin-top:5px;font-size:17px}.cashControlTotal.return{border-color:#bcdcc8;background:#f2fbf5}.cashControlTotal.return b{color:#147342}
+    @media(max-width:480px){.cashControlTotals{grid-template-columns:1fr 1fr}.cashControlTotal.return{grid-column:1/-1}}
+  `;
+  document.head.appendChild(cashControlStyle);
+
+  function enhanceAvailableCashFields(root=document){
+    root.querySelectorAll('[data-change-float]').forEach(input=>{
+      const id=input.dataset.changeFloat;
+      const order=(deliveryHub?.orders||[]).find(item=>String(item.id)===String(id));
+      if(!order||input.dataset.cashReady==='1')return;
+      input.dataset.cashReady='1';
+      const suggestion=suggestedChange(order);
+      if(suggestion>0&&!input.value)input.value=suggestion.toFixed(2).replace('.',',');
+      input.placeholder='R$ 0,00';
+      const field=input.closest('.field');
+      const label=field?.querySelector('label');
+      if(label)label.textContent='Troco que o entregador levará';
+      const hint=document.createElement('div');
+      hint.className='cashControlHint';
+      hint.innerHTML=isCashOrder(order)
+        ? `Cliente pediu troco para <b>${fmt(moneyNumber(order.change_for))}</b>. Sugestão de saída: <b>${fmt(suggestion)}</b>. O entregador deverá trazer <b>${fmt(moneyNumber(order.total)+suggestion)}</b>.`
+        : 'Pagamento sem dinheiro: deixe o troco em R$ 0,00.';
+      field?.appendChild(hint);
+    });
+  }
+
+  const originalDeliveryAdminCard=deliveryAdminCard;
+  deliveryAdminCard=function(assignment){
+    const order=assignment?.orders||{};
+    const taken=Math.max(0,moneyNumber(assignment?.change_float));
+    const expected=expectedReturn(assignment);
+    const informed=Math.max(0,moneyNumber(assignment?.cash_received));
+    let html=originalDeliveryAdminCard(assignment);
+    const label=assignmentFinished(assignment)&&informed>0?'Valor trazido/informado':'Deve trazer ao caixa';
+    html=html.replace('<small>Dinheiro a acertar</small><b>'+fmt(informed)+'</b>',`<small>${label}</small><b>${fmt(assignmentFinished(assignment)&&informed>0?informed:expected)}</b>`);
+    const details=`<div class="cashControlGrid"><div class="cashControlBox"><small>Saiu para troco</small><b>${fmt(taken)}</b></div><div class="cashControlBox return"><small>${label}</small><b>${fmt(assignmentFinished(assignment)&&informed>0?informed:expected)}</b></div></div>`;
+    return html.replace('<div class="mini">',details+'<div class="mini">');
+  };
+
+  const deliveryHubCashBase=renderDeliveryHub;
+  renderDeliveryHub=async function(box){
+    const result=await deliveryHubCashBase(box);
+    enhanceAvailableCashFields(box||document);
+    if(box&&deliveryHub){
+      const assignments=deliveryHub.assignments||[];
+      const active=assignments.filter(item=>item.status!=='settled');
+      const taken=active.reduce((sum,item)=>sum+Math.max(0,moneyNumber(item.change_float)),0);
+      const expected=active.reduce((sum,item)=>sum+expectedReturn(item),0);
+      const informed=active.filter(assignmentFinished).reduce((sum,item)=>sum+Math.max(0,moneyNumber(item.cash_received)),0);
+      const hero=box.querySelector('.deliveryProHero');
+      if(hero&&!hero.nextElementSibling?.classList.contains('cashControlTotals'))hero.insertAdjacentHTML('afterend',`<div class="cashControlTotals"><div class="cashControlTotal"><small>Troco com entregadores</small><b>${fmt(taken)}</b></div><div class="cashControlTotal return"><small>Previsto para retornar</small><b>${fmt(expected)}</b></div><div class="cashControlTotal"><small>Já informado nas entregas</small><b>${fmt(informed)}</b></div></div>`);
+    }
+    return result;
+  };
+
+  async function finishDeliveryWithCash(id,button){
+    const assignment=(driverSnapshot?.assignments||[]).find(item=>String(item.id)===String(id));
+    if(!assignment||assignmentFinished(assignment))return;
+    const order=assignment.orders||{};
+    const taken=Math.max(0,moneyNumber(assignment.change_float));
+    const expected=expectedReturn(assignment);
+    button.disabled=true;button.textContent='CONFIRMANDO ENTREGA...';
+    try{
+      let current=assignment.status;
+      if(current==='assigned'||current==='problem'){await driverAppApi('status',{assignment_id:id,status:'route'});current='route'}
+      if(current==='route'){await driverAppApi('status',{assignment_id:id,status:'arrived'});current='arrived'}
+      if(current==='arrived'){
+        const payload={assignment_id:id,status:'delivered',payment_confirmed:true};
+        if(isCashOrder(order)){
+          const answer=prompt(`CONFERÊNCIA DO DINHEIRO\n\nTroco levado: ${fmt(taken)}\nValor do pedido: ${fmt(order.total)}\nPrevisto para trazer: ${fmt(expected)}\n\nQuanto o entregador está trazendo ao caixa?`,expected.toFixed(2).replace('.',','));
+          if(answer===null){button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';return}
+          const actual=moneyNumber(answer);
+          if(actual<0)throw new Error('Informe um valor válido.');
+          payload.cash_received=actual;
+          payload.change_given=suggestedChange(order);
+        }
+        await driverAppApi('status',payload);
+      }
+      stopDriverAreaGps();
+      showAppToast('Entrega e dinheiro registrados.','ok');
+      await renderDriverArea();
+    }catch(error){button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';alert(error.message||'Não foi possível confirmar a entrega.')}
+  }
+
+  const driverCashBase=renderDriverArea;
+  renderDriverArea=async function(){
+    const result=await driverCashBase();
+    document.querySelectorAll('[data-driver-deliver]').forEach(button=>{
+      const id=button.dataset.driverDeliver;
+      const assignment=(driverSnapshot?.assignments||[]).find(item=>String(item.id)===String(id));
+      const content=button.closest('.driverOrder')?.querySelector('.driverDeliveryInfo');
+      if(assignment&&content&&!content.querySelector('.cashControlGrid')){
+        const taken=Math.max(0,moneyNumber(assignment.change_float)),expected=expectedReturn(assignment);
+        content.insertAdjacentHTML('beforeend',`<div class="cashControlGrid"><div class="cashControlBox"><small>Troco que você levou</small><b>${fmt(taken)}</b></div><div class="cashControlBox return"><small>Valor para trazer</small><b>${fmt(expected)}</b></div></div>`);
+      }
+      button.onclick=()=>finishDeliveryWithCash(id,button);
+    });
+    return result;
+  };
 })();
 
 })();
