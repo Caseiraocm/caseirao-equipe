@@ -1840,6 +1840,83 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActi
   };
 })();
 
+/* Correção segura de pedidos das mesas — disponível para Atendimento e ADM. */
+const tableOrderEditStyle=document.createElement('style');tableOrderEditStyle.textContent=`
+.tableOrderActions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}.tableOrderEdit{width:100%;min-height:43px;border:1px solid #d59a6d;border-radius:11px;background:#fff5ec;color:#9b4013;font-size:12px;font-weight:950}.tableOrderEdit:disabled{opacity:.55}.tableEditNotice{margin:10px 0;padding:11px 12px;border:1px solid #e8c69f;border-radius:12px;background:#fff8ee;color:#684226;font-size:12px;line-height:1.45}.tableEditTotal{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;font-size:14px}.tableEditTotal b{font-size:21px}.tableEditLocked{padding:9px 10px;border:1px solid #dfe3e7;border-radius:10px;background:#f5f6f7;color:#68717a;font-size:11px;font-weight:800}
+`;document.head.appendChild(tableOrderEditStyle);
+
+function editableTableOrder(order){return order&&!['entregue','cancelado'].includes(String(order.status||''))}
+function tableOrderDetailsHtml(order,mode){
+  const items=(order.order_items||[]).map(item=>`<div class="tableItemLine"><span>${Number(item.quantity||1)}x ${esc(item.product_name||'Item')}${item.note?`<small style="display:block">Obs.: ${esc(item.note)}</small>`:''}</span><b>${fmt(item.line_total||Number(item.unit_price||0)*Number(item.quantity||1))}</b></div>`).join('');
+  const action=editableTableOrder(order)?`<div class="tableOrderActions"><button class="tableOrderEdit" data-edit-table-order="${esc(order.id)}" data-edit-mode="${mode}">CORRIGIR PEDIDO</button></div>`:`<div class="tableEditLocked">Pedido finalizado — edição bloqueada.</div>`;
+  return `${items}${order.notes?`<div class="mini">${esc(order.notes)}</div>`:''}${action}`;
+}
+remoteOrdersHtml=function(session,mode='employee'){
+  const orders=session.orders||[];
+  return orders.length?orders.map(order=>`<details class="tableOrder"><summary><span><b>Pedido #${esc(order.order_number)}</b><small>${esc(statusLabel[order.status]||order.status)}${order.employee_id?' • funcionário':''}</small></span><b>${fmt(order.total)}</b></summary><div>${tableOrderDetailsHtml(order,mode)}</div></details>`).join(''):'<div class="empty cleanEmpty"><b>Comanda vazia</b><span>Aguardando lançamento.</span></div>';
+};
+
+function bindTableOrderEditButtons(table,session,adminMode){
+  document.querySelectorAll('[data-edit-table-order]').forEach(button=>button.onclick=()=>{
+    const order=(session.orders||[]).find(item=>String(item.id)===String(button.dataset.editTableOrder));
+    if(order)openTableOrderEditor(table,session,order,adminMode);
+  });
+}
+
+function tableOrderItemsPayload(products,quantities,unitNotes){
+  return products.flatMap(product=>{
+    const quantity=quantities.get(String(product.id))||0,notes=unitNotes.get(String(product.id))||[];
+    return Array.from({length:quantity},(_,index)=>({product_id:product.id,qty:1,addon_ids:[],note:String(notes[index]||'').trim()}));
+  });
+}
+
+function openTableOrderEditor(table,session,order,adminMode){
+  if(!editableTableOrder(order))return alert('Esse pedido já foi finalizado e não pode mais ser alterado.');
+  const products=(adminMode?(admin?.products||data.products||[]):(employeeSnapshot?.products||[])).filter(product=>product.active!==false),quantities=new Map(),unitNotes=new Map();
+  (order.order_items||[]).forEach(item=>{
+    const id=String(item.product_id||''),product=products.find(entry=>String(entry.id)===id);if(!product)return;
+    const quantity=Math.max(1,Number(item.quantity)||1),current=quantities.get(id)||0,notes=unitNotes.get(id)||[];
+    quantities.set(id,current+quantity);for(let index=0;index<quantity;index++)notes.push(index===0?String(item.note||''):'');unitNotes.set(id,notes);
+  });
+  const total=()=>products.reduce((sum,product)=>sum+(quantities.get(String(product.id))||0)*priceOf(product),0);
+  modal(`<div class="sheeth"><div><h2>Corrigir pedido #${esc(order.order_number)}</h2><div class="adminSub">Mesa ${String(table.table_number).padStart(2,'0')} • ${adminMode?'Administrador':'Atendimento'}</div></div><button class="x" id="backTableEdit">←</button></div><div class="tableEditNotice"><b>Atenção:</b> ao salvar, a comanda e o total da mesa serão atualizados. Confira os itens antes de confirmar.</div><div class="employeeProductSearch"><span>⌕</span><input id="tableEditSearch" class="in" placeholder="Buscar produto..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="field"><label>Observação geral do pedido</label><textarea id="tableEditNotes" class="ta" placeholder="Opcional">${esc(order.notes||'')}</textarea></div><div class="manualFooter"><div><span>Novo total</span><b id="tableEditTotal">${fmt(total())}</b></div><button id="saveTableEdit" class="primary">SALVAR CORREÇÃO</button></div>`,true);
+  const refresh=()=>{products.forEach(product=>{const id=String(product.id),quantity=quantities.get(id)||0,counter=$(`[data-rqty="${CSS.escape(id)}"]`);if(counter){counter.textContent=quantity;counter.closest('.employeeProductCard')?.classList.toggle('selected',quantity>0)}if(quantity)renderUnitNotes(id,product.name||'Item',quantity,unitNotes)});$('#tableEditTotal').textContent=fmt(total())};
+  $('#backTableEdit').onclick=()=>adminMode?renderRemoteAdminAccount(table,session):openEmployeeTable(table.id);
+  $('#tableEditSearch').oninput=event=>filterOperationalCatalog(event.target.value);
+  document.querySelectorAll('[data-rproduct]').forEach(button=>button.onclick=()=>{const id=String(button.dataset.rproduct),next=Math.max(0,(quantities.get(id)||0)+Number(button.dataset.d)),product=products.find(entry=>String(entry.id)===id);quantities.set(id,next);renderUnitNotes(id,product?.name||'Item',next,unitNotes);const counter=$(`[data-rqty="${CSS.escape(id)}"]`);if(counter){counter.textContent=next;counter.closest('.employeeProductCard')?.classList.toggle('selected',next>0)}$('#tableEditTotal').textContent=fmt(total())});
+  refresh();
+  $('#saveTableEdit').onclick=async()=>{const button=$('#saveTableEdit'),items=tableOrderItemsPayload(products,quantities,unitNotes);if(!items.length)return alert('O pedido precisa ter pelo menos um item. Para cancelar, use o fluxo de cancelamento.');if(!confirm(`Salvar a correção do pedido #${order.order_number}?`))return;try{button.disabled=true;button.textContent='SALVANDO...';await employeeApi('update_table_order',{table_session_id:session.id,order_id:order.id,items,notes:$('#tableEditNotes').value.trim()},adminMode);if(adminMode){await loadEmployeeAdmin();const fresh=remoteSessionForTable(table.id);if(!fresh)throw new Error('A mesa não está mais aberta.');showAppToast(`Pedido #${order.order_number} corrigido pelo ADM.`,'ok');renderRemoteAdminAccount(table,fresh)}else{employeeSnapshot=await employeeApi('employee_snapshot');showAppToast(`Pedido #${order.order_number} corrigido.`,'ok');openEmployeeTable(table.id)}}catch(error){alert(error.message||String(error));button.disabled=false;button.textContent='SALVAR CORREÇÃO'}};
+}
+
+const renderRemoteAdminAccountEditBase=renderRemoteAdminAccount;renderRemoteAdminAccount=function(table,session){
+  renderRemoteAdminAccountEditBase(table,session);const list=[...document.querySelectorAll('.tableOrder')];list.forEach((card,index)=>{const order=(session.orders||[])[index],body=card.querySelector('summary+div');if(order&&body){body.innerHTML=tableOrderDetailsHtml(order,'admin')}});bindTableOrderEditButtons(table,session,true);
+};
+const openEmployeeTableEditBase=openEmployeeTable;openEmployeeTable=async function(tableId){await openEmployeeTableEditBase(tableId);const table=(employeeSnapshot?.tables||[]).find(item=>String(item.id)===String(tableId)),session=remoteSessionForTable(tableId,employeeSnapshot);if(table&&session){const list=[...document.querySelectorAll('.tableOrder')];list.forEach((card,index)=>{const order=(session.orders||[])[index],body=card.querySelector('summary+div');if(order&&body)body.innerHTML=tableOrderDetailsHtml(order,'employee')});bindTableOrderEditButtons(table,session,false)}};
+
+/* Libera o lançamento pelo ADM usando a mesma API autenticada das mesas. */
+const openRemoteOrderFormTableEditBase=openRemoteOrderForm;openRemoteOrderForm=function(table,session,adminMode){
+  openRemoteOrderFormTableEditBase(table,session,adminMode);
+  if(!adminMode)return;
+  const oldButton=$('#saveRemoteOrder');if(!oldButton)return;
+  const replacement=oldButton.cloneNode(true);oldButton.replaceWith(replacement);
+  replacement.onclick=async()=>{
+    const quantities=new Map();document.querySelectorAll('[data-rqty]').forEach(node=>quantities.set(String(node.dataset.rqty),Number(node.textContent)||0));
+    const products=(admin?.products||data.products||[]).filter(product=>product.active!==false&&!product.sold_out),items=products.flatMap(product=>Array.from({length:quantities.get(String(product.id))||0},()=>({product_id:product.id,qty:1,addon_ids:[],note:''})));
+    if(!items.length)return alert('Adicione pelo menos um item.');try{replacement.disabled=true;replacement.textContent='ENVIANDO...';await employeeApi('create_table_order',{table_session_id:session.id,items,notes:$('#remoteOrderNotes').value,phone:data.settings?.whatsapp||'86995653888'},true);await loadEmployeeAdmin();const fresh=remoteSessionForTable(table.id);showAppToast(`Itens lançados na Mesa ${table.table_number} pelo ADM.`,'ok');renderRemoteAdminAccount(table,fresh)}catch(error){alert(error.message||String(error));replacement.disabled=false;replacement.textContent='ENVIAR À PRODUÇÃO'};
+  };
+};
+
+/* Faz a Central perceber correções realizadas em outro aparelho. */
+const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function(){
+  const before=new Map((admin?.orders||[]).map(order=>[String(order.id),{updated:String(order.updated_at||''),status:String(order.status||'')}]))
+  await checkNewOrdersTableEditBase();
+  const edited=(admin?.orders||[]).filter(order=>{const old=before.get(String(order.id));return old&&order.table_session_id&&old.updated&&String(order.updated_at||'')!==old.updated&&String(order.status||'')===old.status});
+  if(!edited.length)return;
+  const box=$('#admContent');
+  if(box){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box)}
+  showAppToast(`Pedido #${edited[0].order_number} da mesa foi corrigido. Confira os itens.`,'ok');
+};
+
 })();
 </script>
 <style id="caseirao-admin-polish-v3">
