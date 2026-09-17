@@ -2289,5 +2289,89 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
 @media(max-width:430px){.manualOrderTypes{grid-template-columns:repeat(2,minmax(0,1fr))!important}.orderChronometer{min-width:66px!important;padding:5px!important}.orderChronometer b{font-size:13px!important}.readyCentralAlertCard{padding:15px}}
 </style>
 
+<script id="caseirao-counter-without-phone">
+/*
+ * Pedido de balcão é presencial: exige apenas o nome do cliente.
+ * A tela, a validação e o payload enviado à API seguem a mesma regra.
+ * Os demais tipos de pedido continuam exigindo telefone normalmente.
+ */
+(() => {
+  const adminCallWithRequiredPhone = adminCall;
+
+  adminCall = async function(action = 'snapshot', payload = {}, allowRetry = true) {
+    if (action === 'create_manual_order' && payload?.type === 'counter') {
+      payload = {
+        ...payload,
+        customer: {
+          ...(payload.customer || {}),
+          phone: ''
+        }
+      };
+    }
+
+    try {
+      return await adminCallWithRequiredPhone(action, payload, allowRetry);
+    } finally {
+      if (action === 'create_manual_order' && payload?.type === 'counter') {
+        const field = document.querySelector('#mPhone');
+        if (field) {
+          field.value = '';
+          field.disabled = true;
+        }
+      }
+    }
+  };
+
+  const openManualOrderWithRequiredPhone = openManualOrder;
+
+  openManualOrder = function() {
+    openManualOrderWithRequiredPhone();
+
+    const phoneInput = document.querySelector('#mPhone');
+    const phoneField = phoneInput?.closest('.field');
+    const nameField = document.querySelector('#mName')?.closest('.field');
+    const saveButton = document.querySelector('#saveManual');
+    const typeButtons = [...document.querySelectorAll('.manualOrderTypes button')];
+
+    if (!phoneInput || !phoneField || !saveButton) return;
+
+    const syncCounterPhoneRule = () => {
+      const isCounter = document.querySelector('[data-counter-order]')?.classList.contains('on');
+
+      phoneField.hidden = Boolean(isCounter);
+      phoneField.setAttribute('aria-hidden', String(Boolean(isCounter)));
+      if (nameField) nameField.style.gridColumn = isCounter ? '1 / -1' : '';
+
+      if (isCounter) {
+        phoneInput.value = '';
+        phoneInput.required = false;
+        phoneInput.disabled = true;
+      } else {
+        phoneInput.disabled = false;
+        phoneInput.required = true;
+      }
+    };
+
+    typeButtons.forEach(button => {
+      button.addEventListener('click', () => queueMicrotask(syncCounterPhoneRule));
+    });
+
+    /*
+     * O manipulador original valida o telefone antes de montar o payload.
+     * Um valor técnico existe somente durante essa validação; o interceptor
+     * acima sempre remove esse valor antes da chamada à API e ao banco.
+     */
+    saveButton.addEventListener('click', () => {
+      if (document.querySelector('[data-counter-order]')?.classList.contains('on')) {
+        phoneInput.disabled = false;
+        phoneInput.value = '86900000000';
+      }
+    }, true);
+
+    syncCounterPhoneRule();
+  };
+})();
+</script>
+
 </body>
 </html>
