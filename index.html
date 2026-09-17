@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-16-sem-sino-sem-logo-v28">
+<meta name="caseirao-build" content="2026-09-17-revisao-profissional-v29">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -892,7 +892,7 @@ $('#teamDispatcherBtn').onclick=()=>employeeToken()?openDispatcherPanel():openDi
 $('#teamAdminBtn').onclick=openAdmin;
 $('#teamInstallBtn').onclick=installApp;
 catalog();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260916-v28',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260917-v29',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`

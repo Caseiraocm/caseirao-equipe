@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-v1';
+const CACHE = 'caseirao-equipe-v29';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -16,8 +16,14 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
   event.respondWith(fetch(event.request).then(response => {
-    const copy = response.clone();
-    caches.open(CACHE).then(cache => cache.put(event.request, copy));
+    if (response.ok) {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(event.request, copy));
+    }
     return response;
-  }).catch(() => caches.match(event.request).then(hit => hit || caches.match('./index.html'))));
+  }).catch(() => caches.match(event.request).then(hit => {
+    if (hit) return hit;
+    if (event.request.mode === 'navigate') return caches.match('./index.html');
+    return Response.error();
+  })));
 });
