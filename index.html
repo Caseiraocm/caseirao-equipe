@@ -2373,5 +2373,38 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
 })();
 </script>
 
+<style id="nightly-prize-admin-style">
+.prizeAdmin{display:grid;gap:13px;margin-top:12px}.prizeHero{padding:16px;border:1px solid #6f4627;border-radius:17px;background:linear-gradient(145deg,#2a190f,#151515)}.prizeHero h3{margin:0 0 6px;color:#ffbd82}.prizeStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.prizeMetric{padding:12px;border:1px solid #333841;border-radius:13px;background:#14171b}.prizeMetric span{display:block;color:#9fa7b1;font-size:11px}.prizeMetric b{display:block;margin-top:4px;color:#fff;font-size:17px}.prizeWinner{padding:15px;border:1px solid #2d7b4a;border-radius:15px;background:#10291a}.prizeWinner h3{margin:0 0 8px;color:#92efb2}.prizeChecks{display:flex;flex-wrap:wrap;gap:8px}.prizeCheck{display:flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #343941;border-radius:11px;background:#171a1f;color:#e7ebef;font-weight:800}.prizeCheck input{width:18px;height:18px;accent-color:#e76620}.prizeActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}@media(max-width:520px){.prizeStatus,.prizeActions{grid-template-columns:1fr}.prizeHero{padding:14px}}
+</style>
+<script id="nightly-prize-admin-script">
+(()=>{
+  const prizeApi=async(action,payload={})=>api('nightly-prize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:sessionStorage.getItem('caseirao_admin_pin')||'',action,payload})});
+  const originalRenderAdmin=renderAdmin;
+  renderAdmin=function(){
+    originalRenderAdmin();
+    const bar=document.querySelector('.admbar');
+    if(!bar||bar.querySelector('[data-tab="premiado"]'))return;
+    const button=document.createElement('button');
+    button.type='button';button.dataset.tab='premiado';button.textContent='Pedido Premiado';button.classList.toggle('on',adminTab==='premiado');
+    button.onclick=()=>{adminTab='premiado';renderAdmin()};
+    bar.appendChild(button);
+    if(adminTab==='premiado')renderNightlyPrizeAdmin(document.querySelector('#admContent'));
+  };
+  const originalRenderAdminTab=renderAdminTab;
+  renderAdminTab=function(){if(adminTab==='premiado')return renderNightlyPrizeAdmin(document.querySelector('#admContent'));return originalRenderAdminTab()};
+  async function renderNightlyPrizeAdmin(box){
+    if(!box)return;box.innerHTML='<div class="notice" style="margin-top:12px">Carregando o Pedido Premiado da Noite...</div>';
+    try{
+      const result=await prizeApi('admin_snapshot'),c=result.campaign,w=result.winner;
+      const locked=Boolean(c?.winner_order_id),active=Boolean(c?.active&&!locked);
+      box.innerHTML=`<div class="prizeAdmin"><div class="prizeHero"><h3>🎁 Pedido Premiado da Noite</h3><div class="mini">Você configura o brinde e autoriza. O sistema sorteia secretamente qual pedido válido será o ganhador.</div></div>${c?`<div class="prizeStatus"><div class="prizeMetric"><span>Situação</span><b>${locked?'Ganhador escolhido':active?'Sorteio ativo':'Pausado'}</b></div><div class="prizeMetric"><span>Pedidos participantes</span><b>${Number(c.eligible_count||0)} de até ${Number(c.max_position||0)}</b></div><div class="prizeMetric"><span>Brinde</span><b>${esc(c.prize_name)}</b></div></div>`:''}${w?`<div class="prizeWinner"><h3>🏆 Pedido premiado encontrado</h3><b>${esc(w.customer_name)} • Pedido #${w.order_number}</b><div class="mini" style="margin-top:5px">${esc(phoneMask(w.customer_phone))} • ${esc(paymentLabel(w.payment))} • ${fmt(w.total)}<br>Código: <b>${esc(c.winner_code||'—')}</b>${c.redeemed_at?'<br>Brinde marcado como entregue.':''}</div>${!c.redeemed_at?'<button id="redeemNightlyPrize" class="primary" style="margin-top:12px">MARCAR BRINDE ENTREGUE</button>':''}</div>`:''}<div class="loyaltyCard"><div class="sectionTitle" style="margin-top:0">Configurar a premiação</div><div class="field"><label>Qual será o brinde?</label><input id="nightPrizeName" class="in" maxlength="120" value="${esc(c?.prize_name||'')}" placeholder="Ex.: Batata pequena"></div><div class="row"><div class="field"><label>Sortear entre os primeiros</label><input id="nightPrizeMax" class="in" type="number" inputmode="numeric" min="1" max="100" value="${Number(c?.max_position||10)}"></div><div class="field"><label>Pedido mínimo</label><input id="nightPrizeMin" class="in" inputmode="decimal" value="${Number(c?.min_order||0).toFixed(2).replace('.',',')}"></div></div><div class="field"><label>Tipos de pedido participantes</label><div class="prizeChecks"><label class="prizeCheck"><input type="checkbox" data-prize-type value="delivery" ${(c?.eligible_types||['delivery','pickup']).includes('delivery')?'checked':''}> Entrega</label><label class="prizeCheck"><input type="checkbox" data-prize-type value="pickup" ${(c?.eligible_types||['delivery','pickup']).includes('pickup')?'checked':''}> Retirada</label></div></div><div class="field"><label>Pagamentos participantes</label><div class="prizeChecks">${['Pix','Dinheiro','Cartão'].map(p=>`<label class="prizeCheck"><input type="checkbox" data-prize-payment value="${p}" ${(c?.eligible_payments||['Pix','Dinheiro','Cartão']).includes(p)?'checked':''}> ${p}</label>`).join('')}</div></div><div class="field"><label>Mensagem para o ganhador</label><textarea id="nightPrizeMessage" class="ta" maxlength="500">${esc(c?.winner_message||'Você ganhou um brinde do Caseirão Burger! Tire um print desta tela e envie para o estabelecimento.')}</textarea></div><div class="prizeActions"><button id="saveNightlyPrize" class="primary" ${locked?'disabled':''}>${c?'SALVAR E REINICIAR SORTEIO':'AUTORIZAR SORTEIO'}</button>${c&&!locked?'<button id="stopNightlyPrize" class="secondary">PAUSAR SORTEIO</button>':''}</div><div class="mini">A posição sorteada fica secreta. Somente pedidos feitos pelo cardápio depois da autorização participam. Existe no máximo um ganhador por noite.</div></div></div>`;
+      const save=document.querySelector('#saveNightlyPrize');if(save)save.onclick=async()=>{try{const types=[...document.querySelectorAll('[data-prize-type]:checked')].map(x=>x.value),payments=[...document.querySelectorAll('[data-prize-payment]:checked')].map(x=>x.value);if(!types.length)throw new Error('Marque Entrega ou Retirada.');if(!payments.length)throw new Error('Marque pelo menos uma forma de pagamento.');save.disabled=true;save.textContent='AUTORIZANDO...';await prizeApi('admin_save',{prize_name:document.querySelector('#nightPrizeName').value.trim(),max_position:Number(document.querySelector('#nightPrizeMax').value),min_order:num(document.querySelector('#nightPrizeMin').value),eligible_types:types,eligible_payments:payments,winner_message:document.querySelector('#nightPrizeMessage').value.trim()});showAppToast('Pedido Premiado autorizado para esta noite.','ok');await renderNightlyPrizeAdmin(box)}catch(e){alert(e.message||String(e));save.disabled=false;save.textContent='TENTAR NOVAMENTE'}};
+      const stop=document.querySelector('#stopNightlyPrize');if(stop)stop.onclick=async()=>{if(!confirm('Pausar o Pedido Premiado desta noite?'))return;try{stop.disabled=true;await prizeApi('admin_stop',{campaign_id:c.id});await renderNightlyPrizeAdmin(box)}catch(e){alert(e.message||String(e));stop.disabled=false}};
+      const redeem=document.querySelector('#redeemNightlyPrize');if(redeem)redeem.onclick=async()=>{if(!confirm('Confirmar que o brinde foi entregue ao ganhador?'))return;try{redeem.disabled=true;await prizeApi('admin_redeem',{campaign_id:c.id});await renderNightlyPrizeAdmin(box)}catch(e){alert(e.message||String(e));redeem.disabled=false}};
+    }catch(e){box.innerHTML=`<div class="err" style="margin-top:12px">${esc(e.message||String(e))}</div>`}
+  }
+})();
+</script>
+
 </body>
 </html>
