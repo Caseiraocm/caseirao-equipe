@@ -94,7 +94,7 @@ body.teamApp .overlay{position:fixed;inset:0;z-index:50}
     <button id="teamEmployeeBtn" class="teamChoice" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
     <button id="teamDispatcherBtn" class="teamChoice dispatcherAccessChoice" type="button"><span class="teamChoiceIcon">📦</span><span><strong>Área da despachante</strong><small>Veja os pedidos e avise à central quando estiverem no ponto.</small></span></button>
     <button id="teamInstallBtn" class="teamInstall" type="button">↓ Instalar este aplicativo</button>
-    <div class="teamVersion">© 2026 O Caseirão Burger • Todos os direitos reservados.</div>
+    <div class="teamVersion">ADM NOVO • BUILD 21/09/2026 • © O Caseirão Burger</div>
   </div>
 </section>
 <header class="top"><div class="topin"><div class="brand"><div class="brandMark" aria-hidden="true">CB</div><h1 id="storeName">O Caseirão Burger</h1><div id="storeStatus" class="status">Carregando cardápio...</div></div><button class="headbtn" id="trackBtn">Acompanhar</button><button class="headbtn" id="adminBtn">ADM</button></div></header>
@@ -892,7 +892,10 @@ $('#teamDispatcherBtn').onclick=()=>employeeToken()?openDispatcherPanel():openDi
 $('#teamAdminBtn').onclick=openAdmin;
 $('#teamInstallBtn').onclick=installApp;
 catalog();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20260917-v29',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
+/* ADM distribuido como arquivo unico: remove workers/caches antigos para impedir
+   que o navegador continue exibindo uma versao anterior depois do deploy. */
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>Promise.all(registrations.map(registration=>registration.unregister()))).catch(()=>{});}
+if('caches' in window){caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});}
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
