@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="caseirao-build" content="2026-09-21-cashback-toda-compra-v34">
+<meta name="caseirao-build" content="2026-09-21-adm-scroll-fix-v35">
 <meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2479,3 +2479,41 @@ body.teamApp{background:#0d0f12}
 </script>
 </body>
 </html>
+
+<style id="caseirao-adm-mobile-scroll-fix-v35">
+/* Correção definitiva da rolagem vertical da Central ADM em celular/tablet.
+   O overlay passa a ser o único contêiner de rolagem; evita travamento por
+   disputa entre .sheet/.admWorkspace/.admbar em navegadores Android/PWA. */
+@media (max-width:900px){
+  .overlay:has(.admWorkspace){
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    align-items:flex-start!important;
+  }
+  .overlay:has(.admWorkspace)>.admWorkspace,
+  .sheet.full.admWorkspace{
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  .admWorkspace>.admbar{
+    flex:none!important;
+    min-height:0!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  .admWorkspaceBody,
+  .admWorkspaceMain,
+  .admWorkspaceMain>#admContent{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+}
+</style>
