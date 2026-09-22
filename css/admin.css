@@ -14,161 +14,237 @@ body.teamApp{background:#0d0f12}
 @media(max-width:900px){.teamLauncherCard{max-width:680px!important}.teamAccessGrid{grid-template-columns:1fr}.teamAccessGrid #teamAdminBtn{grid-column:auto}.overlay:has(.admWorkspace){align-items:stretch!important;padding:0!important}.admWorkspace{display:block!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}.admWorkspace>.adminHead{position:relative!important;top:0!important;min-height:calc(68px + env(safe-area-inset-top));margin:0!important;padding:calc(12px + env(safe-area-inset-top)) 13px 12px!important}.admWorkspace>.adminHead h2{font-size:19px!important;line-height:1.15!important}.admWorkspace>.compactMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .metric{min-height:66px;padding:10px 12px!important}.admWorkspace>.compactMetrics .metric b{font-size:17px!important}.admWorkspace>.admbar{min-height:auto!important;overflow:visible!important;touch-action:pan-y}.admPrimaryNav{position:sticky;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px}.admPrimaryNav button{min-height:48px!important;font-size:10px!important}.admWorkspaceBody{display:block;min-height:0}.admManagement{position:relative;top:auto;height:auto;display:none;padding:9px;border-right:0;border-bottom:1px solid #dadee2}.admManagement.open{display:block}.admManagementTitle{display:none}.admManagementNav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.admManagementNav button{text-align:center!important;background:#fff!important;border-color:#dfe3e7!important}.admManagementToggle{display:flex;align-items:center;justify-content:center;width:calc(100% - 16px);min-height:42px;margin:8px;border:1px solid #d9dde2;border-radius:11px;background:#fff;color:#505861;font-size:11px;font-weight:950}.admWorkspaceMain{padding:11px 10px calc(88px + env(safe-area-inset-bottom))}.admWorkspaceMain .commandGrid{grid-template-columns:1fr!important}}
 @media(max-width:540px){.teamLauncher{padding:13px!important}.teamLauncherCard{padding:19px 14px!important;border-radius:24px!important}.teamLauncherIntro{grid-template-columns:58px minmax(0,1fr);gap:12px;padding-bottom:17px}.teamLauncherIntro .teamLogo{width:58px!important;height:58px!important;border-radius:18px!important;font-size:21px!important}.teamLauncherIntro h1{font-size:23px!important}.teamLauncherLive{grid-column:1/-1;width:max-content}.teamAccessGrid{margin-top:14px;gap:9px}.teamAccessGrid .teamChoice,.teamAccessGrid #teamAdminBtn{min-height:91px!important;padding:14px!important}.teamAccessGrid #teamAdminBtn:after{display:none}.admWorkspace>.compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .storeMetric{grid-column:auto!important}.admPrimaryNav{grid-template-columns:repeat(4,minmax(0,1fr))}.admPrimaryNav button{padding:7px 4px!important;font-size:9px!important}.admManagementNav{grid-template-columns:repeat(2,minmax(0,1fr))}.admWorkspaceMain{padding-left:8px;padding-right:8px}.admWorkspaceMain .compactMetrics,.admWorkspaceMain .admgrid{grid-template-columns:1fr 1fr!important}}
 
-/* ===== caseirao-admin-polish-v3 ===== */
-/* Central ADM 10/10 — acabamento visual, responsivo e sem alterar a operação. */
-.sheet.full:has(.adminHead){
-  --adm-orange:#e55b18;
-  --adm-orange-dark:#bf3f0d;
-  --adm-ink:#171a1e;
-  --adm-soft:#f5f6f8;
-  --adm-border:#e1e4e8;
-  width:min(100%,1040px);
-  padding:22px clamp(18px,3vw,32px) calc(28px + env(safe-area-inset-bottom));
-  background:
-    radial-gradient(circle at 100% 0,rgba(229,91,24,.08),transparent 260px),
-    #f6f7f9;
+
+/* ===== CASEIRAO ADM — DESIGN SYSTEM CONSOLIDADO =====
+   Camada visual principal. Mantém as classes e fluxos existentes.
+   Objetivo: desktop profissional, leitura rápida e operação sem poluição. */
+.admWorkspace{
+  --adm-bg:#f3f5f7;
+  --adm-surface:#ffffff;
+  --adm-surface-2:#f8f9fa;
+  --adm-border:#dfe3e7;
+  --adm-text:#20242a;
+  --adm-muted:#69717b;
+  --adm-orange:#e66020;
+  --adm-orange-dark:#c44710;
+  --adm-green:#208a50;
+  --adm-red:#c83b43;
+  --adm-blue:#17689d;
+  --adm-purple:#6254b5;
+  color:var(--adm-text)!important;
 }
-.sheet.full:has(.adminHead)>.adminHead{
-  top:-22px;
-  margin:0 calc(clamp(18px,3vw,32px) * -1) 18px;
-  padding:18px clamp(18px,3vw,32px) 15px!important;
-  min-height:78px;
-  border-bottom:1px solid var(--adm-border);
-  background:rgba(255,255,255,.94)!important;
-  backdrop-filter:blur(18px);
+.admWorkspaceMain{background:var(--adm-bg)!important;color:var(--adm-text)!important}
+.admWorkspaceMain #admContent{color:var(--adm-text)!important}
+.admWorkspaceMain .sectionTitle{
+  margin:20px 0 10px!important;
+  color:#252a30!important;
+  font-size:14px!important;
+  font-weight:950!important;
+  letter-spacing:-.01em;
 }
-.sheet.full:has(.adminHead) .adminHead h2{font-size:clamp(25px,4vw,32px);line-height:1;letter-spacing:-.045em;color:var(--adm-ink)}
-.sheet.full:has(.adminHead) .adminSub{margin-top:7px;font-size:13px;font-weight:650;color:#747b84}
-.sheet.full:has(.adminHead) .adminLogout{
-  min-width:64px!important;
-  padding:9px 14px!important;
-  border-radius:11px!important;
+.admWorkspaceMain .proToolbar{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center;
+  gap:9px!important;
+}
+.admWorkspaceMain .proToolbar .in,
+.admWorkspaceMain .search,
+.admWorkspaceMain .in,
+.admWorkspaceMain .sel,
+.admWorkspaceMain .ta{
+  min-height:46px;
+  border:1px solid var(--adm-border)!important;
+  border-radius:12px!important;
   background:#fff!important;
-  color:#a63d12!important;
-  border:1px solid #edc8b6!important;
-  box-shadow:0 2px 8px rgba(35,39,44,.05)!important;
+  color:var(--adm-text)!important;
+  -webkit-text-fill-color:var(--adm-text)!important;
+  box-shadow:0 1px 2px rgba(24,30,37,.03);
 }
-.sheet.full:has(.adminHead) .compactMetrics{
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:10px;
-  margin:0 0 10px;
+.admWorkspaceMain .proToolbar .primary{
+  width:auto!important;
+  min-width:150px;
+  min-height:46px;
+  padding:11px 16px!important;
 }
-.sheet.full:has(.adminHead) .compactMetrics .metric{
-  min-height:112px;
-  padding:17px 17px 15px;
-  border:1px solid var(--adm-border);
-  border-radius:18px;
-  background:#fff;
-  box-shadow:0 5px 18px rgba(28,34,41,.045);
-}
-.sheet.full:has(.adminHead) .compactMetrics .metric:before{width:4px;background:linear-gradient(180deg,#f0752c,var(--adm-orange-dark))}
-.sheet.full:has(.adminHead) .compactMetrics .metric b{font-size:clamp(23px,3vw,31px);line-height:1.05;letter-spacing:-.045em;color:var(--adm-ink)}
-.sheet.full:has(.adminHead) .compactMetrics .metric span{margin-top:9px;font-size:12px;font-weight:700;color:#767d86}
-.sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:auto}
-.sheet.full:has(.adminHead) .compactMetrics .storeMetric b{font-size:clamp(19px,2.5vw,27px)}
-.sheet.full:has(.adminHead) .paymentMetrics{gap:10px;margin:0 0 16px}
-.sheet.full:has(.adminHead) .paymentMetric{
-  position:relative;
-  min-height:82px;
-  padding:14px 15px 13px 48px;
-  border:1px solid var(--adm-border);
-  border-radius:16px;
-  background:#fff;
-  box-shadow:0 4px 14px rgba(28,34,41,.035);
-}
-.sheet.full:has(.adminHead) .paymentMetric:before{
-  content:'';
-  position:absolute;left:14px;top:15px;
-  width:24px;height:24px;border-radius:8px;
-  display:grid;place-items:center;
-  background:#f1f3f5;color:#4d555e;
-  font-size:13px;font-weight:950;
-}
-.sheet.full:has(.adminHead) .paymentMetric:nth-child(1):before{content:'▰';background:#fff0e7;color:#c94b12}
-.sheet.full:has(.adminHead) .paymentMetric:nth-child(2):before{content:'◆';background:#eaf6f2;color:#16795a}
-.sheet.full:has(.adminHead) .paymentMetric:nth-child(3):before{content:'$';background:#eaf5ec;color:#267a3c}
-.sheet.full:has(.adminHead) .paymentMetric span{font-size:11px;font-weight:800;color:#707780}
-.sheet.full:has(.adminHead) .paymentMetric b{margin-top:7px;font-size:19px;letter-spacing:-.025em}
-.sheet.full:has(.adminHead)>.admbar{
-  position:sticky;top:72px;z-index:8;
-  display:grid;
-  grid-template-columns:repeat(6,minmax(0,1fr));
-  overflow:visible;
+.admWorkspaceMain .proFilters{
   gap:7px!important;
-  margin:0 -2px 16px!important;
-  padding:7px 2px 10px!important;
-  border:0;
-  background:rgba(246,247,249,.96)!important;
-  backdrop-filter:blur(16px);
+  padding:2px 0 10px!important;
+  scrollbar-width:none;
 }
-.sheet.full:has(.adminHead)>.admbar button{
-  min-width:0;min-height:46px;
-  padding:8px 6px!important;
-  border:1px solid #dfe2e6!important;
-  border-radius:13px!important;
+.admWorkspaceMain .proFilters::-webkit-scrollbar{display:none}
+.admWorkspaceMain .proFilters button{
+  min-height:38px!important;
+  padding:8px 13px!important;
+  border:1px solid var(--adm-border)!important;
+  border-radius:999px!important;
   background:#fff!important;
-  color:#555c65!important;
-  font-size:11px!important;
+  color:#5b636d!important;
+  box-shadow:none!important;
 }
-.sheet.full:has(.adminHead)>.admbar button.on{
-  border-color:#292d32!important;
-  background:#292d32!important;
+.admWorkspaceMain .proFilters button.on{
+  border-color:var(--adm-orange)!important;
+  background:var(--adm-orange)!important;
   color:#fff!important;
-  box-shadow:0 7px 16px rgba(31,35,40,.15)!important;
 }
-.sheet.full:has(.adminHead) #admContent>.alertControl.alertEnabled{margin:2px 0 12px}
-.sheet.full:has(.adminHead) .alertEnabled .enableAlertsBtn{padding:7px 10px;border-radius:10px;font-size:11px;letter-spacing:.015em}
-.sheet.full:has(.adminHead) .operationHint,.sheet.full:has(.adminHead) .notice{border-radius:14px;line-height:1.45}
-.sheet.full:has(.adminHead) #admContent>.operationHint{margin:8px 0 14px;padding:12px 14px;font-size:12px}
-.sheet.full:has(.adminHead) .search,.sheet.full:has(.adminHead) .in,.sheet.full:has(.adminHead) .sel{min-height:50px;border-radius:14px}
-.sheet.full:has(.adminHead) .primary{min-height:50px;border-radius:14px;letter-spacing:-.01em}
-.sheet.full:has(.adminHead) .loyaltyCard{background:#fff;border-color:#dfe3e7;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}
-.sheet.full:has(.adminHead) .loyaltyCardTop .grow>b{color:#171a1e!important;font-size:17px;font-weight:950;line-height:1.25}
-.sheet.full:has(.adminHead) .loyaltyCard .mini{color:#666f79!important;font-size:13px;line-height:1.45}
-.sheet.full:has(.adminHead) .loyaltyCard .loyaltyTrack{background:#e2e6e9}
-.sheet.full:has(.adminHead) .proFilters{gap:7px;padding:3px 0 8px;scrollbar-width:none}
-.sheet.full:has(.adminHead) .proFilters::-webkit-scrollbar{display:none}
-.sheet.full:has(.adminHead) .proFilters button{min-height:42px;padding:9px 14px;border-radius:12px;background:#fff;color:#626a73;border-color:#dfe3e7}
-.sheet.full:has(.adminHead) .proFilters button.on{background:var(--adm-orange);border-color:var(--adm-orange);color:#fff}
-.sheet.full:has(.adminHead) .empty.cleanEmpty{min-height:150px;justify-content:center;border:1px dashed #ccd1d7;border-radius:18px;background:rgba(255,255,255,.62)}
-.sheet.full:has(.adminHead) .orderDetailed,.sheet.full:has(.adminHead) .kitchenCard,.sheet.full:has(.adminHead) .tableitem{border-radius:17px;box-shadow:0 5px 18px rgba(28,34,41,.045)}
-@media(max-width:760px){
-  .sheet.full:has(.adminHead){padding:18px 14px calc(24px + env(safe-area-inset-bottom))}
-  .sheet.full:has(.adminHead)>.adminHead{top:-18px;margin:0 -14px 14px;padding:16px 18px 14px!important;min-height:72px}
-  .sheet.full:has(.adminHead) .adminHead h2{font-size:27px}
-  .sheet.full:has(.adminHead) .compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .sheet.full:has(.adminHead) .compactMetrics .metric{min-height:96px;padding:15px}
-  .sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:1/-1;min-height:88px}
-  .sheet.full:has(.adminHead)>.admbar{top:68px;display:flex;overflow-x:auto;gap:7px!important;margin:0 -14px 14px!important;padding:8px 14px 11px!important;scroll-padding:14px;scroll-snap-type:x proximity}
-  .sheet.full:has(.adminHead)>.admbar::-webkit-scrollbar{display:none}
-  .sheet.full:has(.adminHead)>.admbar button{flex:0 0 auto;min-width:88px;padding:8px 13px!important;scroll-snap-align:start;font-size:11px!important}
-}
-@media(max-width:430px){
-  .sheet.full:has(.adminHead) .adminHead h2{font-size:25px}
-  .sheet.full:has(.adminHead) .adminSub{font-size:12px}
-  .sheet.full:has(.adminHead) .adminLogout{min-width:58px!important;padding:8px 12px!important}
-  .sheet.full:has(.adminHead) .paymentMetrics{gap:7px}
-  .sheet.full:has(.adminHead) .paymentMetric{min-height:78px;padding:42px 8px 11px}
-  .sheet.full:has(.adminHead) .paymentMetric:before{left:10px;top:10px;width:24px;height:24px}
-  .sheet.full:has(.adminHead) .paymentMetric span{font-size:10px;white-space:normal}
-  .sheet.full:has(.adminHead) .paymentMetric b{font-size:clamp(12px,3.35vw,15px);margin-top:5px;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.045em}
+.admWorkspaceMain .operationHint{
+  margin:0 0 12px!important;
+  padding:10px 12px!important;
+  border:1px solid #efd7c8!important;
+  border-left:4px solid var(--adm-orange)!important;
+  border-radius:11px!important;
+  background:#fff8f3!important;
+  color:#744326!important;
 }
 
-/* Contraste reforçado nas informações de Cliente e Pagamento dos pedidos. */
-.sheet.full:has(.adminHead) .orderInfo{
-  background:#ffffff;
-  border-color:#d7dce1;
+/* Pedidos */
+.admWorkspaceMain .orderDetailed{
+  margin:9px 0!important;
+  overflow:hidden;
+  border:1px solid var(--adm-border)!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.045)!important;
 }
-.sheet.full:has(.adminHead) .orderInfo span{
-  color:#5f6872;
+.admWorkspaceMain .orderDetailed[open]{
+  border-color:#e9b99f!important;
+  box-shadow:0 8px 24px rgba(25,31,38,.08)!important;
 }
-.sheet.full:has(.adminHead) .orderInfo b{
-  color:#171a1f;
+.admWorkspaceMain .orderSummary{
+  min-height:70px!important;
+  padding:13px 14px!important;
+  background:#fff!important;
 }
-.sheet.full:has(.adminHead) .orderInfo small{
-  color:#48515b;
-  font-weight:650;
+.admWorkspaceMain .summaryCustomer b,
+.admWorkspaceMain .orderNumber{
+  color:#20242a!important;
+  -webkit-text-fill-color:#20242a!important;
 }
+.admWorkspaceMain .summaryCustomer span,
+.admWorkspaceMain .orderTime,
+.admWorkspaceMain .mini{
+  color:var(--adm-muted)!important;
+  -webkit-text-fill-color:var(--adm-muted)!important;
+}
+.admWorkspaceMain .orderBody{
+  padding:14px!important;
+  border-top:1px solid #e8ebee!important;
+  background:#fafbfc!important;
+}
+.admWorkspaceMain .orderInfoGrid{gap:8px!important}
+.admWorkspaceMain .orderInfo{
+  border:1px solid #e0e4e8!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+}
+.admWorkspaceMain .orderInfo span{color:#68717b!important}
+.admWorkspaceMain .orderInfo b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+.admWorkspaceMain .orderInfo small{color:#4f5963!important;-webkit-text-fill-color:#4f5963!important}
+.admWorkspaceMain .addressBoxAdmin,
+.admWorkspaceMain .notesBoxAdmin{
+  border-color:#dce2e7!important;
+  background:#fff!important;
+  color:#34404a!important;
+}
+.admWorkspaceMain .addressBoxAdmin b,
+.admWorkspaceMain .notesBoxAdmin b{color:#20242a!important}
+.admWorkspaceMain .orderItemsBox{
+  border-color:#dfe3e7!important;
+  background:#fff!important;
+}
+.admWorkspaceMain .orderItemRow{
+  border-color:#e8ebee!important;
+  background:#fff!important;
+  color:#20242a!important;
+}
+.admWorkspaceMain .orderItemHead b,
+.admWorkspaceMain .orderItemPrice{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+.admWorkspaceMain .orderAddonLine{color:#5f6872!important}
+.admWorkspaceMain .orderTotalsBox{border-color:#d9dde2!important}
+.admWorkspaceMain .orderTotalLine{color:#525b65!important}
+.admWorkspaceMain .orderTotalLine.grand{color:#171a1e!important}
+
+/* Botões operacionais */
+.admWorkspaceMain .orderactions{gap:6px!important}
+.admWorkspaceMain .orderactions button,
+.admWorkspaceMain .printActions button,
+.admWorkspaceMain .editbtn{
+  min-height:40px;
+  border-radius:10px!important;
+}
+.admWorkspaceMain .printActions{gap:7px!important}
+.admWorkspaceMain .mainPrint{
+  border-color:#20242a!important;
+  background:#20242a!important;
+  color:#fff!important;
+}
+.admWorkspaceMain .whatsappAction{
+  border-color:#168c4c!important;
+  background:#168c4c!important;
+}
+
+/* Indicadores e cartões */
+.admWorkspace .metric,
+.admWorkspaceMain .financeCard,
+.admWorkspaceMain .reportCard,
+.admWorkspaceMain .commandPanel{
+  border:1px solid var(--adm-border)!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
+}
+.admWorkspaceMain .financeCard b,
+.admWorkspaceMain .reportCard b{color:#20242a!important}
+.admWorkspaceMain .financeCard span,
+.admWorkspaceMain .reportCard span{color:var(--adm-muted)!important}
+
+/* Mesas, produção e listas */
+.admWorkspaceMain .tableitem,
+.admWorkspaceMain .kitchenCard,
+.admWorkspaceMain .reportBreak,
+.admWorkspaceMain .loyaltyCard,
+.admWorkspaceMain .cashbackConfig,
+.admWorkspaceMain .cashbackCustomers{
+  border:1px solid var(--adm-border)!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
+}
+.admWorkspaceMain .tableitem b,
+.admWorkspaceMain .kitchenCard b,
+.admWorkspaceMain .loyaltyCard b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+
+/* Estados vazios */
+.admWorkspaceMain .cleanEmpty,
+.admWorkspaceMain .empty{
+  min-height:120px;
+  border:1px dashed #cbd1d7!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.7)!important;
+  color:#707983!important;
+}
+
+/* Desktop: área de trabalho mais arejada */
+@media(min-width:901px){
+  .admWorkspace>.adminHead{padding-left:24px!important;padding-right:24px!important}
+  .admWorkspaceMain{padding:20px 24px 40px!important}
+  .admWorkspaceMain>#admContent{max-width:1180px!important}
+  .admWorkspaceMain .orderInfoGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* Celular/tablet: preservar a correção de rolagem e reduzir densidade */
+@media(max-width:900px){
+  .admWorkspaceMain .proToolbar{grid-template-columns:1fr!important}
+  .admWorkspaceMain .proToolbar .primary{width:100%!important}
+  .admWorkspaceMain .orderSummary{padding:12px!important}
+  .admWorkspaceMain .orderBody{padding:11px!important}
+}
+@media(max-width:520px){
+  .admWorkspaceMain .orderInfoGrid{grid-template-columns:1fr!important}
+  .admWorkspaceMain .proFilters button{padding:8px 11px!important}
+  .admWorkspaceMain .orderDetailed{border-radius:13px!important}
+}
+
 
 /* ===== smart-order-workflow-style ===== */
 /* Fluxo operacional guiado: uma ação principal por vez. */
@@ -349,10 +425,7 @@ body.teamApp{background:#0d0f12}
 /* ===== nightly-prize-admin-style ===== */
 .prizeAdmin{display:grid;gap:13px;margin-top:12px}.prizeHero{padding:16px;border:1px solid #6f4627;border-radius:17px;background:linear-gradient(145deg,#2a190f,#151515)}.prizeHero h3{margin:0 0 6px;color:#ffbd82}.prizeStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.prizeMetric{padding:12px;border:1px solid #333841;border-radius:13px;background:#14171b}.prizeMetric span{display:block;color:#9fa7b1;font-size:11px}.prizeMetric b{display:block;margin-top:4px;color:#fff;font-size:17px}.prizeWinner{padding:15px;border:1px solid #2d7b4a;border-radius:15px;background:#10291a}.prizeWinner h3{margin:0 0 8px;color:#92efb2}.prizeChecks{display:flex;flex-wrap:wrap;gap:8px}.prizeCheck{display:flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #343941;border-radius:11px;background:#171a1f;color:#e7ebef;font-weight:800}.prizeCheck input{width:18px;height:18px;accent-color:#e76620}.prizeActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}@media(max-width:520px){.prizeStatus,.prizeActions{grid-template-columns:1fr}.prizeHero{padding:14px}}
 
-/* ===== caseirao-admin-premium-v30 ===== */
-:root{--admin-ink:#17191d;--admin-orange:#e65f1f;--admin-gold:#efb75c;--admin-paper:#f5f6f7}
-.sheet.full:has(.adminHead){background:linear-gradient(160deg,#f7f8f9,#eef0f2)!important;color:var(--admin-ink)!important}.sheet.full:has(.adminHead) .adminHead h2{color:#16181c!important}.sheet.full:has(.adminHead) .adminSub{color:#69717b!important}
-.sheet.full:has(.adminHead)>.admbar{position:sticky;top:0;z-index:12;margin:0 -16px;padding:9px 16px 12px;background:rgba(247,248,249,.94)!important;border-color:#dde1e5!important;backdrop-filter:blur(18px)}.sheet.full:has(.adminHead)>.admbar button{color:#5f6670!important}.sheet.full:has(.adminHead)>.admbar button.on{background:linear-gradient(135deg,#24282e,#15171a)!important;border-color:#15171a!important;color:#fff!important;box-shadow:0 7px 18px rgba(20,23,27,.18)!important}
+\1
 .waStagePanel{margin-top:11px;padding:13px;border:1px solid #cfe1d6;border-radius:15px;background:#f4fbf6}.waStageHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}.waStageHead b{color:#175f36!important;font-size:13px}.waStageHead span{color:#668071!important;font-size:10px}.waStageGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.waStageButton{display:flex;align-items:center;justify-content:center;min-height:42px;padding:8px;border:1px solid #bcdcc8;border-radius:11px;background:#fff;color:#17663a;text-decoration:none;text-align:center;font-size:10px;font-weight:950}.waStageButton.current{background:#168c4c;color:#fff;border-color:#168c4c;box-shadow:0 5px 14px rgba(22,140,76,.2)}
 .cashbackAdminHero{padding:18px;border-radius:20px;background:linear-gradient(135deg,#25292f,#121417);color:#fff;box-shadow:0 12px 28px rgba(20,23,27,.18)}.cashbackAdminHero small{color:#efb05e;font-weight:950;letter-spacing:.1em}.cashbackAdminHero h2{margin:6px 0 4px;color:#fff!important;font-size:25px}.cashbackAdminHero p{margin:0;color:#bdc3ca}.cashbackKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.cashbackKpi{padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.06)}.cashbackKpi span{display:block;color:#bfc5cc;font-size:9px}.cashbackKpi b{display:block;margin-top:5px;color:#fff!important;font-size:18px}.cashbackConfig,.cashbackCustomers{margin-top:12px;padding:15px;border:1px solid #dde2e6;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(25,30,36,.05)}.cashbackConfigGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.cashbackCustomer{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #eceff1}.cashbackCustomer:last-child{border:0}.cashbackCustomer strong{display:block;color:#1d2024!important}.cashbackCustomer span{display:block;margin-top:3px;color:#69717a;font-size:11px}.cashbackCustomerBalance{min-width:82px;padding:8px 10px;border-radius:11px;background:#fff5e7;color:#ad4a16;text-align:center;font-weight:950}.cashbackAdjust{border:1px solid #dce1e5;border-radius:10px;background:#fff;color:#404750;padding:9px;font-size:10px;font-weight:900}.cashbackSearch{margin:11px 0}.cashbackStatusToggle{display:flex;align-items:center;gap:8px;padding:11px;border:1px solid #e1e4e7;border-radius:12px;background:#fafbfc;font-weight:900}
 @media(max-width:650px){.waStageGrid{grid-template-columns:1fr 1fr}.cashbackKpis{grid-template-columns:1fr 1fr}.cashbackConfigGrid{grid-template-columns:1fr 1fr}.cashbackCustomer{grid-template-columns:minmax(0,1fr) auto}.cashbackAdjust{grid-column:1/-1}.cashbackKpi:last-child{grid-column:1/-1}}
