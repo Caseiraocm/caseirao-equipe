@@ -706,7 +706,7 @@ checkNewOrders=async function(){
     const box=$('#admContent');if(box&&(newOrders.length||justReady.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}
   }catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}
 };
-startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,2500)};
+startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,5000)};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))checkNewOrders()});
 
 /* Alertas reforçados enquanto o ADM está ativo no aparelho. */
@@ -1138,7 +1138,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     const nav=document.querySelector('.sheet.full>.admbar');
     if(nav){nav.setAttribute('aria-label','Áreas da Central Caseirão');nav.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.classList.contains('on'))));}
   };
-  new MutationObserver(polishAdminLabels).observe(document.body,{childList:true,subtree:true});
+  /* Rótulos aplicados sem observer global. */
   polishAdminLabels();
 })();
 
@@ -1476,10 +1476,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
       initialized=true;
     }finally{busy=false}
   }
-  poll();
-  setInterval(poll,4000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
-  window.addEventListener('focus',poll);
+  /* Poll duplicado removido: o watcher principal já detecta entregas concluídas. */
 })();
 
 /* Caixa de notificações das entregas, com histórico e contador de não lidas. */
@@ -1509,9 +1506,8 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
     if(!bell){bell=document.createElement('button');bell.type='button';bell.className='deliveryNotificationBell';bell.innerHTML='🔔<span class="deliveryNotificationBadge hide">0</span>';bell.onclick=openCenter;const logout=head.querySelector('#adminLogout');logout?head.insertBefore(bell,logout):head.appendChild(bell)}
     updateBadge();
   }
-  const observer=new MutationObserver(mount);observer.observe(document.body,{childList:true,subtree:true});
-  window.addEventListener('caseirao-delivery-alert-saved',()=>{mount();updateBadge()});
-  mount();
+  /* Observer morto removido: mount() está desativado. */
+  window.addEventListener('caseirao-delivery-alert-saved',()=>updateBadge());
 })();
 
 /* Histórico oficial no Supabase: compartilhado entre aparelhos e apagado somente pelo ADM. */
@@ -1655,8 +1651,8 @@ document.addEventListener('input',event=>{
     }catch(error){layer.querySelector('.loyaltyParticipantsPanel').innerHTML=`<div class="loyaltyParticipantsHead"><div><h2>Clientes participantes</h2><p>Não foi possível carregar agora</p></div><button class="loyaltyParticipantsClose">×</button></div><div class="err">${esc(error.message||String(error))}</div>`;layer.querySelector('.loyaltyParticipantsClose').onclick=()=>layer.remove()}
   }
   const mountButton=()=>{if(typeof adminTab==='undefined'||adminTab!=='fidelidade')return;const box=document.querySelector('#admContent');if(!box||box.querySelector('.loyaltyParticipantsButton'))return;const button=document.createElement('button');button.type='button';button.className='loyaltyParticipantsButton';button.textContent='👥 VER CLIENTES PARTICIPANTES';button.onclick=openLoyaltyParticipants;box.prepend(button)};
-  new MutationObserver(()=>queueMicrotask(mountButton)).observe(document.body,{subtree:true,childList:true});
-  setInterval(mountButton,1000);
+  /* Sem observer global e sem timer duplicado. */
+  queueMicrotask(mountButton);
 })();
 
 /* Mantém a aba ativa visível e alinhada ao conteúdo selecionado. */
@@ -1679,11 +1675,7 @@ document.addEventListener('input',event=>{
     setTimeout(()=>centerActiveAdminTab(true),20);
     setTimeout(()=>centerActiveAdminTab(false),140);
   },true);
-  const observer=new MutationObserver(()=>{
-    if(!document.querySelector('.sheet.full>.admbar'))return;
-    queueMicrotask(()=>centerActiveAdminTab(false));
-  });
-  observer.observe(document.body,{subtree:true,childList:true});
+  /* Sem observar document.body a cada reconstrução do ADM. */
   window.addEventListener('resize',()=>centerActiveAdminTab(false));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
 })();
@@ -2197,29 +2189,3 @@ renderOrders=function(box){
 
 
 })();
-
-
-/* ===== HOTFIX ESTABILIDADE ADM V2 ===== */
-(()=>{
-  if(window.__CASEIRAO_ADM_STABILITY_V2__)return;
-  window.__CASEIRAO_ADM_STABILITY_V2__=true;
-  let busy=false,lastRun=0;
-  const baseCheck=checkNewOrders;
-  checkNewOrders=async function(){
-    if(!sessionStorage.getItem('caseirao_admin_pin')||!document.querySelector('#admContent')||document.hidden)return;
-    const now=Date.now();
-    if(busy||now-lastRun<6500)return;
-    busy=true;lastRun=now;
-    try{await baseCheck()}catch(e){console.warn('[Caseirao ADM sync]',e)}finally{busy=false}
-  };
-  startOrderWatcher=function(){
-    if(orderWatcher){clearInterval(orderWatcher);orderWatcher=null}
-    knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));
-    knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),o.status]));
-    orderWatcher=setInterval(()=>{if(!document.hidden&&document.querySelector('#admContent'))checkNewOrders()},8000);
-  };
-  document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden&&document.querySelector('#admContent'))setTimeout(()=>checkNewOrders(),250);
-  });
-})();
-
