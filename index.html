@@ -1,28 +1,22 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-
 <meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<meta content="#ffffff" name="theme-color"/>
-<meta content="2026-09-21-structured-v36" name="caseirao-build"/>
-<meta content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger." name="description"/>
-<meta content="yes" name="mobile-web-app-capable"/>
-<meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<meta content="Caseirão" name="apple-mobile-web-app-title"/>
-<link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d10'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle'%3E🍔%3C/text%3E%3C/svg%3E" rel="icon"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#e76620"/>
+<meta name="caseirao-build" content="2026-09-22-adm-stable-v38"/>
+<meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger."/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Caseirão"/>
+<link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png"/>
+<link rel="manifest" href="./manifest.webmanifest?v=20260922-v38"/>
 <title>Caseirão Equipe</title>
-
-<link href="./manifest.webmanifest" rel="manifest"/>
-<meta content="#e76620" name="theme-color"/>
-<link href="./icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
-
-<link href="./css/base.css" rel="stylesheet"/><link href="./css/admin.css" rel="stylesheet"/></head>
-  <link href="./css/admin.css" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/base.css?v=20260922-v38"/>
+<link rel="stylesheet" href="./css/admin.css?v=20260922-v38"/>
+</head>
 <body class="teamApp">
-  
 <section aria-label="Acesso interno do Caseirão" class="teamLauncher" id="teamHome">
 <div class="teamLauncherCard">
 <div aria-hidden="true" class="teamLogo">CB</div>
@@ -32,7 +26,7 @@
 <button class="teamChoice" id="teamEmployeeBtn" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
 <button class="teamChoice dispatcherAccessChoice" id="teamDispatcherBtn" type="button"><span class="teamChoiceIcon">📦</span><span><strong>Área da despachante</strong><small>Veja os pedidos e avise à central quando estiverem no ponto.</small></span></button>
 <button class="teamInstall" id="teamInstallBtn" type="button">↓ Instalar este aplicativo</button>
-<div class="teamVersion">ADM NOVO • BUILD 21/09/2026 • © O Caseirão Burger</div>
+<div class="teamVersion">ADM ESTÁVEL • BUILD 22/09/2026 • © O Caseirão Burger</div>
 </div>
 </section>
 <header class="top"><div class="topin"><div class="brand"><div aria-hidden="true" class="brandMark">CB</div><h1 id="storeName">O Caseirão Burger</h1><div class="status" id="storeStatus">Carregando cardápio...</div></div><button class="headbtn" id="trackBtn">Acompanhar</button><button class="headbtn" id="adminBtn">ADM</button></div></header>
@@ -41,34 +35,14 @@
 <input autocomplete="off" class="search" id="search" placeholder="Buscar no cardápio"/>
 <nav aria-label="Atalhos" class="quicknav"><button class="quickbtn" id="homeBtn">⌂ Início</button><button class="quickbtn promoQuick" id="promotionsBtn">🔥 Promoções</button><button class="quickbtn" id="loyaltyBtn">★ Minha fidelidade</button><button class="quickbtn" id="installBtn">↓ Instalar</button></nav>
 <div class="cats" id="cats"></div>
-<div class="grid" id="products"><div aria-label="Carregando" class="card skeleton"><div class="pic"></div><div class="pc"><div class="name">Carregando...</div><div class="desc">Preparando o cardápio</div></div></div><div aria-hidden="true" class="card skeleton"><div class="pic"></div><div class="pc"><div class="name"> </div><div class="desc"> </div></div></div></div>
+<div class="grid" id="products"><div aria-label="Carregando" class="card skeleton"><div class="pic"></div><div class="pc"><div class="name">Carregando...</div><div class="desc">Preparando o cardápio</div></div></div></div>
 <footer class="siteFooter">© 2026 O Caseirão Burger — Todos os direitos reservados.</footer>
 </main>
-<div class="cartbar"><button class="cartbtn" id="cartBtn"><span style="display:flex;align-items:center;gap:11px;min-width:0"><svg aria-hidden="true" fill="none" height="25" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="flex:0 0 25px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.2))" viewbox="0 0 24 24" width="25"><path d="M3 3h2l2.25 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.95-1.55L20.5 7H6.1"></path><circle cx="9.5" cy="20" fill="currentColor" r="1.25" stroke="none"></circle><circle cx="17.5" cy="20" fill="currentColor" r="1.25" stroke="none"></circle></svg><span id="cartLabel">Carrinho • 0 itens</span></span><span id="cartTotal">R$ 0,00</span></button></div>
+<div class="cartbar"><button class="cartbtn" id="cartBtn"><span id="cartLabel">Carrinho • 0 itens</span><span id="cartTotal">R$ 0,00</span></button></div>
 <div id="modalRoot"></div>
 <div aria-hidden="true" class="loadingBar hide" id="loadingBar"></div>
-
-
-
-<script src="./js/config.js"></script><script src="./js/app.js"></script><script src="./js/admin-ui.js"></script></body>
+<script src="./js/config.js?v=20260922-v38"></script>
+<script src="./js/app.js?v=20260922-v38"></script>
+<script src="./js/admin-ui.js?v=20260922-v38"></script>
+</body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
