@@ -717,3 +717,141 @@ body.teamApp{background:#0d0f12}
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* ===== CASEIRAO ADM — ETAPA 3 / MOBILE OPERACIONAL =====
+   Foco: ganhar altura útil no celular sem alterar nenhuma função. */
+@media(max-width:520px){
+
+  /* Navegação principal mais compacta */
+  .admWorkspace .admWorkspaceNav{
+    gap:7px!important;
+    padding:8px 10px!important;
+  }
+  .admWorkspace .admWorkspaceNav button,
+  .admWorkspace .admWorkspaceNav .admNavButton{
+    min-height:54px!important;
+    padding:8px 6px!important;
+    border-radius:13px!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+  }
+
+  /* Aviso, busca e pedido manual */
+  .admWorkspaceMain .operationHint{
+    margin-bottom:8px!important;
+    padding:8px 10px!important;
+    border-radius:10px!important;
+    font-size:10px!important;
+    line-height:1.3!important;
+  }
+  .admWorkspaceMain .proToolbar{
+    gap:7px!important;
+    margin-bottom:8px!important;
+  }
+  .admWorkspaceMain .proToolbar .in{
+    min-height:43px!important;
+    padding:9px 12px!important;
+    font-size:13px!important;
+  }
+  .admWorkspaceMain .proToolbar .primary{
+    min-height:42px!important;
+    padding:8px 12px!important;
+    font-size:10px!important;
+  }
+
+  /* Filtros horizontais menores */
+  .admWorkspaceMain .proFilters{
+    gap:5px!important;
+    padding:0 0 7px!important;
+  }
+  .admWorkspaceMain .proFilters button{
+    min-height:34px!important;
+    padding:6px 10px!important;
+    font-size:9px!important;
+    white-space:nowrap!important;
+  }
+
+  /* Cliente e pagamento lado a lado no pedido */
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr)!important;
+    gap:6px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo{
+    min-width:0!important;
+    padding:8px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo b{
+    font-size:11px!important;
+    line-height:1.2!important;
+    overflow-wrap:anywhere!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo small{
+    font-size:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo span{
+    font-size:8px!important;
+  }
+
+  /* Ações do cliente/entrega */
+  .admWorkspaceMain .orderDetailed .whatsappAction,
+  .admWorkspaceMain .orderDetailed .deliveryAction{
+    min-height:40px!important;
+    margin-top:6px!important;
+    padding:7px 9px!important;
+    font-size:9px!important;
+  }
+
+  /* Endereço, observações e itens */
+  .admWorkspaceMain .orderDetailed .addressBoxAdmin,
+  .admWorkspaceMain .orderDetailed .notesBoxAdmin{
+    margin-top:6px!important;
+    padding:8px 9px!important;
+    font-size:10px!important;
+    line-height:1.3!important;
+  }
+  .admWorkspaceMain .orderDetailed .addressBoxAdmin b,
+  .admWorkspaceMain .orderDetailed .notesBoxAdmin b{
+    font-size:10px!important;
+  }
+
+  /* Impressão e controles */
+  .admWorkspaceMain .orderDetailed .printActions button{
+    min-height:39px!important;
+    font-size:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .smartOrderFlow{
+    margin-top:7px!important;
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .smartNextAction{
+    min-height:42px!important;
+    font-size:10px!important;
+  }
+
+  /* Mensagens */
+  .admWorkspaceMain .orderDetailed .waStagePanel{
+    margin-top:7px!important;
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .waStageButton{
+    min-height:34px!important;
+    font-size:8px!important;
+  }
+
+  /* Controle operacional */
+  .admWorkspaceMain .orderDetailed .opsTools button,
+  .admWorkspaceMain .orderDetailed .opsContactRow button,
+  .admWorkspaceMain .orderDetailed .opsContactRow a{
+    min-height:38px!important;
+    font-size:8px!important;
+  }
+}
+
+/* Em aparelhos muito estreitos, só então empilha cliente/pagamento. */
+@media(max-width:350px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr!important;
+  }
+}
