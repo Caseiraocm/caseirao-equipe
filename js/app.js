@@ -2158,8 +2158,8 @@ function ensureCaseiraoPrinterPanel(){
 }
 const printerPanelObserver=new MutationObserver(()=>{if(document.querySelector('#admContent')&&adminTab==='pedidos')queueMicrotask(ensureCaseiraoPrinterPanel)});
 printerPanelObserver.observe(document.body,{childList:true,subtree:true});
-document.addEventListener('click',()=>setTimeout(ensureCaseiraoPrinterPanel,0),true);
-setTimeout(ensureCaseiraoPrinterPanel,250);
+/* REMOVIDO: não remontar painel Bluetooth em todo clique do sistema. */
+/* REMOVIDO: renderOrders final é responsável pelo painel Bluetooth. */
 
 /* Nunca abre o seletor de dispositivo por uma impressao. O seletor Bluetooth
    aparece somente quando o operador toca em CONECTAR BLUETOOTH. */
@@ -2189,75 +2189,3 @@ renderOrders=function(box){
 
 
 })();
-
-
-/* ===== DIAGNOSTICO DE CONGELAMENTO ADM =====
-   Não altera regras de pedidos/banco. Registra travamentos e duração das rotinas principais. */
-(()=>{
-  if(window.__CASEIRAO_FREEZE_DIAG__)return;
-  window.__CASEIRAO_FREEZE_DIAG__=true;
-  const KEY='caseirao_freeze_diag_v1';
-  const now=()=>Date.now();
-  const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}};
-  const log=(type,data={})=>{
-    try{
-      const rows=read();
-      rows.push({t:new Date().toISOString(),type,...data});
-      localStorage.setItem(KEY,JSON.stringify(rows.slice(-180)));
-    }catch{}
-  };
-  window.caseiraoFreezeDiag={read,clear:()=>localStorage.removeItem(KEY)};
-  let lastBeat=performance.now(),lastAction='boot',lastActionAt=now();
-  const action=(name)=>{lastAction=name;lastActionAt=now()};
-  ['click','input','change','touchstart'].forEach(type=>document.addEventListener(type,e=>{
-    if(document.querySelector('#admContent'))action(`${type}:${e.target?.id||e.target?.dataset?.tab||e.target?.dataset?.st||e.target?.className||e.target?.tagName||''}`);
-  },true));
-  setInterval(()=>{
-    const p=performance.now(),gap=Math.round(p-lastBeat);
-    if(gap>2500&&document.querySelector('#admContent'))log('EVENT_LOOP_GAP',{gap,lastAction,actionAge:now()-lastActionAt,tab:typeof adminTab!=='undefined'?adminTab:''});
-    lastBeat=p;
-  },500);
-  if('PerformanceObserver' in window){
-    try{
-      new PerformanceObserver(list=>{
-        if(!document.querySelector('#admContent'))return;
-        for(const e of list.getEntries())if(e.duration>150)log('LONG_TASK',{duration:Math.round(e.duration),lastAction,tab:typeof adminTab!=='undefined'?adminTab:''});
-      }).observe({entryTypes:['longtask']});
-    }catch{}
-  }
-  const wrap=(name,get,set)=>{
-    const fn=get(); if(typeof fn!=='function'||fn.__freezeDiag)return;
-    const wrapped=function(...args){
-      const start=performance.now(); action(name);
-      try{
-        const result=fn.apply(this,args);
-        if(result&&typeof result.then==='function')return result.finally(()=>{const d=Math.round(performance.now()-start);if(d>180)log('SLOW_ASYNC',{name,d,tab:typeof adminTab!=='undefined'?adminTab:''})});
-        const d=Math.round(performance.now()-start);if(d>80)log('SLOW_SYNC',{name,d,tab:typeof adminTab!=='undefined'?adminTab:''});
-        return result;
-      }catch(e){log('ERROR',{name,message:String(e?.message||e)});throw e}
-    };
-    wrapped.__freezeDiag=true; set(wrapped);
-  };
-  wrap('renderAdmin',()=>renderAdmin,v=>renderAdmin=v);
-  wrap('renderOrders',()=>renderOrders,v=>renderOrders=v);
-  wrap('renderAdminTab',()=>renderAdminTab,v=>renderAdminTab=v);
-  wrap('checkNewOrders',()=>checkNewOrders,v=>checkNewOrders=v);
-  wrap('adminCall',()=>adminCall,v=>adminCall=v);
-
-  const addDiagButton=()=>{
-    if(!document.querySelector('#admContent')||document.querySelector('#freezeDiagBtn'))return;
-    const b=document.createElement('button');
-    b.id='freezeDiagBtn';b.type='button';b.textContent='DIAGNÓSTICO';
-    b.style.cssText='position:fixed;right:10px;bottom:10px;z-index:2147483647;background:#20252a;color:#fff;border:0;border-radius:999px;padding:10px 13px;font-size:10px;font-weight:900;box-shadow:0 4px 18px #0004';
-    b.onclick=()=>{
-      const rows=read(),recent=rows.slice(-35);
-      const text=recent.length?recent.map(x=>`${x.t} | ${x.type} | ${x.name||''} ${x.d||x.duration||x.gap||''}ms | ${x.lastAction||''} | ${x.tab||''}`).join('\n'):'Nenhum travamento registrado ainda.';
-      prompt('DIAGNÓSTICO — copie este texto ou tire um print:',text);
-    };
-    document.body.appendChild(b);
-  };
-  new MutationObserver(()=>queueMicrotask(addDiagButton)).observe(document.body,{childList:true,subtree:true});
-  setInterval(addDiagButton,1500);
-  log('DIAG_START',{ua:navigator.userAgent});
-})();
-
