@@ -2122,4 +2122,60 @@ checkNewOrders=async function(){
   }finally{autoPrintQueueBusy=false}
 };
 
+
+/* ===== PAINEL BLUETOOTH RESILIENTE • OPERACAO =====
+   Mantem os controles visiveis mesmo quando a interface profissional
+   substitui/reorganiza o renderizador original de pedidos. */
+function caseiraoPrinterPanelHtml(){
+  const prefs=printerPrefs();
+  return `<section id="caseiraoPrinterPanel" class="printerBar caseiraoPrinterPanel">
+    <div class="printerBarTop">
+      <div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div>
+      <button type="button" id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button>
+    </div>
+    <div class="printerConfigGrid">
+      <label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label>
+      <label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Pedido novo imprime sozinho após conectar.</small></span></label>
+      <button type="button" id="printerTest" class="secondary">IMPRIMIR TESTE</button>
+    </div>
+  </section>`;
+}
+function bindCaseiraoPrinterPanel(){
+  const panel=document.querySelector('#caseiraoPrinterPanel');if(!panel)return;
+  const connect=panel.querySelector('#connectPrinter'),paper=panel.querySelector('#printerPaper'),auto=panel.querySelector('#printerAuto'),test=panel.querySelector('#printerTest');
+  if(connect&&!connect.dataset.bound){connect.dataset.bound='1';connect.onclick=async()=>{try{await connectBluetoothPrinter();refreshPrinterStatus()}catch(e){refreshPrinterStatus();const msg=String(e?.message||e||'');if(/cancelled|canceled|chooser/i.test(msg))showAppToast('Seleção Bluetooth cancelada. Toque em CONECTAR quando quiser tentar novamente.','warn');else alert(msg)}}}
+  if(paper&&!paper.dataset.bound){paper.dataset.bound='1';paper.onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')}}
+  if(auto&&!auto.dataset.bound){auto.dataset.bound='1';auto.onchange=e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok')}}
+  if(test&&!test.dataset.bound){test.dataset.bound='1';test.onclick=async()=>{if(!printerConnected())return alert('Conecte a impressora pelo botão CONECTAR BLUETOOTH primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){refreshPrinterStatus();alert(e.message||String(e))}}}
+  refreshPrinterStatus();
+}
+function ensureCaseiraoPrinterPanel(){
+  const box=document.querySelector('#admContent');if(!box||adminTab!=='pedidos')return;
+  let panel=box.querySelector('#caseiraoPrinterPanel');
+  if(!panel){
+    const old=box.querySelector('.printerBar');
+    if(old){old.outerHTML=caseiraoPrinterPanelHtml()}
+    else{
+      const anchor=box.querySelector('input[placeholder*="Buscar pedido"],input[placeholder*="Buscar"],#manualOrder,[id*="manualOrder"]');
+      const host=anchor?.closest('.searchBox,.orderSearch,.manualOrderBox')||anchor?.parentElement;
+      if(host)host.insertAdjacentHTML('beforebegin',caseiraoPrinterPanelHtml());else box.insertAdjacentHTML('afterbegin',caseiraoPrinterPanelHtml());
+    }
+  }
+  bindCaseiraoPrinterPanel();
+}
+const printerPanelObserver=new MutationObserver(()=>{if(document.querySelector('#admContent')&&adminTab==='pedidos')queueMicrotask(ensureCaseiraoPrinterPanel)});
+printerPanelObserver.observe(document.body,{childList:true,subtree:true});
+document.addEventListener('click',()=>setTimeout(ensureCaseiraoPrinterPanel,0),true);
+setTimeout(ensureCaseiraoPrinterPanel,250);
+
+/* Nunca abre o seletor de dispositivo por uma impressao. O seletor Bluetooth
+   aparece somente quando o operador toca em CONECTAR BLUETOOTH. */
+btWrite=async function(bytes){
+  if(!btWriteChar||!btDevice?.gatt?.connected)throw new Error('Impressora Bluetooth desconectada. Toque em CONECTAR BLUETOOTH primeiro.');
+  const chunk=20;
+  for(let i=0;i<bytes.length;i+=chunk){const part=bytes.slice(i,i+chunk);if(btWriteChar.properties.writeWithoutResponse&&btWriteChar.writeValueWithoutResponse)await btWriteChar.writeValueWithoutResponse(part);else if(btWriteChar.properties.write&&btWriteChar.writeValueWithResponse)await btWriteChar.writeValueWithResponse(part);else await btWriteChar.writeValue(part);await new Promise(r=>setTimeout(r,10))}
+};
+
+const printerPanelStyle=document.createElement('style');printerPanelStyle.textContent=`#caseiraoPrinterPanel{display:block!important;margin:12px 0!important;padding:12px!important;border:1px solid #cfdfeb!important;border-radius:16px!important;background:#eef6fb!important}#caseiraoPrinterPanel .printerBarTop{display:flex!important;gap:10px!important;align-items:center!important}#caseiraoPrinterPanel .printerConnect{min-height:44px!important}#caseiraoPrinterPanel .printerConfigGrid{display:grid!important;grid-template-columns:1fr 1.35fr 1fr!important;gap:9px!important;margin-top:10px!important}#caseiraoPrinterPanel .printerAutoToggle{display:flex!important;align-items:center!important;gap:10px!important}#caseiraoPrinterPanel .printerAutoToggle input{display:block!important;appearance:auto!important;width:22px!important;height:22px!important;opacity:1!important;position:static!important}@media(max-width:700px){#caseiraoPrinterPanel .printerBarTop{align-items:stretch!important;flex-direction:column!important}#caseiraoPrinterPanel .printerConfigGrid{grid-template-columns:1fr!important}}`;document.head.appendChild(printerPanelStyle);
+
 })();
