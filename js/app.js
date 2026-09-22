@@ -797,11 +797,13 @@ const internalIdentityStyle=document.createElement('style');internalIdentityStyl
 `;document.head.appendChild(internalIdentityStyle);
 const openAdminIdentityBase=openAdmin;openAdmin=function(){
   openAdminIdentityBase();
-  const login=$('.loginbox'),pinField=$('#adminPin')?.closest('.field');
+  const sheet=modalRoot.querySelector('.sheet'),login=sheet?.querySelector('.loginbox'),pinField=$('#adminPin')?.closest('.field');
+  if(sheet)sheet.classList.add('admLoginPremium');
   if(login&&pinField&&!$('#adminIdentity')){
+    login.insertAdjacentHTML('afterbegin',`<div class="admLoginBrand" aria-hidden="true">CB</div><div class="admLoginIntro"><b>Central Administrativa</b><span>Acesso protegido do Caseirão</span></div>`);
     pinField.insertAdjacentHTML('beforebegin',`<div class="field adminIdentityField"><label>Identificação do administrador</label><input id="adminIdentity" class="in" value="Romário Caseirão ADM" readonly aria-readonly="true"></div>`);
     login.insertAdjacentHTML('beforeend','<div class="internalCopyright loginCopyright">© 2026 O Caseirão Burger<br>Todos os direitos reservados.</div>');
-    const title=modalRoot.querySelector('.sheeth h2');if(title)title.textContent='Login da Central ADM';
+    const head=sheet.querySelector('.sheeth');if(head)head.remove();
   }
 };
 function addInternalCopyright(area){
