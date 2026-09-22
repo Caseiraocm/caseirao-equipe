@@ -1197,6 +1197,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
  * API, registra o horário final e evita que dois toques contabilizem o pedido.
  */
 (()=>{
+  if(!document.getElementById('driver-compact-details-style')){const st=document.createElement('style');st.id='driver-compact-details-style';st.textContent=`.driverDetailsClosedLabel{display:inline}.driverDetailsOpenLabel{display:none}.driverDetails[open] .driverDetailsClosedLabel{display:none}.driverDetails[open] .driverDetailsOpenLabel{display:inline}.driverProblemInside{margin-top:9px!important;width:100%}.driverDetails>summary{padding:11px 2px;font-size:13px;color:#4f565e}.driverDetails>summary:after{content:'▼';font-size:10px}.driverDetails[open]>summary:after{content:'▲'}`;document.head.appendChild(st)};
   const deliveryLocks=new Set();
 
   /* A API do entregador pode devolver o pedido completo dentro da atribuição,
@@ -1238,8 +1239,8 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
         <b class="driverFee">${fee?fmt(fee):'—'}</b>
       </div>
       <div class="driverQuickLine"><span class="driverQuickChip">📍 ${esc(hood)}</span><span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span></div>
-      <div class="driverNextAction">${action}${!finished?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
-      <details class="driverDetails" open><summary>Endereço e detalhes do pedido</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
+      <div class="driverNextAction">${action}</div>
+      <details class="driverDetails"><summary><span class="driverDetailsClosedLabel">Exibir detalhes</span><span class="driverDetailsOpenLabel">Ocultar detalhes</span></summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
         <div class="driverDeliveryInfo">
           <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
           <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
@@ -1249,6 +1250,7 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
         <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
         ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
         <button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR COMPARTILHAMENTO DE GPS</button>
+        ${!finished?`<button class="secondary danger driverProblemInside" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}
       </div></details>
     </div>`;
   };
