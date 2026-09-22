@@ -352,8 +352,9 @@ function renderOrders(box){
       return matches&&group
     });
 
-    box.innerHTML=`<div class="operationHint">Pedidos atrasados ficam destacados após 35 minutos. Use a busca para localizar nome, telefone ou número.</div><div class="proToolbar"><input id="orderSearch" class="in" placeholder="Buscar pedido..." value="${esc(query)}"><button id="manualOrder" class="primary">+ PEDIDO MANUAL</button></div><div class="proFilters">${[['active','Em andamento'],['novo','Novos'],['preparando','Preparando'],['pronto','Prontos'],['em_rota','Em rota'],['all','Todos']].map(([k,n])=>`<button data-ofilter="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>${visible.length?visible.map(o=>orderAdminCard(o,['entregue','cancelado'].includes(o.status))).join(''):'<div class="empty cleanEmpty"><b>Nenhum pedido nesta lista</b><span>Os pedidos aparecerão aqui automaticamente.</span></div>'}`;
+    box.innerHTML=`${caseiraoPrinterPanelHtml()}<div class="operationHint">Pedidos atrasados ficam destacados após 35 minutos. Use a busca para localizar nome, telefone ou número.</div><div class="proToolbar"><input id="orderSearch" class="in" placeholder="Buscar pedido..." value="${esc(query)}"><button id="manualOrder" class="primary">+ PEDIDO MANUAL</button></div><div class="proFilters">${[['active','Em andamento'],['novo','Novos'],['preparando','Preparando'],['pronto','Prontos'],['em_rota','Em rota'],['all','Todos']].map(([k,n])=>`<button data-ofilter="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>${visible.length?visible.map(o=>orderAdminCard(o,['entregue','cancelado'].includes(o.status))).join(''):'<div class="empty cleanEmpty"><b>Nenhum pedido nesta lista</b><span>Os pedidos aparecerão aqui automaticamente.</span></div>'}`;
 
+    bindCaseiraoPrinterPanel();
     $('#manualOrder').onclick=openManualOrder;
     $('#orderSearch').oninput=e=>{query=e.target.value.trim().toLowerCase();draw()};
     document.querySelectorAll('[data-ofilter]').forEach(b=>b.onclick=()=>{filter=b.dataset.ofilter;draw()});
