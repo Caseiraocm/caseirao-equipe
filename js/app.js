@@ -706,7 +706,7 @@ checkNewOrders=async function(){
     const box=$('#admContent');if(box&&(newOrders.length||justReady.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}
   }catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}
 };
-startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,5000)};
+startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,2500)};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))checkNewOrders()});
 
 /* Alertas reforçados enquanto o ADM está ativo no aparelho. */
@@ -1197,7 +1197,6 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
  * API, registra o horário final e evita que dois toques contabilizem o pedido.
  */
 (()=>{
-  if(!document.getElementById('driver-compact-details-style')){const st=document.createElement('style');st.id='driver-compact-details-style';st.textContent=`.driverDetailsClosedLabel{display:inline}.driverDetailsOpenLabel{display:none}.driverDetails[open] .driverDetailsClosedLabel{display:none}.driverDetails[open] .driverDetailsOpenLabel{display:inline}.driverProblemInside{margin-top:9px!important;width:100%}.driverDetails>summary{padding:11px 2px;font-size:13px;color:#4f565e}.driverDetails>summary:after{content:'▼';font-size:10px}.driverDetails[open]>summary:after{content:'▲'}`;document.head.appendChild(st)};
   const deliveryLocks=new Set();
 
   /* A API do entregador pode devolver o pedido completo dentro da atribuição,
@@ -1239,8 +1238,8 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
         <b class="driverFee">${fee?fmt(fee):'—'}</b>
       </div>
       <div class="driverQuickLine"><span class="driverQuickChip">📍 ${esc(hood)}</span><span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span></div>
-      <div class="driverNextAction">${action}</div>
-      <details class="driverDetails"><summary><span class="driverDetailsClosedLabel">Exibir detalhes</span><span class="driverDetailsOpenLabel">Ocultar detalhes</span></summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
+      <div class="driverNextAction">${action}${!finished?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
+      <details class="driverDetails" open><summary>Endereço e detalhes do pedido</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
         <div class="driverDeliveryInfo">
           <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
           <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
@@ -1250,7 +1249,6 @@ const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/
         <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
         ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
         <button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR COMPARTILHAMENTO DE GPS</button>
-        ${!finished?`<button class="secondary danger driverProblemInside" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}
       </div></details>
     </div>`;
   };
@@ -1658,7 +1656,7 @@ document.addEventListener('input',event=>{
   }
   const mountButton=()=>{if(typeof adminTab==='undefined'||adminTab!=='fidelidade')return;const box=document.querySelector('#admContent');if(!box||box.querySelector('.loyaltyParticipantsButton'))return;const button=document.createElement('button');button.type='button';button.className='loyaltyParticipantsButton';button.textContent='👥 VER CLIENTES PARTICIPANTES';button.onclick=openLoyaltyParticipants;box.prepend(button)};
   new MutationObserver(()=>queueMicrotask(mountButton)).observe(document.body,{subtree:true,childList:true});
-  setInterval(mountButton,5000);
+  setInterval(mountButton,1000);
 })();
 
 /* Mantém a aba ativa visível e alinhada ao conteúdo selecionado. */
@@ -2061,12 +2059,15 @@ renderOrders=function(box){
   bindPrintButtons();return result;
 };
 
-/* A impressão automática é executada somente pela fila deduplicada abaixo.
-   Antes existiam dois monitores de autoimpressão encadeados no mesmo ciclo do ADM,
-   o que duplicava trabalho e podia imprimir/processar o mesmo pedido duas vezes. */
 const checkNewOrdersAutoPrintBase=checkNewOrders;
 checkNewOrders=async function(){
-  return checkNewOrdersAutoPrintBase();
+  const before=new Set((admin?.orders||[]).map(o=>String(o.id)));
+  await checkNewOrdersAutoPrintBase();
+  if(!printerPrefs().auto)return;
+  const novos=(admin?.orders||[]).filter(o=>!before.has(String(o.id))&&o.source!=='manual');
+  if(!novos.length)return;
+  if(!printerConnected()){refreshPrinterStatus();showAppToast('Pedido novo recebido, mas a impressora Bluetooth está desconectada.','warn');return}
+  for(const o of novos)await printOrderBluetoothAuto(o.id,admin.orders,true);
 };
 
 const printerExtraStyle=document.createElement('style');printerExtraStyle.textContent=`.printerState.connected{color:#16833d!important;font-weight:900}.printerState.error{color:#c43131!important;font-weight:900}.printerConfigGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px;align-items:stretch}.printerConfigGrid>label,.printerConfigGrid>button{border:1px solid #dfe3e7;border-radius:12px;padding:10px;background:#fff}.printerConfigGrid label>span:first-child{display:block;font-size:11px;font-weight:900;margin-bottom:6px}.printerAutoToggle{display:flex!important;align-items:center;gap:9px}.printerAutoToggle input{width:20px;height:20px}.printerAutoToggle span{display:flex!important;flex-direction:column}.printerAutoToggle small{font-size:10px;color:#6f7782;margin-top:2px}@media(max-width:700px){.printerConfigGrid{grid-template-columns:1fr}}`;document.head.appendChild(printerExtraStyle);
@@ -2122,30 +2123,6 @@ checkNewOrders=async function(){
   }finally{autoPrintQueueBusy=false}
 };
 
-
-/* ===== ESTABILIDADE DA CENTRAL ADM =====
-   Um único ciclo pode atravessar várias extensões de checkNewOrders. Esta trava final
-   impede sobreposição quando rede/banco demora e evita sincronização pesada em segundo plano. */
-let caseiraoAdminCycleBusy=false;
-let caseiraoAdminLastCycleAt=0;
-const checkNewOrdersStableBase=checkNewOrders;
-checkNewOrders=async function(){
-  if(caseiraoAdminCycleBusy||document.visibilityState==='hidden'||!sessionStorage.getItem('caseirao_admin_pin'))return;
-  const now=Date.now();
-  if(now-caseiraoAdminLastCycleAt<1800)return;
-  caseiraoAdminCycleBusy=true;
-  caseiraoAdminLastCycleAt=now;
-  try{return await checkNewOrdersStableBase()}
-  finally{caseiraoAdminCycleBusy=false}
-};
-/* Reinicia sempre com apenas um timer. Cinco segundos mantém pedidos atualizados sem
-   bombardear o snapshot/DOM em celulares e computadores mais modestos. */
-startOrderWatcher=function(){
-  if(orderWatcher){clearInterval(orderWatcher);orderWatcher=null}
-  knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));
-  knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));
-  orderWatcher=setInterval(()=>{void checkNewOrders()},5000);
-};
 
 /* ===== PAINEL BLUETOOTH RESILIENTE • OPERACAO =====
    Mantem os controles visiveis mesmo quando a interface profissional
@@ -2220,3 +2197,29 @@ renderOrders=function(box){
 
 
 })();
+
+
+/* ===== HOTFIX ESTABILIDADE ADM V2 ===== */
+(()=>{
+  if(window.__CASEIRAO_ADM_STABILITY_V2__)return;
+  window.__CASEIRAO_ADM_STABILITY_V2__=true;
+  let busy=false,lastRun=0;
+  const baseCheck=checkNewOrders;
+  checkNewOrders=async function(){
+    if(!sessionStorage.getItem('caseirao_admin_pin')||!document.querySelector('#admContent')||document.hidden)return;
+    const now=Date.now();
+    if(busy||now-lastRun<6500)return;
+    busy=true;lastRun=now;
+    try{await baseCheck()}catch(e){console.warn('[Caseirao ADM sync]',e)}finally{busy=false}
+  };
+  startOrderWatcher=function(){
+    if(orderWatcher){clearInterval(orderWatcher);orderWatcher=null}
+    knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));
+    knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),o.status]));
+    orderWatcher=setInterval(()=>{if(!document.hidden&&document.querySelector('#admContent'))checkNewOrders()},8000);
+  };
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&document.querySelector('#admContent'))setTimeout(()=>checkNewOrders(),250);
+  });
+})();
+
