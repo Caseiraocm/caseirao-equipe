@@ -339,7 +339,7 @@ body.teamApp{background:#0d0f12}
 .opsSync{display:inline-flex;align-items:center;gap:6px;margin-top:6px;color:#68717a;font-size:11px;font-weight:750}.opsSync:before{content:'';width:7px;height:7px;border-radius:50%;background:#27a45d;box-shadow:0 0 0 3px #dcf5e7}.opsSync.busy:before{background:#e7862f;box-shadow:0 0 0 3px #fff0df}
 .commandHero{padding:19px;border:1px solid #dfe3e7;border-radius:20px;background:linear-gradient(135deg,#24292f,#171a1e);color:#fff;box-shadow:0 12px 28px rgba(24,29,34,.16)}.commandHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.commandHero h2{margin:0;font-size:24px;letter-spacing:-.04em}.commandHero p{margin:5px 0 0;color:#b9c0c8;font-size:12px}.commandLive{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #40624d;border-radius:999px;background:#21392a;color:#91e5b2;font-size:10px;font-weight:950}.commandLive:before{content:'';width:7px;height:7px;border-radius:50%;background:#42d77c;animation:opsPulse 1.5s infinite}.commandKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}.commandKpi{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.055)}.commandKpi span{display:block;color:#b8bec6;font-size:10px;font-weight:800}.commandKpi b{display:block;margin-top:6px;font-size:21px;letter-spacing:-.035em}.commandGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:11px;margin-top:11px}.commandPanel{padding:16px;border:1px solid #dfe3e7;border-radius:18px;background:#fff;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}.commandPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.commandPanelHead b{font-size:15px}.commandPanelHead small{color:#747c85;font-size:10px;font-weight:850}.commandQueue{display:grid;gap:7px}.commandOrder{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border:1px solid #e4e7ea;border-radius:13px;background:#fafbfc}.commandOrder.critical{border-color:#efc1c3;background:#fff6f6}.commandOrder strong{font-size:13px}.commandOrder span{display:block;margin-top:2px;color:#6e7680;font-size:10px}.commandAge{min-width:52px;padding:6px 7px;border-radius:9px;background:#edf0f2;color:#525a63;text-align:center;font-size:10px;font-weight:950}.critical .commandAge{background:#c83b43;color:#fff}.commandEmpty{padding:22px 8px;text-align:center;color:#747c85;font-size:12px}.commandBars{display:grid;gap:11px}.commandBarTop{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:11px}.commandTrack{height:7px;overflow:hidden;border-radius:99px;background:#eceff1}.commandFill{height:100%;border-radius:99px;background:linear-gradient(90deg,#e66020,#f29a54)}.commandRank{display:grid;grid-template-columns:25px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:12px}.commandRank:last-child{border:0}.commandRank i{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff0e7;color:#bd480f;font-style:normal;font-size:10px;font-weight:950}.commandActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px}.commandActions button{min-height:47px;border:1px solid #dce1e5;border-radius:13px;background:#fff;color:#343a40;font-size:11px;font-weight:950}.commandActions button:first-child{border-color:#df6a32;background:#e35b1a;color:#fff}.slaStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:9px 0 12px}.slaCard{padding:10px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;color:#333a42}.slaCard span{display:block;color:#737b84;font-size:9px;font-weight:900;text-transform:uppercase}.slaCard b{display:block;margin-top:5px;font-size:16px}.slaCard.danger{border-color:#efc5c7;background:#fff7f7}.slaCard.danger b{color:#b73239}.opsTools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.opsTools button,.opsContactRow button,.opsContactRow a{min-height:43px;border:1px solid #dce1e5;border-radius:12px;background:#fff;color:#4a525b;font-size:11px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center}.opsContactRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.opsContactRow a{border-color:#bfe3cc;background:#f1fbf5;color:#197343}.opsSlaBadge{display:inline-flex;align-items:center;margin:5px 0 0;padding:4px 7px;border-radius:8px;background:#edf0f2;color:#59616a;font-size:9px;font-weight:950}.opsSlaBadge.warn{background:#fff0df;color:#a65313}.opsSlaBadge.late{background:#ffe5e6;color:#ad2d34}.opsSlaBadge.ok{background:#e4f6eb;color:#197244}
 @keyframes opsPulse{50%{opacity:.35;transform:scale(.8)}}
-@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:1fr}.slaStrip{grid-template-columns:1fr 1fr}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
+@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:repeat(3,minmax(0,1fr))}.slaStrip{grid-template-columns:1fr 1fr}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
 
 /* ===== loyalty-name-guarantee ===== */
 /* Regra final e isolada: nenhuma regra visual anterior pode ocultar o nome. */
@@ -680,6 +680,35 @@ body.teamApp{background:#0d0f12}
   font-size:9px!important;
 }
 
+
+/* ===== TOPO OPERACIONAL COMPACTO — MOBILE ===== */
+@media(max-width:520px){
+  .admWorkspace>.adminHead{min-height:82px!important;padding:10px 14px 9px!important}
+  .admWorkspace>.adminHead h2{margin:0!important;font-size:18px!important;line-height:1.05!important}
+  .admWorkspace>.adminHead .adminSub{margin-top:3px!important;font-size:10px!important;line-height:1.15!important}
+  .admWorkspace>.adminHead .opsSync{margin-top:4px!important;font-size:9px!important}
+  .admWorkspace>.adminHead .x,.admWorkspace>.adminHead .adminLogout{min-height:38px!important;padding:7px 12px!important;border-radius:11px!important;font-size:11px!important}
+
+  .admWorkspace>.compactMetrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .admWorkspace>.compactMetrics .metric{min-height:64px!important;padding:9px 10px!important;border-right:1px solid #e4e7ea!important}
+  .admWorkspace>.compactMetrics .metric b{font-size:15px!important;line-height:1.05!important}
+  .admWorkspace>.compactMetrics .metric span,.admWorkspace>.compactMetrics .metric small{margin-top:3px!important;font-size:8px!important;line-height:1.15!important}
+  .admWorkspace>.compactMetrics .storeMetric{grid-column:auto!important}
+
+  .admPrimaryNav{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;padding:7px 8px!important}
+  .admPrimaryNav button{min-height:44px!important;padding:6px 3px!important;border-radius:11px!important;font-size:8px!important;line-height:1.1!important}
+
+  .admManagementToggle{width:calc(100% - 16px)!important;min-height:36px!important;margin:6px 8px!important;padding:6px 10px!important;border-radius:10px!important;font-size:9px!important}
+  .admWorkspaceMain{padding-top:8px!important}
+
+  .admWorkspaceMain .slaStrip{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:6px 0 8px!important}
+  .admWorkspaceMain .slaCard{min-width:0!important;padding:7px 6px!important;border-radius:10px!important}
+  .admWorkspaceMain .slaCard span{font-size:7px!important;line-height:1.1!important}
+  .admWorkspaceMain .slaCard b{margin-top:3px!important;font-size:13px!important;line-height:1!important}
+
+  .admWorkspaceMain .commandActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin:7px 0!important}
+  .admWorkspaceMain .commandActions button{min-width:0!important;min-height:38px!important;padding:6px 5px!important;border-radius:10px!important;font-size:7.5px!important;line-height:1.15!important;white-space:normal!important}
+}
 
 /* ===== RESPONSIVIDADE OFICIAL — MOBILE OPERACIONAL ===== */
 @media(max-width:900px){
