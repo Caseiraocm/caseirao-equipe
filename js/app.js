@@ -2178,4 +2178,21 @@ btWrite=async function(bytes){
 
 const printerPanelStyle=document.createElement('style');printerPanelStyle.textContent=`#caseiraoPrinterPanel{display:block!important;margin:12px 0!important;padding:12px!important;border:1px solid #cfdfeb!important;border-radius:16px!important;background:#eef6fb!important}#caseiraoPrinterPanel .printerBarTop{display:flex!important;gap:10px!important;align-items:center!important}#caseiraoPrinterPanel .printerConnect{min-height:44px!important}#caseiraoPrinterPanel .printerConfigGrid{display:grid!important;grid-template-columns:1fr 1.35fr 1fr!important;gap:9px!important;margin-top:10px!important}#caseiraoPrinterPanel .printerAutoToggle{display:flex!important;align-items:center!important;gap:10px!important}#caseiraoPrinterPanel .printerAutoToggle input{display:block!important;appearance:auto!important;width:22px!important;height:22px!important;opacity:1!important;position:static!important}@media(max-width:700px){#caseiraoPrinterPanel .printerBarTop{align-items:stretch!important;flex-direction:column!important}#caseiraoPrinterPanel .printerConfigGrid{grid-template-columns:1fr!important}}`;document.head.appendChild(printerPanelStyle);
 
+
+/* ===== CORRECAO FINAL • PAINEL BLUETOOTH FIXO NA OPERACAO =====
+   Monta o painel diretamente no render final da Operacao. Nao depende de
+   MutationObserver nem da printerBar antiga, evitando que o layout profissional
+   esconda os controles. */
+const renderOrdersBluetoothPanelFinalBase=renderOrders;
+renderOrders=function(box){
+  const result=renderOrdersBluetoothPanelFinalBase(box);
+  if(box){
+    box.querySelector('#caseiraoPrinterPanel')?.remove();
+    box.insertAdjacentHTML('afterbegin',caseiraoPrinterPanelHtml());
+    bindCaseiraoPrinterPanel();
+  }
+  return result;
+};
+
+
 })();
