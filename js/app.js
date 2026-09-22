@@ -343,7 +343,74 @@ function renderAdmin(){if(!admin)return;const current=shiftOrders(),valid=curren
 function renderAdminTab(){const box=$('#admContent');if(!box)return;if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='entregas')renderDeliveryHub(box);else if(adminTab==='gestao')renderManagement(box);else if(adminTab==='fidelidade')renderLoyaltyAdmin(box);else if(adminTab==='relatorios')renderReportsAdmin(box);else if(adminTab==='produtos')renderProductsAdmin(box);else if(adminTab==='bairros')renderNeighborhoodsAdmin(box);else if(adminTab==='adicionais')renderAddonsAdmin(box);else if(adminTab==='cupons')renderCouponsAdmin(box);else if(adminTab==='banner')renderBannerAdmin(box);else if(adminTab==='loja')renderStoreAdmin(box)}
 
 function renderOrders(box){
-  const all=shiftOrders();let filter='active',query='';const draw=()=>{const visible=all.filter(o=>{const matches=!query||`${o.order_number} ${o.customer_name} ${o.customer_phone}`.toLowerCase().includes(query);const group=filter==='all'||(filter==='active'?!['entregue','cancelado'].includes(o.status):o.status===filter);return matches&&group});box.innerHTML=`<div class="operationHint">Pedidos atrasados ficam destacados após 35 minutos. Use a busca para localizar nome, telefone ou número.</div><div class="proToolbar"><input id="orderSearch" class="in" placeholder="Buscar pedido..." value="${esc(query)}"><button id="manualOrder" class="primary">+ PEDIDO MANUAL</button></div><div class="proFilters">${[['active','Em andamento'],['novo','Novos'],['preparando','Preparando'],['pronto','Prontos'],['em_rota','Em rota'],['all','Todos']].map(([k,n])=>`<button data-ofilter="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>${visible.length?visible.map(o=>orderAdminCard(o,['entregue','cancelado'].includes(o.status))).join(''):'<div class="empty cleanEmpty"><b>Nenhum pedido nesta lista</b><span>Os pedidos aparecerão aqui automaticamente.</span></div>'}`;$('#manualOrder').onclick=openManualOrder;$('#orderSearch').oninput=e=>{query=e.target.value.trim().toLowerCase();draw()};document.querySelectorAll('[data-ofilter]').forEach(b=>b.onclick=()=>{filter=b.dataset.ofilter;draw()});bindPrintButtons();document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const next=b.dataset.st;if(next==='cancelado'){const reason=prompt('Informe o motivo do cancelamento:');if(!reason)return;b.dataset.cancelReason=reason}try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.oid,status:next,cancel_reason:b.dataset.cancelReason||''});if(['entregue','cancelado'].includes(next))await deliveryApi('admin_stop',{order_id:b.dataset.oid},true).catch(()=>{});admin=await adminCall('snapshot');renderAdmin()}catch(e){b.disabled=false;alert(e.message)}});exposeDeliveryTrackingButtons(box)};draw();
+  let all=shiftOrders(),filter='active',query='';
+
+  const draw=()=>{
+    const visible=all.filter(o=>{
+      const matches=!query||`${o.order_number} ${o.customer_name} ${o.customer_phone}`.toLowerCase().includes(query);
+      const group=filter==='all'||(filter==='active'?!['entregue','cancelado'].includes(o.status):o.status===filter);
+      return matches&&group
+    });
+
+    box.innerHTML=`<div class="operationHint">Pedidos atrasados ficam destacados após 35 minutos. Use a busca para localizar nome, telefone ou número.</div><div class="proToolbar"><input id="orderSearch" class="in" placeholder="Buscar pedido..." value="${esc(query)}"><button id="manualOrder" class="primary">+ PEDIDO MANUAL</button></div><div class="proFilters">${[['active','Em andamento'],['novo','Novos'],['preparando','Preparando'],['pronto','Prontos'],['em_rota','Em rota'],['all','Todos']].map(([k,n])=>`<button data-ofilter="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>${visible.length?visible.map(o=>orderAdminCard(o,['entregue','cancelado'].includes(o.status))).join(''):'<div class="empty cleanEmpty"><b>Nenhum pedido nesta lista</b><span>Os pedidos aparecerão aqui automaticamente.</span></div>'}`;
+
+    $('#manualOrder').onclick=openManualOrder;
+    $('#orderSearch').oninput=e=>{query=e.target.value.trim().toLowerCase();draw()};
+    document.querySelectorAll('[data-ofilter]').forEach(b=>b.onclick=()=>{filter=b.dataset.ofilter;draw()});
+    bindPrintButtons();
+
+    document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{
+      const next=b.dataset.st;
+      const orderId=String(b.dataset.oid||'');
+      const card=b.closest('details.order');
+      const wasOpen=!!card?.open;
+      const scrollHost=document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
+      const savedScroll=scrollHost?.scrollTop||0;
+
+      if(next==='cancelado'){
+        const reason=prompt('Informe o motivo do cancelamento:');
+        if(!reason)return;
+        b.dataset.cancelReason=reason
+      }
+
+      try{
+        b.disabled=true;
+        await adminCall('update_status',{
+          order_id:orderId,
+          status:next,
+          cancel_reason:b.dataset.cancelReason||''
+        });
+
+        if(['entregue','cancelado'].includes(next)){
+          await deliveryApi('admin_stop',{order_id:orderId},true).catch(()=>{})
+        }
+
+        admin=await adminCall('snapshot');
+        all=shiftOrders();
+
+        /* Atualiza somente a lista de pedidos.
+           Não chama renderAdmin(), pois isso recriava o modal inteiro
+           e fechava o pedido aberto ao trocar o status. */
+        draw();
+
+        if(wasOpen&&!['entregue','cancelado'].includes(next)){
+          const sameOrder=[...box.querySelectorAll('[data-st]')]
+            .find(el=>String(el.dataset.oid||'')===orderId)
+            ?.closest('details.order');
+          if(sameOrder)sameOrder.open=true
+        }
+
+        if(scrollHost)scrollHost.scrollTop=savedScroll
+      }catch(e){
+        b.disabled=false;
+        alert(e.message)
+      }
+    });
+
+    exposeDeliveryTrackingButtons(box)
+  };
+
+  draw()
 }
 
 function kitchenWhatsAppHtml(o){const phone=customerWhatsAppNumber(o.customer_phone);if(!phone)return '<div class="kitchenPhoneMissing">⚠️ Cliente sem WhatsApp válido</div>';const messages={confirmado:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} foi aceito pelo O Caseirão Burger.`,preparando:`Olá, ${o.customer_name||'cliente'}! 🍔 Seu pedido #${o.order_number} está em preparo.`,pronto:o.type==='pickup'?`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto. Você já pode vir buscar no Caseirão.`:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto e aguardando o entregador.`,em_rota:`Olá, ${o.customer_name||'cliente'}! 🛵 Seu pedido #${o.order_number} saiu para entrega e está a caminho.`,entregue:o.type==='pickup'?`Pedido #${o.order_number} retirado com sucesso. Obrigado por escolher o Caseirão! 🍔`:`Seu pedido #${o.order_number} foi entregue. Obrigado por escolher o Caseirão! Bom apetite 🍔`};const stages=o.type==='delivery'?[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PRONTO'],['em_rota','EM ROTA'],['entregue','ENTREGUE']]:[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PODE BUSCAR'],['entregue','RETIRADO']];return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO WHATSAPP</b><div>${stages.map(([stage,label])=>`<a href="https://wa.me/${phone}?text=${encodeURIComponent(messages[stage])}" target="_blank" rel="noopener">${label}</a>`).join('')}</div></div>`}
