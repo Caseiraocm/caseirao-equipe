@@ -2011,4 +2011,115 @@ exposeCaseirao('renderAdminTab',()=>renderAdminTab,value=>{renderAdminTab=value}
 exposeCaseirao('orderAdminCard',()=>orderAdminCard,value=>{orderAdminCard=value});
 exposeCaseirao('adminTab',()=>adminTab,value=>{adminTab=value});
 Object.assign(window,{api,customerWhatsAppNumber,esc,$,num,showAppToast});
+
+/* ===== IMPRESSAO BLUETOOTH AUTOMATICA • 58/80 MM ===== */
+const PRINTER_PREF_KEY='caseirao_printer_prefs_v1';
+function printerPrefs(){try{return {...{paper:'58',auto:false},...JSON.parse(localStorage.getItem(PRINTER_PREF_KEY)||'{}')}}catch{return {paper:'58',auto:false}}}
+function savePrinterPrefs(next){const value={...printerPrefs(),...next};localStorage.setItem(PRINTER_PREF_KEY,JSON.stringify(value));return value}
+function printerPaperWidth(){return printerPrefs().paper==='80'?80:58}
+function printerTextWidth(){return printerPaperWidth()===80?48:32}
+function printerConnected(){return !!(btWriteChar&&btDevice?.gatt?.connected)}
+function printerStatusText(){return printerConnected()?`🟢 CONECTADA • ${btPrinterName||'Impressora Bluetooth'}`:'🔴 DESCONECTADA'}
+function refreshPrinterStatus(){const el=$('#printerState');if(!el)return;el.textContent=printerStatusText();el.className='printerState '+(printerConnected()?'connected':'error')}
+
+const receiptPlainPaperBase=receiptPlain;
+receiptPlain=function(o){
+  const width=printerTextWidth(),hr='-'.repeat(width),L=[];
+  const wr=t=>wrapReceipt(t,width);
+  L.push('O CASEIRAO BURGER',`PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
+  if(o.type==='delivery'){L.push(hr,'ENDERECO:',...wr(orderAddress(o)))}
+  L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');
+  (o.order_items||[]).forEach(it=>{L.push(...wr(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));(it.order_item_addons||[]).forEach(a=>L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`)));if(it.note)L.push(...wr(`  OBS: ${it.note}`))});
+  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,`CODIGO: ${o.tracking_code||''}`,'','','');return stripAccents(L.join('\n'));
+};
+const receiptBrowserPaperBase=receiptBrowserHtml;
+receiptBrowserHtml=function(o){const mm=printerPaperWidth(),body=mm===80?76:54;return receiptBrowserPaperBase(o).replace('@page{size:58mm auto;margin:2mm}',`@page{size:${mm}mm auto;margin:2mm}`).replace('width:54mm',`width:${body}mm`)};
+
+const connectBluetoothPrinterStatusBase=connectBluetoothPrinter;
+connectBluetoothPrinter=async function(){try{const name=await connectBluetoothPrinterStatusBase();refreshPrinterStatus();return name}catch(e){refreshPrinterStatus();throw e}};
+
+async function printOrderBluetoothAuto(id,sourceOrders=null,silent=false){
+  const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return false;
+  if(!printerConnected()){refreshPrinterStatus();if(!silent)alert('Impressora Bluetooth desconectada. Toque em CONECTAR BLUETOOTH primeiro.');return false}
+  try{setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){btWriteChar=null;refreshPrinterStatus();if(!silent)alert(e.message||String(e));return false}
+}
+printOrderBluetooth=async function(id,sourceOrders=null){return printOrderBluetoothAuto(id,sourceOrders,false)};
+
+const renderOrdersPrinterBase=renderOrders;
+renderOrders=function(box){
+  const result=renderOrdersPrinterBase(box),bar=box.querySelector('.printerBar');
+  if(bar){const prefs=printerPrefs();bar.innerHTML=`<div class="printerBarTop"><div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div><button id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button></div><div class="printerConfigGrid"><label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label><label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Imprime pedido novo quando o Bluetooth já estiver conectado.</small></span></label><button id="printerTest" class="secondary">IMPRIMIR TESTE</button></div>`;
+    $('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){refreshPrinterStatus();alert(e.message||String(e))}};
+    $('#printerPaper').onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')};
+    $('#printerAuto').onchange=e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok')};
+    $('#printerTest').onclick=async()=>{if(!printerConnected())return alert('Conecte a impressora Bluetooth primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){alert(e.message||String(e));refreshPrinterStatus()}};
+    refreshPrinterStatus();
+  }
+  bindPrintButtons();return result;
+};
+
+const checkNewOrdersAutoPrintBase=checkNewOrders;
+checkNewOrders=async function(){
+  const before=new Set((admin?.orders||[]).map(o=>String(o.id)));
+  await checkNewOrdersAutoPrintBase();
+  if(!printerPrefs().auto)return;
+  const novos=(admin?.orders||[]).filter(o=>!before.has(String(o.id))&&o.source!=='manual');
+  if(!novos.length)return;
+  if(!printerConnected()){refreshPrinterStatus();showAppToast('Pedido novo recebido, mas a impressora Bluetooth está desconectada.','warn');return}
+  for(const o of novos)await printOrderBluetoothAuto(o.id,admin.orders,true);
+};
+
+const printerExtraStyle=document.createElement('style');printerExtraStyle.textContent=`.printerState.connected{color:#16833d!important;font-weight:900}.printerState.error{color:#c43131!important;font-weight:900}.printerConfigGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px;align-items:stretch}.printerConfigGrid>label,.printerConfigGrid>button{border:1px solid #dfe3e7;border-radius:12px;padding:10px;background:#fff}.printerConfigGrid label>span:first-child{display:block;font-size:11px;font-weight:900;margin-bottom:6px}.printerAutoToggle{display:flex!important;align-items:center;gap:9px}.printerAutoToggle input{width:20px;height:20px}.printerAutoToggle span{display:flex!important;flex-direction:column}.printerAutoToggle small{font-size:10px;color:#6f7782;margin-top:2px}@media(max-width:700px){.printerConfigGrid{grid-template-columns:1fr}}`;document.head.appendChild(printerExtraStyle);
+
+
+/* ===== PROTECAO CONTRA PEDIDO / IMPRESSAO DUPLICADOS ===== */
+let caseiraoOrderSubmitLocked=false;
+const sendOrderDuplicateSafeBase=sendOrder;
+sendOrder=async function(){
+  const btn=$('#sendOrder');
+  if(caseiraoOrderSubmitLocked){
+    if(btn){btn.disabled=true;btn.textContent='PEDIDO JÁ ESTÁ SENDO ENVIADO...'}
+    return;
+  }
+  caseiraoOrderSubmitLocked=true;
+  if(btn){btn.disabled=true;btn.dataset.submitLocked='1'}
+  try{
+    return await sendOrderDuplicateSafeBase();
+  }finally{
+    /* Se a tela de checkout ainda estiver aberta, a tentativa falhou e pode ser refeita.
+       Se o pedido foi aceito, o botão original já não existe e o bloqueio é liberado
+       somente para um novo checkout. */
+    caseiraoOrderSubmitLocked=false;
+    const current=$('#sendOrder');
+    if(current){current.dataset.submitLocked='0';if(!current.disabled)current.textContent='CONFIRMAR E ENVIAR'}
+  }
+};
+
+const AUTO_PRINTED_KEY='caseirao_auto_printed_orders_v1';
+function autoPrintedOrders(){try{return new Set(JSON.parse(sessionStorage.getItem(AUTO_PRINTED_KEY)||'[]').map(String))}catch{return new Set()}}
+function markAutoPrinted(id){const set=autoPrintedOrders();set.add(String(id));const ids=[...set].slice(-300);sessionStorage.setItem(AUTO_PRINTED_KEY,JSON.stringify(ids))}
+function wasAutoPrinted(id){return autoPrintedOrders().has(String(id))}
+
+/* Substitui apenas o monitor da impressão automática. Mesmo que dois ciclos de
+   atualização enxerguem o mesmo pedido, ele só entra uma vez na fila automática. */
+let autoPrintQueueBusy=false;
+const checkNewOrdersPrintDedupeBase=checkNewOrders;
+checkNewOrders=async function(){
+  if(autoPrintQueueBusy)return;
+  autoPrintQueueBusy=true;
+  try{
+    const before=new Set((admin?.orders||[]).map(o=>String(o.id)));
+    await checkNewOrdersPrintDedupeBase();
+    if(!printerPrefs().auto||!printerConnected())return;
+    const candidates=(admin?.orders||[]).filter(o=>!before.has(String(o.id))&&o.source!=='manual'&&!wasAutoPrinted(o.id));
+    for(const o of candidates){
+      /* Reserva antes de imprimir para impedir dois disparos concorrentes. Se a
+         impressão falhar, retiramos a reserva para permitir impressão manual/novo ciclo. */
+      markAutoPrinted(o.id);
+      const ok=await printOrderBluetoothAuto(o.id,admin.orders,true);
+      if(!ok){const set=autoPrintedOrders();set.delete(String(o.id));sessionStorage.setItem(AUTO_PRINTED_KEY,JSON.stringify([...set]))}
+    }
+  }finally{autoPrintQueueBusy=false}
+};
+
 })();
