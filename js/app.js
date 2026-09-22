@@ -727,7 +727,7 @@ checkNewOrders=async function(){
     const box=$('#admContent');if(box&&(newOrders.length||justReady.length||justDelivered.length)){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box);else if(adminTab==='entregas')await renderDeliveryHub(box)}
   }catch(e){console.warn('Falha na sincronização da Central:',e)}finally{adminOrderSyncBusy=false}
 };
-startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,5000)};
+startOrderWatcher=function(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),normalizedOrderStatus(o.status)]));orderWatcher=setInterval(checkNewOrders,15000)};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sessionStorage.getItem('caseirao_admin_pin'))checkNewOrders()});
 
 /* Alertas reforçados enquanto o ADM está ativo no aparelho. */
