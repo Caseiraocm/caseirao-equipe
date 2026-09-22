@@ -240,6 +240,63 @@ body.teamApp{background:#0d0f12}
 }
 
 
+/* ===== CENTRAL DE ENTREGAS — LAYOUT OPERACIONAL OFICIAL ===== */
+.admWorkspaceMain .deliveryProHero{margin:0 0 8px!important;padding:13px 14px!important;border-radius:17px!important;box-shadow:0 7px 18px rgba(20,24,28,.12)!important}
+.admWorkspaceMain .deliveryProHeroHead{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.admWorkspaceMain .deliveryProHero h2{font-size:18px!important;line-height:1.05!important}
+.admWorkspaceMain .deliveryProHero p{margin:3px 0 0!important;font-size:9px!important}
+.admWorkspaceMain .deliveryLiveTag{padding:5px 7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.08);font-size:8px;font-weight:950;letter-spacing:.05em;color:#d9f6e4}
+.admWorkspaceMain .deliveryHeroMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin-top:9px!important}
+.admWorkspaceMain .deliveryHeroMetric{padding:7px 8px!important;border-radius:10px!important}
+.admWorkspaceMain .deliveryHeroMetric small{font-size:7px!important}
+.admWorkspaceMain .deliveryHeroMetric b{margin-top:2px!important;font-size:13px!important}
+.admWorkspaceMain .cashControlTotals{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin:0 0 8px!important}
+.admWorkspaceMain .cashControlTotal{min-width:0!important;padding:8px!important;border-radius:10px!important}
+.admWorkspaceMain .cashControlTotal small{font-size:7px!important;line-height:1.1!important}
+.admWorkspaceMain .cashControlTotal b{font-size:13px!important;white-space:nowrap}
+.admWorkspaceMain .deliveryClosingFold,.admWorkspaceMain .deliveryManageFold{margin:0 0 9px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;overflow:hidden}
+.admWorkspaceMain .deliveryClosingFold>summary,.admWorkspaceMain .deliveryManageFold>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;color:#343a40}
+.admWorkspaceMain .deliveryClosingFold>summary::-webkit-details-marker,.admWorkspaceMain .deliveryManageFold>summary::-webkit-details-marker{display:none}
+.admWorkspaceMain .deliveryClosingFold>summary b,.admWorkspaceMain .deliveryManageFold>summary b{display:block;font-size:11px}
+.admWorkspaceMain .deliveryClosingFold>summary small,.admWorkspaceMain .deliveryManageFold>summary small{display:block;margin-top:2px;color:#7a828b;font-size:8px}
+.admWorkspaceMain .deliveryClosingBody,.admWorkspaceMain .deliveryManageBody{padding:0 10px 10px;border-top:1px solid #eceff1}
+.admWorkspaceMain .closingActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:none!important;gap:5px!important;padding:8px 0!important}
+.admWorkspaceMain .closingActions button{min-height:34px!important;padding:5px!important;font-size:8px!important}
+.admWorkspaceMain .deliveryHubGrid{grid-template-columns:1fr!important;gap:8px!important}
+.admWorkspaceMain .deliveryPanel{padding:11px!important;border-radius:13px!important}
+.admWorkspaceMain .deliveryAvailablePanel>h3{margin:0 0 8px!important;font-size:13px!important}
+.admWorkspaceMain .deliveryOperationalCard{margin:7px 0!important;padding:10px!important;border-radius:13px!important}
+.admWorkspaceMain .deliveryCardTop{align-items:center!important}
+.admWorkspaceMain .deliveryOperationalCard h3{margin:0!important;font-size:13px!important;line-height:1.15!important}
+.admWorkspaceMain .deliveryOperationalCard .statusBadge{padding:5px 7px!important;font-size:8px!important;white-space:nowrap}
+.admWorkspaceMain .deliveryAddressLine{margin:7px 0;padding:7px 8px;border:1px solid #dce6ee;border-radius:9px;background:#f6faff;color:#35424c;font-size:10px;font-weight:800;line-height:1.25}
+.admWorkspaceMain .deliveryOperationalCard .deliveryMeta{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;margin:6px 0!important}
+.admWorkspaceMain .deliveryDriverLine{margin-top:2px;color:#6b737c;font-size:8px;font-weight:800}
+.admWorkspaceMain .deliveryOperationalCard .cashControlGrid{display:none!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryMeta>div{min-width:0;padding:6px!important;border-radius:8px!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryMeta small{font-size:6.5px!important;line-height:1!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryMeta b{margin-top:2px;display:block;font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admWorkspaceMain .deliveryOrderDetails{margin:6px 0;border:1px solid #e2e6e9;border-radius:9px;background:#fff;overflow:hidden}
+.admWorkspaceMain .deliveryOrderDetails>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;cursor:pointer;padding:7px 8px;color:#4a5159;font-size:9px;font-weight:850}
+.admWorkspaceMain .deliveryOrderDetails>summary::-webkit-details-marker{display:none}
+.admWorkspaceMain .deliveryOrderDetails>summary span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admWorkspaceMain .deliveryOrderDetails>summary b{flex:0 0 auto;color:#b94a16;font-size:7px}
+.admWorkspaceMain .deliveryOrderDetailsBody{padding:7px;border-top:1px solid #eceff1;background:#fafbfc}
+.admWorkspaceMain .deliveryOrderDetailsBody .orderItemRow{padding:7px!important}
+.admWorkspaceMain .deliveryOrderDetailsBody .orderItemHead b{font-size:10px!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryTimes{gap:4px!important;margin:6px 0!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryTimes span{padding:4px 5px!important;border-radius:7px!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryTimes small{font-size:6px!important}.admWorkspaceMain .deliveryOperationalCard .deliveryTimes b{font-size:8px!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryActions{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;margin-top:6px!important}
+.admWorkspaceMain .deliveryOperationalCard .deliveryActions button{min-height:34px!important;padding:6px!important;font-size:8px!important}
+.admWorkspaceMain .driverClosingCard{padding:9px!important;border-radius:11px!important;margin:6px 0!important}
+.admWorkspaceMain .driverClosingHead h3{font-size:12px!important}.admWorkspaceMain .driverClosingHead>strong{font-size:13px!important}
+.admWorkspaceMain .neighborhoodPayRow{padding:6px 2px!important}.admWorkspaceMain .driverClosingSummary{padding:7px 8px!important;margin-top:6px!important}
+@media(max-width:420px){
+  .admWorkspaceMain .deliveryOperationalCard .deliveryMeta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .admWorkspaceMain .deliveryHeroMetric b,.admWorkspaceMain .cashControlTotal b{font-size:11px!important}
+}
+
 /* ===== MODULOS OPERACIONAIS PRESERVADOS ===== */
 /* ===== smart-order-workflow-style ===== */
 /* Fluxo operacional guiado: uma ação principal por vez. */
