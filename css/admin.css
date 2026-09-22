@@ -466,3 +466,254 @@ body.teamApp{background:#0d0f12}
     touch-action:pan-y!important;
   }
 }
+
+
+/* ===== CASEIRAO ADM — ETAPA 2 / PEDIDO COMPACTO =====
+   Ajuste visual baseado no uso real em celular.
+   Não altera lógica, status, impressão, WhatsApp ou entregas. */
+
+/* Cabeçalho/resumo do pedido */
+.admWorkspaceMain .orderDetailed .orderSummary{
+  min-height:62px!important;
+  padding:10px 12px!important;
+  gap:8px!important;
+}
+.admWorkspaceMain .orderDetailed .summaryMain{gap:8px!important}
+.admWorkspaceMain .orderDetailed .orderNumber{
+  font-size:17px!important;
+  line-height:1!important;
+}
+.admWorkspaceMain .orderDetailed .summaryCustomer b{
+  font-size:14px!important;
+  line-height:1.16!important;
+}
+.admWorkspaceMain .orderDetailed .summaryCustomer span{
+  font-size:11px!important;
+  line-height:1.25!important;
+}
+.admWorkspaceMain .orderDetailed .summaryRight{
+  gap:4px!important;
+  min-width:94px;
+}
+.admWorkspaceMain .orderDetailed .summaryRight .statusBadge{
+  padding:5px 8px!important;
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .waitBadge{
+  margin-top:3px!important;
+  padding:4px 7px!important;
+  font-size:10px!important;
+}
+
+/* Corpo mais denso, sem perder leitura */
+.admWorkspaceMain .orderDetailed .orderBody{
+  padding:10px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfoGrid{
+  gap:7px!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo{
+  padding:9px 10px!important;
+  border-radius:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo span{
+  margin-bottom:3px!important;
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo b{
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo small{
+  font-size:11px!important;
+  line-height:1.3!important;
+}
+
+/* Ações rápidas */
+.admWorkspaceMain .orderDetailed .whatsappAction,
+.admWorkspaceMain .orderDetailed .deliveryAction{
+  min-height:44px!important;
+  margin-top:7px!important;
+  padding:9px 11px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin{
+  margin-top:7px!important;
+  padding:9px 10px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin b,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin b{
+  margin-bottom:2px!important;
+  font-size:11px!important;
+}
+
+/* Itens e totais */
+.admWorkspaceMain .orderDetailed .orderItemsBox{
+  margin-top:7px!important;
+  border-radius:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemRow{
+  padding:8px 9px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemHead b{
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemPrice{
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .orderAddonLine,
+.admWorkspaceMain .orderDetailed .orderItemNote{
+  margin-top:3px!important;
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalsBox{
+  margin-top:7px!important;
+  padding-top:6px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalLine{
+  padding:2px 0!important;
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalLine.grand{
+  margin-top:2px!important;
+  font-size:16px!important;
+}
+
+/* Impressão */
+.admWorkspaceMain .orderDetailed .printActions{
+  gap:6px!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .printActions button{
+  min-height:42px!important;
+  padding:8px!important;
+  border-radius:10px!important;
+  font-size:10px!important;
+}
+
+/* Fluxo principal: continua destacado, mas ocupa menos altura */
+.admWorkspaceMain .orderDetailed .smartOrderFlow{
+  margin-top:9px!important;
+  padding:10px!important;
+  border-radius:13px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop{
+  margin-bottom:7px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop b{
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop span{
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowSteps{
+  gap:4px!important;
+  margin-bottom:8px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowStep{
+  height:4px!important;
+}
+.admWorkspaceMain .orderDetailed .smartNextAction{
+  min-height:45px!important;
+  border-radius:11px!important;
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions{
+  margin-top:5px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions>summary{
+  padding:6px!important;
+  font-size:9px!important;
+}
+
+/* Mensagens de WhatsApp */
+.admWorkspaceMain .orderDetailed .waStagePanel{
+  margin-top:9px!important;
+  padding:10px!important;
+  border-radius:13px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead{
+  margin-bottom:7px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead b{
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead span{
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageGrid{
+  gap:5px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageButton{
+  min-height:36px!important;
+  padding:6px!important;
+  border-radius:9px!important;
+  font-size:9px!important;
+}
+
+/* Controle operacional: contraste corrigido */
+.admWorkspaceMain .orderDetailed .opsOrder{
+  margin-top:9px!important;
+  padding-top:9px!important;
+  border-top:1px solid #d9dde2!important;
+}
+.admWorkspaceMain .orderDetailed .opsOrder .sectionTitle,
+.admWorkspaceMain .orderDetailed .manualSectionTitle,
+.admWorkspaceMain .orderDetailed h3,
+.admWorkspaceMain .orderDetailed h4{
+  color:#30363d!important;
+  -webkit-text-fill-color:#30363d!important;
+  opacity:1!important;
+}
+.admWorkspaceMain .orderDetailed .opsTools,
+.admWorkspaceMain .orderDetailed .opsContactRow{
+  gap:6px!important;
+  margin-top:7px!important;
+}
+.admWorkspaceMain .orderDetailed .opsTools button,
+.admWorkspaceMain .orderDetailed .opsContactRow button,
+.admWorkspaceMain .orderDetailed .opsContactRow a{
+  min-height:40px!important;
+  padding:8px!important;
+  border-radius:10px!important;
+  font-size:9px!important;
+}
+
+/* Celular: ganhar espaço vertical sem sacrificar toque */
+@media(max-width:520px){
+  .admWorkspaceMain .orderDetailed .orderSummary{
+    padding:9px 10px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderBody{
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo{
+    padding:8px 9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .summaryCustomer b{
+    font-size:13px!important;
+  }
+  .admWorkspaceMain .orderDetailed .summaryRight{
+    min-width:86px!important;
+    max-width:34%!important;
+  }
+  .admWorkspaceMain .orderDetailed .waStageGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+/* Celular muito estreito: evita aperto excessivo */
+@media(max-width:360px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr!important;
+  }
+}
