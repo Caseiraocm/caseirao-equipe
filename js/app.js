@@ -1,6 +1,10 @@
 /* ===== core-script-1 ===== */
 (()=>{
 'use strict';
+/* Normaliza texto para impressoras ESC/POS simples sem depender de helper externo. */
+function stripAccents(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'\"').replace(/[\u2013\u2014]/g,'-');
+}
 const FN=window.CASEIRAO_CONFIG?.FUNCTIONS_URL||'https://jhvtjhjzlljqfzdccrxc.supabase.co/functions/v1/';
 const $=s=>document.querySelector(s), fmt=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}), esc=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]));
 let data={settings:{},products:[],neighborhoods:[],addons:[],product_addons:[],coupons:[]},cart=[],cat='Todos',search='',orderType='delivery',admin=null,adminTab='pedidos';
@@ -2279,104 +2283,222 @@ renderOrders=function(box){
   return result;
 };
 
-/* ===== CASEIRAO PRINTER ENGINE V4 • 2026-09-23 =====
-   Motor Bluetooth unico. IMPORTANTE: este bloco fica DENTRO do core IIFE,
-   portanto usa as mesmas variaveis btDevice/btWriteChar/BT_PROFILES do sistema. */
-const CASEIRAO_PRINT_V4_PENDING='caseirao_print_pending_v4';
-const CASEIRAO_PRINT_V4_DONE='caseirao_print_done_v4';
-try{localStorage.removeItem('caseirao_auto_print_pending_v2');localStorage.removeItem('caseirao_print_pending_v3')}catch(e){}
-let caseiraoPrintV4Busy=false;
-let caseiraoPrintV4ConnectPromise=null;
-let caseiraoPrintV4WritePromise=Promise.resolve();
 
-function caseiraoPrintV4Set(key,set,limit){try{localStorage.setItem(key,JSON.stringify([...set].slice(-limit)))}catch(e){}}
-function caseiraoPrintV4Get(key){try{return new Set(JSON.parse(localStorage.getItem(key)||'[]').map(String))}catch(e){return new Set()}}
-pendingAutoPrintIds=function(){return caseiraoPrintV4Get(CASEIRAO_PRINT_V4_PENDING)};
-savePendingAutoPrint=function(set){caseiraoPrintV4Set(CASEIRAO_PRINT_V4_PENDING,set,100)};
-autoPrintedOrders=function(){return caseiraoPrintV4Get(CASEIRAO_PRINT_V4_DONE)};
-saveAutoPrinted=function(set){caseiraoPrintV4Set(CASEIRAO_PRINT_V4_DONE,set,500)};
-markAutoPrinted=function(id){const s=autoPrintedOrders();s.add(String(id));saveAutoPrinted(s)};
-wasAutoPrinted=function(id){return autoPrintedOrders().has(String(id))};
-queueAutoPrint=function(id){const s=pendingAutoPrintIds();s.add(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()};
-unqueueAutoPrint=function(id){const s=pendingAutoPrintIds();s.delete(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()};
+})();
 
-function caseiraoPrintV4CleanQueue(){
-  const orders=admin?.orders||[],byId=new Map(orders.map(o=>[String(o.id),o])),pending=pendingAutoPrintIds();
-  let changed=false;
-  for(const id of [...pending]){const o=byId.get(String(id));if(!o||!eligibleForAutoPrint(o)||wasAutoPrinted(id)){pending.delete(String(id));changed=true}}
-  if(changed)savePendingAutoPrint(pending);
-  return pending;
-}
-refreshPendingPrintStatus=function(){
-  const n=caseiraoPrintV4CleanQueue().size;
-  document.querySelectorAll('[data-print-pending]').forEach(el=>{el.textContent=n?`${n} pedido${n===1?'':'s'} aguardando impressão`:'Nenhum pedido aguardando impressão';el.classList.toggle('hasPending',n>0)});
-};
 
-async function caseiraoPrintV4FindChannel(server){
-  const candidates=[];
+/* ===== CASEIRAO • BLUETOOTH STABLE FIX 2026-09-23 =====
+   Fluxo unico para a impressora: reutiliza o dispositivo autorizado,
+   reconecta o GATT sem reabrir o seletor, serializa escritas e usa
+   cupom ESC/POS leve (sem logo/QR) para evitar sobrecarga no BLE. */
+let caseiraoBtWriteChain=Promise.resolve();
+let caseiraoBtConnecting=null;
+
+async function caseiraoFindWriteCharacteristic(server){
   for(const p of BT_PROFILES){
     try{
       const service=await server.getPrimaryService(p.service);
-      for(const cid of p.chars){try{const c=await service.getCharacteristic(cid);if(c.properties.write||c.properties.writeWithoutResponse)candidates.push(c)}catch(e){}}
-      try{for(const c of await service.getCharacteristics())if((c.properties.write||c.properties.writeWithoutResponse)&&!candidates.includes(c))candidates.push(c)}catch(e){}
+      for(const cid of p.chars){
+        try{
+          const c=await service.getCharacteristic(cid);
+          if(c.properties.write||c.properties.writeWithoutResponse)return c;
+        }catch(e){}
+      }
+      try{
+        const chars=await service.getCharacteristics();
+        const c=chars.find(x=>x.properties.write||x.properties.writeWithoutResponse);
+        if(c)return c;
+      }catch(e){}
     }catch(e){}
   }
-  /* Impressoras termicas BLE normalmente trabalham melhor sem resposta. */
-  return candidates.find(c=>c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')
-      || candidates.find(c=>c.properties.write&&typeof c.writeValueWithResponse==='function')
-      || candidates[0]||null;
+  try{
+    const services=await server.getPrimaryServices();
+    for(const service of services){
+      try{
+        const chars=await service.getCharacteristics();
+        const c=chars.find(x=>x.properties.write||x.properties.writeWithoutResponse);
+        if(c)return c;
+      }catch(e){}
+    }
+  }catch(e){}
+  return null;
 }
-async function caseiraoPrintV4Attach(device){
-  if(!device?.gatt)throw new Error('A impressora selecionada não oferece BLE/GATT. Se ela for Bluetooth Clássico/SPP, o Chrome não consegue imprimir direto por Web Bluetooth.');
+
+async function caseiraoConnectKnownDevice(device){
+  if(!device?.gatt)throw new Error('A impressora selecionada não oferece conexão BLE/GATT.');
   const server=device.gatt.connected?device.gatt:await device.gatt.connect();
-  const channel=await caseiraoPrintV4FindChannel(server);
-  if(!channel)throw new Error('Bluetooth conectado, mas não encontrei o canal BLE de impressão. A impressora pode usar Bluetooth Clássico/SPP.');
+  const characteristic=await caseiraoFindWriteCharacteristic(server);
+  if(!characteristic){
+    try{server.disconnect()}catch(e){}
+    throw new Error('Bluetooth conectado, mas o canal de impressão não foi encontrado.');
+  }
+  btDevice=device;
+  btWriteChar=characteristic;
+  btPrinterName=device.name||'Impressora Bluetooth';
+  if(!device.__caseiraoDisconnectBound){
+    device.__caseiraoDisconnectBound=true;
+    device.addEventListener('gattserverdisconnected',()=>{
+      btWriteChar=null;
+      setPrinterState('🔴 DESCONECTADA • reconecta automaticamente ao imprimir','error');
+      try{refreshPrinterStatus()}catch(e){}
+    });
+  }
+  setPrinterState(`🟢 CONECTADA • ${btPrinterName}`,'connected');
+  try{refreshPrinterStatus()}catch(e){}
+  return btPrinterName;
+}
+
+connectBluetoothPrinter=async function(){
+  if(caseiraoBtConnecting)return caseiraoBtConnecting;
+  caseiraoBtConnecting=(async()=>{
+    if(!navigator.bluetooth)throw new Error('Abra a Central no Google Chrome do Android para usar Bluetooth.');
+    let device=btDevice;
+    if(!device){
+      setPrinterState('Abrindo lista de dispositivos Bluetooth...');
+      device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:BT_PROFILES.map(p=>p.service)});
+    }
+    return caseiraoConnectKnownDevice(device);
+  })();
+  try{return await caseiraoBtConnecting}finally{caseiraoBtConnecting=null}
+};
+
+async function caseiraoEnsurePrinterConnection(){
+  if(btWriteChar&&btDevice?.gatt?.connected)return btWriteChar;
+  if(!btDevice)throw new Error('Toque em CONECTAR BLUETOOTH e selecione a impressora primeiro.');
+  await caseiraoConnectKnownDevice(btDevice);
+  if(!btWriteChar)throw new Error('Não foi possível recuperar o canal de impressão.');
+  return btWriteChar;
+}
+
+btWrite=function(bytes){
+  const job=async()=>{
+    const characteristic=await caseiraoEnsurePrinterConnection();
+    const chunk=20;
+    for(let i=0;i<bytes.length;i+=chunk){
+      if(!btDevice?.gatt?.connected){
+        await caseiraoConnectKnownDevice(btDevice);
+      }
+      const c=btWriteChar||characteristic;
+      const part=bytes.slice(i,i+chunk);
+      if(c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')await c.writeValueWithoutResponse(part);
+      else if(c.properties.write&&typeof c.writeValueWithResponse==='function')await c.writeValueWithResponse(part);
+      else await c.writeValue(part);
+      await new Promise(resolve=>setTimeout(resolve,30));
+    }
+    return true;
+  };
+  caseiraoBtWriteChain=caseiraoBtWriteChain.catch(()=>{}).then(job);
+  return caseiraoBtWriteChain;
+};
+
+/* Cupom Bluetooth leve: primeiro estabiliza texto/ESC-POS.
+   Logo e QR permanecem fora deste fluxo para não derrubar a conexão. */
+escposBytes=async function(o){
+  const head=new Uint8Array([0x1b,0x40]);
+  const body=new TextEncoder().encode(receiptPlain(o));
+  const tail=new Uint8Array([0x0a,0x0a,0x0a]);
+  return joinReceiptBytes(head,body,tail);
+};
+/* ===== FIM BLUETOOTH STABLE FIX ===== */
+
+/* ===== CASEIRAO PRINTER ENGINE V3 • 2026-09-23 =====
+   Modulo final/autoritativo de impressao Bluetooth.
+   Objetivos: conexao unica, escrita conservadora, fila limpa e sem pedidos fantasmas. */
+const CASEIRAO_PRINT_V3_PENDING='caseirao_print_pending_v3';
+const CASEIRAO_PRINT_V3_DONE='caseirao_print_done_v3';
+try{localStorage.removeItem('caseirao_auto_print_pending_v2')}catch(e){}
+let caseiraoPrintV3Busy=false;
+let caseiraoPrintV3ConnectPromise=null;
+let caseiraoPrintV3WritePromise=Promise.resolve();
+let caseiraoPrintV3Generation=0;
+
+function caseiraoPrintV3Set(key,set,limit){try{localStorage.setItem(key,JSON.stringify([...set].slice(-limit)))}catch(e){}}
+function caseiraoPrintV3Get(key){try{return new Set(JSON.parse(localStorage.getItem(key)||'[]').map(String))}catch(e){return new Set()}}
+function pendingAutoPrintIds(){return caseiraoPrintV3Get(CASEIRAO_PRINT_V3_PENDING)}
+function savePendingAutoPrint(set){caseiraoPrintV3Set(CASEIRAO_PRINT_V3_PENDING,set,100)}
+function autoPrintedOrders(){return caseiraoPrintV3Get(CASEIRAO_PRINT_V3_DONE)}
+function saveAutoPrinted(set){caseiraoPrintV3Set(CASEIRAO_PRINT_V3_DONE,set,500)}
+function markAutoPrinted(id){const s=autoPrintedOrders();s.add(String(id));saveAutoPrinted(s)}
+function wasAutoPrinted(id){return autoPrintedOrders().has(String(id))}
+function queueAutoPrint(id){const s=pendingAutoPrintIds();s.add(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()}
+function unqueueAutoPrint(id){const s=pendingAutoPrintIds();s.delete(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()}
+function caseiraoPrintV3CleanQueue(){
+  const orders=admin?.orders||[],byId=new Map(orders.map(o=>[String(o.id),o])),pending=pendingAutoPrintIds();
+  let changed=false;
+  for(const id of [...pending]){
+    const o=byId.get(String(id));
+    if(!o||!eligibleForAutoPrint(o)||wasAutoPrinted(id)){pending.delete(String(id));changed=true}
+  }
+  if(changed)savePendingAutoPrint(pending);
+  refreshPendingPrintStatus();
+  return pending;
+}
+function refreshPendingPrintStatus(){
+  const n=caseiraoPrintV3CleanQueue.__running?pendingAutoPrintIds().size:(()=>{caseiraoPrintV3CleanQueue.__running=true;try{return caseiraoPrintV3CleanQueue().size}finally{caseiraoPrintV3CleanQueue.__running=false}})();
+  document.querySelectorAll('[data-print-pending]').forEach(el=>{el.textContent=n?`${n} pedido${n===1?'':'s'} aguardando impressão`:'Nenhum pedido aguardando impressão';el.classList.toggle('hasPending',n>0)});
+}
+
+async function caseiraoPrintV3FindChannel(server){
+  const preferred=[];
+  for(const p of BT_PROFILES){
+    try{
+      const service=await server.getPrimaryService(p.service);
+      for(const cid of p.chars){try{const c=await service.getCharacteristic(cid);if(c.properties.write||c.properties.writeWithoutResponse)preferred.push(c)}catch(e){}}
+      try{for(const c of await service.getCharacteristics())if((c.properties.write||c.properties.writeWithoutResponse)&&!preferred.includes(c))preferred.push(c)}catch(e){}
+    }catch(e){}
+  }
+  if(!preferred.length){
+    try{for(const service of await server.getPrimaryServices()){try{for(const c of await service.getCharacteristics())if(c.properties.write||c.properties.writeWithoutResponse)preferred.push(c)}catch(e){}}}catch(e){}
+  }
+  return preferred.find(c=>c.properties.write&&typeof c.writeValueWithResponse==='function')||preferred.find(c=>c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')||preferred[0]||null;
+}
+async function caseiraoPrintV3Attach(device){
+  if(!device?.gatt)throw new Error('O dispositivo escolhido não oferece BLE/GATT para impressão.');
+  const generation=++caseiraoPrintV3Generation;
+  const server=device.gatt.connected?device.gatt:await device.gatt.connect();
+  const channel=await caseiraoPrintV3FindChannel(server);
+  if(!channel)throw new Error('Conectou ao Bluetooth, mas não encontrei um canal de escrita compatível.');
   btDevice=device;btWriteChar=channel;btPrinterName=device.name||'Impressora Bluetooth';
-  if(!device.__caseiraoV4Bound){device.__caseiraoV4Bound=true;device.addEventListener('gattserverdisconnected',()=>{btWriteChar=null;setPrinterState('🔴 DESCONECTADA','error');try{refreshPrinterStatus()}catch(e){}})}
+  if(!device.__caseiraoV3Bound){device.__caseiraoV3Bound=true;device.addEventListener('gattserverdisconnected',()=>{if(generation<=caseiraoPrintV3Generation){btWriteChar=null;setPrinterState('🔴 DESCONECTADA','error');try{refreshPrinterStatus()}catch(e){}}})}
   setPrinterState(`🟢 CONECTADA • ${btPrinterName}`,'connected');try{refreshPrinterStatus()}catch(e){}
   return btPrinterName;
 }
 connectBluetoothPrinter=async function(){
-  if(caseiraoPrintV4ConnectPromise)return caseiraoPrintV4ConnectPromise;
-  caseiraoPrintV4ConnectPromise=(async()=>{
-    if(!navigator.bluetooth)throw new Error('Abra a Central no Google Chrome do Android para usar Web Bluetooth.');
-    if(btDevice){try{return await caseiraoPrintV4Attach(btDevice)}catch(e){btWriteChar=null}}
+  if(caseiraoPrintV3ConnectPromise)return caseiraoPrintV3ConnectPromise;
+  caseiraoPrintV3ConnectPromise=(async()=>{
+    if(!navigator.bluetooth)throw new Error('Abra a Central no Chrome do Android para usar Bluetooth.');
+    if(btDevice){try{return await caseiraoPrintV3Attach(btDevice)}catch(e){btWriteChar=null}}
     setPrinterState('Selecione a impressora...');
     const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:BT_PROFILES.map(p=>p.service)});
-    return caseiraoPrintV4Attach(device);
+    const connected=await caseiraoPrintV3Attach(device);
+    if(printerPrefs().auto)setTimeout(()=>flushPendingAutoPrint().catch(()=>{}),150);
+    return connected;
   })();
-  try{return await caseiraoPrintV4ConnectPromise}finally{caseiraoPrintV4ConnectPromise=null}
+  try{return await caseiraoPrintV3ConnectPromise}finally{caseiraoPrintV3ConnectPromise=null}
 };
-printerConnected=function(){return !!(btDevice?.gatt?.connected&&btWriteChar)};
-async function caseiraoPrintV4Ensure(){if(printerConnected())return btWriteChar;if(!btDevice)throw new Error('Conecte a impressora primeiro.');await caseiraoPrintV4Attach(btDevice);return btWriteChar}
-const caseiraoPrintV4Sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
+function printerConnected(){return !!(btDevice?.gatt?.connected&&btWriteChar)}
+async function caseiraoPrintV3Ensure(){if(printerConnected())return btWriteChar;if(!btDevice)throw new Error('Conecte a impressora primeiro.');await caseiraoPrintV3Attach(btDevice);return btWriteChar}
+function caseiraoPrintV3Sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 btWrite=function(bytes){
   const run=async()=>{
-    let c=await caseiraoPrintV4Ensure();
-    const CHUNK=20,PAUSE=90;
+    let c=await caseiraoPrintV3Ensure();
+    const CHUNK=20,PAUSE=70;
     for(let i=0;i<bytes.length;i+=CHUNK){
-      if(!btDevice?.gatt?.connected){await caseiraoPrintV4Attach(btDevice);c=btWriteChar}
+      if(!btDevice?.gatt?.connected){await caseiraoPrintV3Attach(btDevice);c=btWriteChar}
       const part=bytes.slice(i,i+CHUNK);
-      try{
-        if(c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')await c.writeValueWithoutResponse(part);
-        else if(c.properties.write&&typeof c.writeValueWithResponse==='function')await c.writeValueWithResponse(part);
-        else await c.writeValue(part);
-      }catch(err){
-        btWriteChar=null;
-        throw new Error('A impressora derrubou a conexão ao receber os dados. Se continuar, este modelo provavelmente usa Bluetooth Clássico/SPP e não BLE/Web Bluetooth.');
-      }
-      await caseiraoPrintV4Sleep(PAUSE);
+      if(c.properties.write&&typeof c.writeValueWithResponse==='function')await c.writeValueWithResponse(part);
+      else if(c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')await c.writeValueWithoutResponse(part);
+      else await c.writeValue(part);
+      await caseiraoPrintV3Sleep(PAUSE);
     }
-    await caseiraoPrintV4Sleep(300);return true;
+    await caseiraoPrintV3Sleep(250);return true;
   };
-  caseiraoPrintV4WritePromise=caseiraoPrintV4WritePromise.catch(()=>{}).then(run);
-  return caseiraoPrintV4WritePromise;
+  caseiraoPrintV3WritePromise=caseiraoPrintV3WritePromise.catch(()=>{}).then(run);
+  return caseiraoPrintV3WritePromise;
 };
-
-/* Cupom leve: somente texto ESC/POS; sem logo e sem QR para reduzir carga Bluetooth. */
 escposBytes=async function(o){
-  const width=printerTextWidth(),hr='-'.repeat(width),L=[],wr=t=>wrapReceipt(t,width);
+  const width=printerTextWidth(),hr='-'.repeat(width),L=[];
+  const wr=t=>wrapReceipt(t,width);
   L.push('O CASEIRAO BURGER',`PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
   if(o.type==='delivery')L.push(hr,'ENDERECO:',...wr(orderAddress(o)));
   L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');
@@ -2388,16 +2510,14 @@ escposBytes=async function(o){
 printOrderBluetoothAuto=async function(id,sourceOrders=null,silent=false){
   const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));
   if(!o||['cancelado','entregue'].includes(String(o.status||''))){unqueueAutoPrint(id);return false}
-  try{await caseiraoPrintV4Ensure();setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));markAutoPrinted(id);unqueueAutoPrint(id);setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){setPrinterState(`Erro ao imprimir: ${e.message||e}`,'error');if(!silent)alert(e.message||String(e));return false}
+  try{if(!printerConnected())await caseiraoPrintV3Ensure();setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));markAutoPrinted(id);unqueueAutoPrint(id);setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){setPrinterState(`Erro ao imprimir: ${e.message||e}`,'error');if(!silent)alert(e.message||String(e));return false}
 };
 printOrderBluetooth=async function(id,sourceOrders=null){return printOrderBluetoothAuto(id,sourceOrders,false)};
 flushPendingAutoPrint=async function(){
-  if(caseiraoPrintV4Busy||!printerPrefs().auto)return;
-  const pending=caseiraoPrintV4CleanQueue();if(!pending.size||!printerConnected())return;
-  caseiraoPrintV4Busy=true;try{for(const id of [...pending]){const ok=await printOrderBluetoothAuto(id,admin?.orders||[],true);if(!ok)break}}finally{caseiraoPrintV4Busy=false;refreshPendingPrintStatus()}
+  if(caseiraoPrintV3Busy||!printerPrefs().auto)return;
+  const pending=caseiraoPrintV3CleanQueue();if(!pending.size||!printerConnected())return;
+  caseiraoPrintV3Busy=true;
+  try{for(const id of [...pending]){const ok=await printOrderBluetoothAuto(id,admin?.orders||[],true);if(!ok)break}}finally{caseiraoPrintV3Busy=false;refreshPendingPrintStatus()}
 };
-try{refreshPendingPrintStatus()}catch(e){}
-/* ===== FIM CASEIRAO PRINTER ENGINE V4 ===== */
-
-
-})();
+try{caseiraoPrintV3CleanQueue()}catch(e){}
+/* ===== FIM CASEIRAO PRINTER ENGINE V3 ===== */
