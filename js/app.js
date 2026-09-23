@@ -140,16 +140,55 @@ function receiptBrowserHtml(o){const items=(o.order_items||[]).map(it=>`<div cla
 </body></html>`}
 const receiptBrowserHtmlOriginal=receiptBrowserHtml;receiptBrowserHtml=function(order){return receiptBrowserHtmlOriginal(order).replace(RECEIPT_LOGO_SVG,'').replace('.receiptLogo{display:block;width:34mm;max-height:34mm;object-fit:contain;margin:0 auto 2mm}','').replace('setTimeout(()=>window.print(),250)','setTimeout(()=>window.print(),100)')};
 function printOrderBrowser(id,sourceOrders=null){const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');const w=window.open('','_blank','width=420,height=720');if(!w)return alert('O navegador bloqueou a janela de impressão. Libere pop-ups e tente novamente.');w.document.open();w.document.write(receiptBrowserHtml(o));w.document.close()}
-const BT_PROFILES=[
- {service:'0000ff00-0000-1000-8000-00805f9b34fb',chars:['0000ff02-0000-1000-8000-00805f9b34fb','0000ff03-0000-1000-8000-00805f9b34fb']},
- {service:'49535343-fe7d-4ae5-8fa9-9fafd205e455',chars:['49535343-8841-43f4-a8d4-ecbe34729bb3','49535343-6daa-4d02-abf6-19569aca69fe']},
- {service:'0000ae30-0000-1000-8000-00805f9b34fb',chars:['0000ae01-0000-1000-8000-00805f9b34fb']},
- {service:'0000ffe0-0000-1000-8000-00805f9b34fb',chars:['0000ffe1-0000-1000-8000-00805f9b34fb']},
- {service:'0000fff0-0000-1000-8000-00805f9b34fb',chars:['0000fff1-0000-1000-8000-00805f9b34fb','0000fff2-0000-1000-8000-00805f9b34fb']}
-];
+/* Bluetooth Classico (SPP) via ponte local Android.
+   A MTP-4C nao usa o transporte BLE/GATT do Web Bluetooth.
+   A ponte roda no mesmo Android e conversa com a impressora pareada. */
+const CLASSIC_PRINT_BRIDGE='http://localhost:9100';
+let btBridgeReady=false,btBridgeProblem='';btPrinterName='MTP-4C';
 function setPrinterState(msg,kind=''){const el=$('#printerState');if(el){el.textContent=msg;el.className='printerState '+kind}}
-async function connectBluetoothPrinter(){if(!navigator.bluetooth)throw new Error('Este navegador não oferece Web Bluetooth. Abra o sistema no Google Chrome do Android.');setPrinterState('Abrindo lista de dispositivos Bluetooth...');const optionalServices=BT_PROFILES.map(p=>p.service);const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices});if(!device.gatt)throw new Error('O dispositivo escolhido não oferece conexão BLE/GATT.');const server=await device.gatt.connect();let found=null;for(const p of BT_PROFILES){try{const service=await server.getPrimaryService(p.service);for(const cid of p.chars){try{const c=await service.getCharacteristic(cid);if(c.properties.write||c.properties.writeWithoutResponse){found=c;break}}catch{}}if(!found){const chars=await service.getCharacteristics();found=chars.find(c=>c.properties.write||c.properties.writeWithoutResponse)||null}if(found)break}catch{}}if(!found){try{const services=await server.getPrimaryServices();for(const service of services){try{const chars=await service.getCharacteristics();found=chars.find(c=>c.properties.write||c.properties.writeWithoutResponse)||null;if(found)break}catch{}}}catch{}}if(!found){server.disconnect();throw new Error('Conectou ao Bluetooth, mas não encontrei um canal BLE de impressão compatível. Essa impressora pode usar Bluetooth Clássico/SPP.');}btDevice=device;btWriteChar=found;btPrinterName=device.name||'Impressora Bluetooth';device.addEventListener('gattserverdisconnected',()=>{btWriteChar=null;setPrinterState('Impressora desconectada. Toque em Conectar novamente.','error')});setPrinterState(`Conectada: ${btPrinterName}`,'connected');return btPrinterName}
-async function btWrite(bytes){if(!btWriteChar||!btDevice?.gatt?.connected)await connectBluetoothPrinter();const chunk=20;for(let i=0;i<bytes.length;i+=chunk){const part=bytes.slice(i,i+chunk);if(btWriteChar.properties.writeWithoutResponse&&btWriteChar.writeValueWithoutResponse)await btWriteChar.writeValueWithoutResponse(part);else if(btWriteChar.properties.write&&btWriteChar.writeValueWithResponse)await btWriteChar.writeValueWithResponse(part);else await btWriteChar.writeValue(part);await new Promise(r=>setTimeout(r,10))}}
+async function classicBridgeHealth(){
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),1800);
+  try{
+    const res=await fetch(CLASSIC_PRINT_BRIDGE+'/health',{cache:'no-store',signal:ctrl.signal});
+    if(!res.ok)throw new Error('Ponte de impressao indisponivel.');
+    const info=await res.json();
+    btBridgeReady=Boolean(info?.printer?.connected);
+    btPrinterName=info?.printer?.name||'MTP-4C';
+    btBridgeProblem=info?.printer?.problem||'';
+    return info;
+  }finally{clearTimeout(timer)}
+}
+async function connectBluetoothPrinter(){
+  setPrinterState('Verificando impressora Bluetooth Classico...');
+  try{
+    const info=await classicBridgeHealth();
+    if(!btBridgeReady){
+      const fix=info?.printer?.problem==='bluetooth_disabled'?'Ligue o Bluetooth do Android.':info?.printer?.problem==='printer_not_paired'?'Pareie novamente a MTP-4C nas configuracoes do Android.':'Abra a ponte de impressao e selecione a MTP-4C como impressora padrao.';
+      throw new Error(fix);
+    }
+    setPrinterState(`🟢 CONECTADA • ${btPrinterName}`,'connected');
+    return btPrinterName;
+  }catch(e){
+    btBridgeReady=false;
+    setPrinterState('🔴 PONTE DE IMPRESSAO DESCONECTADA','error');
+    if(e?.name==='AbortError'||/fetch|network/i.test(String(e?.message||e)))throw new Error('A ponte Android nao esta ativa. Abra o app de impressao no celular e tente novamente.');
+    throw e;
+  }
+}
+async function classicPrintText(text,reference='Caseirao'){
+  const content=String(text??'').split(/\r?\n/).map(line=>({type:'text',text:line||' '}));
+  const res=await fetch(CLASSIC_PRINT_BRIDGE+'/print',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({paperWidth:printerPaperWidth(),cut:false,reference:String(reference).slice(0,64),content})
+  });
+  let body={};try{body=await res.json()}catch{}
+  if(!res.ok)throw new Error(body.fix||body.detail||`Falha de impressao (${res.status}).`);
+  btBridgeReady=true;return body;
+}
+async function btWrite(bytes){
+  const text=new TextDecoder('utf-8').decode(bytes);
+  return classicPrintText(text,'Caseirao teste');
+}
 function escposQrBytes(value){
  const data=new TextEncoder().encode(value),storeLen=data.length+3,pL=storeLen&255,pH=(storeLen>>8)&255;
  return joinReceiptBytes(
@@ -452,7 +491,7 @@ function renderOrders(box){
 }
 
 function kitchenWhatsAppHtml(o){const phone=customerWhatsAppNumber(o.customer_phone);if(!phone)return '<div class="kitchenPhoneMissing">⚠️ Cliente sem WhatsApp válido</div>';const messages={confirmado:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} foi aceito pelo O Caseirão Burger.`,preparando:`Olá, ${o.customer_name||'cliente'}! 🍔 Seu pedido #${o.order_number} está em preparo.`,pronto:o.type==='pickup'?`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto. Você já pode vir buscar no Caseirão.`:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto e aguardando o entregador.`,em_rota:`Olá, ${o.customer_name||'cliente'}! 🛵 Seu pedido #${o.order_number} saiu para entrega e está a caminho.`,entregue:o.type==='pickup'?`Pedido #${o.order_number} retirado com sucesso. Obrigado por escolher o Caseirão! 🍔`:`Seu pedido #${o.order_number} foi entregue. Obrigado por escolher o Caseirão! Bom apetite 🍔`};const stages=o.type==='delivery'?[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PRONTO'],['em_rota','EM ROTA'],['entregue','ENTREGUE']]:[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PODE BUSCAR'],['entregue','RETIRADO']];return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO WHATSAPP</b><div>${stages.map(([stage,label])=>`<a href="https://wa.me/${phone}?text=${encodeURIComponent(messages[stage])}" target="_blank" rel="noopener">${label}</a>`).join('')}</div></div>`}
-function renderKitchen(box){const orders=shiftOrders().filter(o=>['novo','confirmado','preparando','pronto'].includes(o.status));box.innerHTML=`<div class="kitchenToolbar"><button id="manualOrderKitchen" class="primary">+ PEDIDO MANUAL</button><button id="connectPrinterKitchen" class="secondary">🖨️ CONECTAR BLUETOOTH</button><button id="refreshKitchen" class="secondary">↻ ATUALIZAR</button></div><div id="printerState" class="printerState kitchenPrinterState">${btWriteChar&&btDevice?.gatt?.connected?`Conectada: ${esc(btPrinterName)}`:navigator.bluetooth?'Impressora Bluetooth disponível no Chrome.':'Bluetooth indisponível neste navegador.'}</div><div class="operationHint">Produção completa: cliente, tempo, pagamento, endereço, itens, impressão e mensagens do WhatsApp.</div><div class="kitchenGrid">${orders.length?orders.map(o=>{const m=orderMinutes(o),late=m>=35,created=new Date(o.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),change=o.change_for?` • Troco para ${esc(o.change_for)}`:'';return `<article class="kitchenCard kitchenFullCard ${late?'late':''}"><div class="ordertop kitchenOrderTop"><div><b class="orderNumber">#${o.order_number}</b><div class="kitchenCreated">Recebido às ${esc(created)}</div></div><span class="grow"></span>${orderWaitHtml(o)}</div><div class="kitchenCustomer"><div><span>CLIENTE</span><b>${esc(o.customer_name||'Não informado')}</b><a href="tel:${esc(o.customer_phone||'')}">${esc(o.customer_phone||'Sem telefone')}</a></div><div><span>PEDIDO E PAGAMENTO</span><b>${esc(orderTypeLabel(o.type))}</b><small>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}${change}</small></div></div>${o.type==='delivery'?`<div class="kitchenAddress"><b>📍 ENDEREÇO COMPLETO</b><span>${esc(orderAddress(o))}</span></div>`:`<div class="kitchenAddress pickup"><b>📦 ${esc(orderTypeLabel(o.type))}</b><span>Cliente busca no estabelecimento</span></div>`}<div class="kitchenItems">${(o.order_items||[]).map(i=>`<div class="kitchenItem"><b>${Number(i.quantity||1)}x ${esc(i.product_name||'Item')}</b>${(i.order_item_addons||[]).map(a=>`<div class="kitchenAddon">+ ${esc(a.addon_name)}</div>`).join('')}${i.note?`<div class="kitchenNote">Observação do item: ${esc(i.note)}</div>`:''}</div>`).join('')}</div>${o.notes?`<div class="kitchenNote"><b>OBSERVAÇÃO GERAL:</b> ${esc(o.notes)}</div>`:''}<div class="printActions kitchenPrintActions"><button class="mainPrint" data-webprint="${o.id}">🧾 IMPRIMIR PEDIDO</button><button class="bt" data-btprint="${o.id}">🖨️ BLUETOOTH</button></div>${kitchenWhatsAppHtml(o)}<button class="primary kitchenMainAction" data-kitchen="${o.id}" data-next="${o.status==='novo'||o.status==='confirmado'?'preparando':'pronto'}">${o.status==='novo'||o.status==='confirmado'?'INICIAR PREPARO':'MARCAR COMO PRONTO'}</button></article>`}).join(''):'<div class="empty">Nenhum pedido aguardando produção.</div>'}</div>`;$('#manualOrderKitchen').onclick=openManualOrder;$('#refreshKitchen').onclick=async()=>{admin=await adminCall('snapshot');renderKitchen(box)};$('#connectPrinterKitchen').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};bindPrintButtons(orders);document.querySelectorAll('[data-kitchen]').forEach(b=>b.onclick=async()=>{try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.kitchen,status:b.dataset.next});admin=await adminCall('snapshot');renderKitchen(box)}catch(e){b.disabled=false;alert(e.message)}})}
+function renderKitchen(box){const orders=shiftOrders().filter(o=>['novo','confirmado','preparando','pronto'].includes(o.status));box.innerHTML=`<div class="kitchenToolbar"><button id="manualOrderKitchen" class="primary">+ PEDIDO MANUAL</button><button id="connectPrinterKitchen" class="secondary">🖨️ VERIFICAR IMPRESSORA</button><button id="refreshKitchen" class="secondary">↻ ATUALIZAR</button></div><div id="printerState" class="printerState kitchenPrinterState">${btWriteChar&&btDevice?.gatt?.connected?`Conectada: ${esc(btPrinterName)}`:navigator.bluetooth?'Impressora Bluetooth disponível no Chrome.':'Bluetooth indisponível neste navegador.'}</div><div class="operationHint">Produção completa: cliente, tempo, pagamento, endereço, itens, impressão e mensagens do WhatsApp.</div><div class="kitchenGrid">${orders.length?orders.map(o=>{const m=orderMinutes(o),late=m>=35,created=new Date(o.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),change=o.change_for?` • Troco para ${esc(o.change_for)}`:'';return `<article class="kitchenCard kitchenFullCard ${late?'late':''}"><div class="ordertop kitchenOrderTop"><div><b class="orderNumber">#${o.order_number}</b><div class="kitchenCreated">Recebido às ${esc(created)}</div></div><span class="grow"></span>${orderWaitHtml(o)}</div><div class="kitchenCustomer"><div><span>CLIENTE</span><b>${esc(o.customer_name||'Não informado')}</b><a href="tel:${esc(o.customer_phone||'')}">${esc(o.customer_phone||'Sem telefone')}</a></div><div><span>PEDIDO E PAGAMENTO</span><b>${esc(orderTypeLabel(o.type))}</b><small>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}${change}</small></div></div>${o.type==='delivery'?`<div class="kitchenAddress"><b>📍 ENDEREÇO COMPLETO</b><span>${esc(orderAddress(o))}</span></div>`:`<div class="kitchenAddress pickup"><b>📦 ${esc(orderTypeLabel(o.type))}</b><span>Cliente busca no estabelecimento</span></div>`}<div class="kitchenItems">${(o.order_items||[]).map(i=>`<div class="kitchenItem"><b>${Number(i.quantity||1)}x ${esc(i.product_name||'Item')}</b>${(i.order_item_addons||[]).map(a=>`<div class="kitchenAddon">+ ${esc(a.addon_name)}</div>`).join('')}${i.note?`<div class="kitchenNote">Observação do item: ${esc(i.note)}</div>`:''}</div>`).join('')}</div>${o.notes?`<div class="kitchenNote"><b>OBSERVAÇÃO GERAL:</b> ${esc(o.notes)}</div>`:''}<div class="printActions kitchenPrintActions"><button class="mainPrint" data-webprint="${o.id}">🧾 IMPRIMIR PEDIDO</button><button class="bt" data-btprint="${o.id}">🖨️ BLUETOOTH</button></div>${kitchenWhatsAppHtml(o)}<button class="primary kitchenMainAction" data-kitchen="${o.id}" data-next="${o.status==='novo'||o.status==='confirmado'?'preparando':'pronto'}">${o.status==='novo'||o.status==='confirmado'?'INICIAR PREPARO':'MARCAR COMO PRONTO'}</button></article>`}).join(''):'<div class="empty">Nenhum pedido aguardando produção.</div>'}</div>`;$('#manualOrderKitchen').onclick=openManualOrder;$('#refreshKitchen').onclick=async()=>{admin=await adminCall('snapshot');renderKitchen(box)};$('#connectPrinterKitchen').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};bindPrintButtons(orders);document.querySelectorAll('[data-kitchen]').forEach(b=>b.onclick=async()=>{try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.kitchen,status:b.dataset.next});admin=await adminCall('snapshot');renderKitchen(box)}catch(e){b.disabled=false;alert(e.message)}})}
 
 function cashOrders(){return shiftOrders().filter(o=>o.status!=='cancelado')}
 function renderCash(box){const orders=cashOrders(),sales=orders.reduce((s,o)=>s+Number(o.total||0),0),delivery=orders.reduce((s,o)=>s+Number(o.delivery_fee||0),0),discount=orders.reduce((s,o)=>s+Number(o.discount||0)+Number(o.delivery_discount||0),0),byPay={};orders.forEach(o=>byPay[o.payment||'Não informado']=(byPay[o.payment||'Não informado']||0)+Number(o.total||0));box.innerHTML=`<div class="financeGrid"><div class="financeCard"><span>Faturamento do caixa</span><b>${fmt(sales)}</b></div><div class="financeCard"><span>Pedidos válidos</span><b>${orders.length}</b></div><div class="financeCard"><span>Ticket médio</span><b>${fmt(orders.length?sales/orders.length:0)}</b></div><div class="financeCard"><span>Taxas de entrega</span><b>${fmt(delivery)}</b></div><div class="financeCard"><span>Descontos concedidos</span><b>${fmt(discount)}</b></div><div class="financeCard"><span>Cancelados</span><b>${shiftOrders().filter(o=>o.status==='cancelado').length}</b></div></div><div class="sectionTitle">Recebimentos</div><div class="reportBreak">${Object.entries(byPay).map(([k,v])=>`<div class="reportRow"><span>${esc(k)}</span><b>${fmt(v)}</b></div>`).join('')||'<div class="mini">Nenhum recebimento.</div>'}</div><div class="operationHint">O fechamento oficial e o arquivamento continuam no menu Loja. Os valores acima são calculados com os pedidos deste expediente.</div>`}
@@ -2048,8 +2087,8 @@ function printerPrefs(){try{return {...{paper:'58',auto:false},...JSON.parse(loc
 function savePrinterPrefs(next){const value={...printerPrefs(),...next};localStorage.setItem(PRINTER_PREF_KEY,JSON.stringify(value));return value}
 function printerPaperWidth(){return printerPrefs().paper==='80'?80:58}
 function printerTextWidth(){return printerPaperWidth()===80?48:32}
-function printerConnected(){return !!(btWriteChar&&btDevice?.gatt?.connected)}
-function printerStatusText(){return printerConnected()?`🟢 CONECTADA • ${btPrinterName||'Impressora Bluetooth'}`:'🔴 DESCONECTADA'}
+function printerConnected(){return btBridgeReady}
+function printerStatusText(){return printerConnected()?`🟢 CONECTADA • ${btPrinterName||'MTP-4C'}`:'🔴 DESCONECTADA • Bluetooth Classico'}
 function refreshPrinterStatus(){const el=$('#printerState');if(!el)return;el.textContent=printerStatusText();el.className='printerState '+(printerConnected()?'connected':'error')}
 
 const receiptPlainPaperBase=receiptPlain;
@@ -2065,24 +2104,21 @@ receiptPlain=function(o){
 const receiptBrowserPaperBase=receiptBrowserHtml;
 receiptBrowserHtml=function(o){const mm=printerPaperWidth(),body=mm===80?76:54;return receiptBrowserPaperBase(o).replace('@page{size:58mm auto;margin:2mm}',`@page{size:${mm}mm auto;margin:2mm}`).replace('width:54mm',`width:${body}mm`)};
 
-const connectBluetoothPrinterStatusBase=connectBluetoothPrinter;
-connectBluetoothPrinter=async function(){try{const name=await connectBluetoothPrinterStatusBase();refreshPrinterStatus();return name}catch(e){refreshPrinterStatus();throw e}};
-
 async function printOrderBluetoothAuto(id,sourceOrders=null,silent=false){
   const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return false;
-  if(!printerConnected()){refreshPrinterStatus();if(!silent)alert('Impressora Bluetooth desconectada. Toque em CONECTAR BLUETOOTH primeiro.');return false}
-  try{setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){btWriteChar=null;refreshPrinterStatus();if(!silent)alert(e.message||String(e));return false}
+  if(!printerConnected()){refreshPrinterStatus();if(!silent)alert('Impressora Bluetooth desconectada. Toque em VERIFICAR IMPRESSORA primeiro.');return false}
+  try{setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await classicPrintText(receiptPlain(o),`Pedido #${o.order_number}`);setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){btBridgeReady=false;refreshPrinterStatus();if(!silent)alert(e.message||String(e));return false}
 }
 printOrderBluetooth=async function(id,sourceOrders=null){return printOrderBluetoothAuto(id,sourceOrders,false)};
 
 const renderOrdersPrinterBase=renderOrders;
 renderOrders=function(box){
   const result=renderOrdersPrinterBase(box),bar=box.querySelector('.printerBar');
-  if(bar){const prefs=printerPrefs();bar.innerHTML=`<div class="printerBarTop"><div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div><button id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button></div><div class="printerConfigGrid"><label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label><label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Imprime pedido novo quando o Bluetooth já estiver conectado.</small></span></label><button id="printerTest" class="secondary">IMPRIMIR TESTE</button></div>`;
+  if(bar){const prefs=printerPrefs();bar.innerHTML=`<div class="printerBarTop"><div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div><button id="connectPrinter" class="printerConnect">VERIFICAR IMPRESSORA</button></div><div class="printerConfigGrid"><label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label><label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Imprime pedido novo pela MTP-4C quando a ponte Android estiver ativa.</small></span></label><button id="printerTest" class="secondary">IMPRIMIR TESTE</button></div>`;
     $('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){refreshPrinterStatus();alert(e.message||String(e))}};
     $('#printerPaper').onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')};
     $('#printerAuto').onchange=e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok')};
-    $('#printerTest').onclick=async()=>{if(!printerConnected())return alert('Conecte a impressora Bluetooth primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){alert(e.message||String(e));refreshPrinterStatus()}};
+    $('#printerTest').onclick=async()=>{if(!printerConnected())return alert('Verifique a MTP-4C primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth Classico conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){alert(e.message||String(e));refreshPrinterStatus()}};
     refreshPrinterStatus();
   }
   bindPrintButtons();return result;
@@ -2094,6 +2130,14 @@ checkNewOrders=async function(){return await checkNewOrdersAutoPrintBase();};
 
 const printerExtraStyle=document.createElement('style');printerExtraStyle.textContent=`.printerState.connected{color:#16833d!important;font-weight:900}.printerState.error{color:#c43131!important;font-weight:900}.printerConfigGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px;align-items:stretch}.printerConfigGrid>label,.printerConfigGrid>button{border:1px solid #dfe3e7;border-radius:12px;padding:10px;background:#fff}.printerConfigGrid label>span:first-child{display:block;font-size:11px;font-weight:900;margin-bottom:6px}.printerAutoToggle{display:flex!important;align-items:center;gap:9px}.printerAutoToggle input{width:20px;height:20px}.printerAutoToggle span{display:flex!important;flex-direction:column}.printerAutoToggle small{font-size:10px;color:#6f7782;margin-top:2px}@media(max-width:700px){.printerConfigGrid{grid-template-columns:1fr}}`;document.head.appendChild(printerExtraStyle);
 
+
+/* Mantem o estado da ponte atualizado sem abrir seletor Bluetooth. */
+async function refreshClassicBridgeSilently(){
+  try{await classicBridgeHealth();refreshPrinterStatus();if(btBridgeReady&&typeof flushPendingAutoPrint==='function')await flushPendingAutoPrint()}
+  catch{btBridgeReady=false;refreshPrinterStatus()}
+}
+setTimeout(refreshClassicBridgeSilently,1200);
+setInterval(refreshClassicBridgeSilently,10000);
 
 /* ===== PROTECAO CONTRA PEDIDO / IMPRESSAO DUPLICADOS ===== */
 let caseiraoOrderSubmitLocked=false;
@@ -2186,11 +2230,11 @@ function caseiraoPrinterPanelHtml(){
   return `<section id="caseiraoPrinterPanel" class="printerBar caseiraoPrinterPanel">
     <div class="printerBarTop">
       <div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div>
-      <button type="button" id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button>
+      <button type="button" id="connectPrinter" class="printerConnect">VERIFICAR IMPRESSORA</button>
     </div>
     <div class="printerConfigGrid">
       <label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label>
-      <label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Pedido novo imprime sozinho após conectar.</small></span></label>
+      <label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Pedido novo imprime sozinho pela MTP-4C.</small></span></label>
       <button type="button" id="printerTest" class="secondary">IMPRIMIR TESTE</button>
       <div class="printerPending" data-print-pending>Nenhum pedido aguardando impressão</div>
     </div>
@@ -2202,7 +2246,7 @@ function bindCaseiraoPrinterPanel(){
   if(connect&&!connect.dataset.bound){connect.dataset.bound='1';connect.onclick=async()=>{try{await connectBluetoothPrinter();refreshPrinterStatus();await flushPendingAutoPrint()}catch(e){refreshPrinterStatus();const msg=String(e?.message||e||'');if(/cancelled|canceled|chooser/i.test(msg))showAppToast('Seleção Bluetooth cancelada. Toque em CONECTAR quando quiser tentar novamente.','warn');else alert(msg)}}}
   if(paper&&!paper.dataset.bound){paper.dataset.bound='1';paper.onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')}}
   if(auto&&!auto.dataset.bound){auto.dataset.bound='1';auto.onchange=async e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok');if(e.target.checked)await flushPendingAutoPrint();refreshPendingPrintStatus()}}
-  if(test&&!test.dataset.bound){test.dataset.bound='1';test.onclick=async()=>{if(!printerConnected())return alert('Conecte a impressora pelo botão CONECTAR BLUETOOTH primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){refreshPrinterStatus();alert(e.message||String(e))}}}
+  if(test&&!test.dataset.bound){test.dataset.bound='1';test.onclick=async()=>{if(!printerConnected())return alert('Verifique a MTP-4C primeiro.');const width=printerTextWidth(),text=stripAccents(`O CASEIRAO BURGER\nTESTE DE IMPRESSAO\nPAPEL: ${printerPaperWidth()} mm\n${'-'.repeat(width)}\nBluetooth Classico conectado OK\n\n\n`);try{await btWrite(new TextEncoder().encode(text));setPrinterState('🟢 CONECTADA • Teste enviado','connected')}catch(e){refreshPrinterStatus();alert(e.message||String(e))}}}
   refreshPrinterStatus();refreshPendingPrintStatus();
 }
 function ensureCaseiraoPrinterPanel(){
@@ -2223,9 +2267,9 @@ function ensureCaseiraoPrinterPanel(){
    O painel Bluetooth e montado somente pelo renderOrders final. */
 
 /* Nunca abre o seletor de dispositivo por uma impressao. O seletor Bluetooth
-   aparece somente quando o operador toca em CONECTAR BLUETOOTH. */
+   aparece somente quando o operador toca em VERIFICAR IMPRESSORA. */
 btWrite=async function(bytes){
-  if(!btWriteChar||!btDevice?.gatt?.connected)throw new Error('Impressora Bluetooth desconectada. Toque em CONECTAR BLUETOOTH primeiro.');
+  if(!btWriteChar||!btDevice?.gatt?.connected)throw new Error('Impressora Bluetooth desconectada. Toque em VERIFICAR IMPRESSORA primeiro.');
   const chunk=20;
   for(let i=0;i<bytes.length;i+=chunk){const part=bytes.slice(i,i+chunk);if(btWriteChar.properties.writeWithoutResponse&&btWriteChar.writeValueWithoutResponse)await btWriteChar.writeValueWithoutResponse(part);else if(btWriteChar.properties.write&&btWriteChar.writeValueWithResponse)await btWriteChar.writeValueWithResponse(part);else await btWriteChar.writeValue(part);await new Promise(r=>setTimeout(r,10))}
 };
