@@ -102,10 +102,10 @@ function joinReceiptBytes(...parts){const size=parts.reduce((sum,p)=>sum+p.lengt
 async function receiptLogoRasterBytes(){
   if(receiptLogoRasterCache)return receiptLogoRasterCache;
   const image=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Não foi possível preparar o logo para impressão.'));el.src=RECEIPT_LOGO_DATA_URL});
-  const width=(typeof printerPaperWidth==='function'&&printerPaperWidth()===80)?180:150,height=Math.round(image.height*(width/image.width)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const width=300,height=Math.round(image.height*(width/image.width)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);ctx.drawImage(image,0,0,width,height);
   const pixels=ctx.getImageData(0,0,width,height).data,rowBytes=Math.ceil(width/8),raster=new Uint8Array(rowBytes*height);
-  for(let y=0;y<height;y++)for(let px=0;px<width;px++){const i=(y*width+px)*4,lum=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];if(pixels[i+3]>40&&lum<110)raster[y*rowBytes+(px>>3)]|=0x80>>(px&7)}
+  for(let y=0;y<height;y++)for(let px=0;px<width;px++){const i=(y*width+px)*4,lum=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];if(pixels[i+3]>40&&lum<150)raster[y*rowBytes+(px>>3)]|=0x80>>(px&7)}
   const command=new Uint8Array([0x1b,0x61,0x01,0x1d,0x76,0x30,0x00,rowBytes&255,(rowBytes>>8)&255,height&255,(height>>8)&255]);
   receiptLogoRasterCache=joinReceiptBytes(command,raster,new Uint8Array([0x0a,0x1b,0x61,0x00]));
   return receiptLogoRasterCache;
@@ -113,7 +113,27 @@ async function receiptLogoRasterBytes(){
 function findAdminOrder(id){return (admin?.orders||[]).find(o=>String(o.id)===String(id))}
 function stripAccents(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/[^\x09\x0A\x0D\x20-\x7E]/g,'')}
 function wrapReceipt(text,width=32){const words=stripAccents(text).trim().split(/\s+/).filter(Boolean);if(!words.length)return [''];const out=[];let line='';for(const w of words){if(w.length>width){if(line){out.push(line);line=''};for(let i=0;i<w.length;i+=width)out.push(w.slice(i,i+width));continue}if(!line)line=w;else if((line+' '+w).length<=width)line+=' '+w;else{out.push(line);line=w}}if(line)out.push(line);return out}
-function receiptPlain(o){const L=[];const hr='--------------------------------';L.push('O CASEIRAO BURGER',`PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);if(o.type==='delivery'){L.push(hr,'ENDERECO:');L.push(...wrapReceipt(orderAddress(o)))}L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');(o.order_items||[]).forEach(it=>{L.push(...wrapReceipt(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));(it.order_item_addons||[]).forEach(a=>L.push(...wrapReceipt(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`)));if(it.note)L.push(...wrapReceipt(`  OBS: ${it.note}`))});if(o.notes){L.push(hr,'OBSERVACOES:');L.push(...wrapReceipt(o.notes))}L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,`CODIGO: ${o.tracking_code||''}`,'','');return stripAccents(L.join('\n'))}
+function receiptPlain(o){
+ const L=[],hr='--------------------------------';
+ L.push('       O CASEIRAO BURGER',`         PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr);
+ L.push(`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
+ if(o.type==='delivery'){L.push('ENDERECO:');L.push(...wrapReceipt(orderAddress(o)))}
+ L.push(`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);
+ L.push(hr);
+ (o.order_items||[]).forEach((it,i)=>{
+   L.push(...wrapReceipt(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));
+   (it.order_item_addons||[]).forEach(a=>L.push(...wrapReceipt(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`)));
+   if(it.note)L.push(...wrapReceipt(`  OBS: ${it.note}`));
+   if(i<(o.order_items||[]).length-1)L.push('');
+ });
+ if(o.notes){L.push(hr,'OBSERVACOES:');L.push(...wrapReceipt(o.notes))}
+ L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);
+ if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);
+ if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);
+ if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);
+ L.push(`TOTAL: ${fmt(o.total)}`,hr,'PECA NOVAMENTE PELO NOSSO SISTEMA:','caseiraopedidos.api.br');
+ return stripAccents(L.join('\n'))
+}
 function receiptBrowserHtml(o){const items=(o.order_items||[]).map(it=>`<div class="item"><b>${Number(it.quantity||1)}x ${esc(it.product_name||'Item')}</b><b>${fmt(it.line_total||0)}</b></div>${(it.order_item_addons||[]).map(a=>`<div class="sub">+ ${esc(a.addon_name)} ${Number(a.price||0)>0?fmt(a.price):''}</div>`).join('')}${it.note?`<div class="obs">Obs.: ${esc(it.note)}</div>`:''}`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Pedido #${o.order_number}</title><style>@page{size:58mm auto;margin:2mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;width:54mm;margin:0 auto;color:#000;font-size:10.5px;line-height:1.3}.center{text-align:center}.title{font-size:16px;font-weight:900}.receiptLogo{display:block;width:34mm;max-height:34mm;object-fit:contain;margin:0 auto 2mm}.hr{border-top:1px dashed #000;margin:5px 0}.line{display:flex;justify-content:space-between;gap:6px}.item{display:flex;justify-content:space-between;gap:5px;margin:4px 0}.sub,.obs{padding-left:7px;font-size:9px}.big{font-size:14px;font-weight:900}.block{margin:4px 0;word-break:break-word}</style></head><body><div class="center">${RECEIPT_LOGO_SVG}<div class="title">O CASEIRÃO BURGER</div><b>PEDIDO #${o.order_number}</b><div>${new Date(o.created_at).toLocaleString('pt-BR')}</div></div><div class="hr"></div><div class="block"><b>Cliente:</b> ${esc(o.customer_name||'')}<br><b>Telefone:</b> ${esc(o.customer_phone||'')}<br><b>Tipo:</b> ${esc(orderTypeLabel(o.type))}</div>${o.type==='delivery'?`<div class="block"><b>Endereço:</b><br>${esc(orderAddress(o))}</div>`:''}<div class="block"><b>Pagamento:</b> ${esc(paymentLabel(o.payment))}${o.change_for?`<br><b>Troco para:</b> ${esc(o.change_for)}`:''}</div><div class="hr"></div>${items||'<div>Sem itens.</div>'}${o.notes?`<div class="hr"></div><div class="block"><b>Observações:</b><br>${esc(o.notes)}</div>`:''}<div class="hr"></div><div class="line"><span>Subtotal</span><b>${fmt(o.subtotal)}</b></div>${Number(o.delivery_fee||0)?`<div class="line"><span>Entrega</span><b>${fmt(o.delivery_fee)}</b></div>`:''}${Number(o.discount||0)?`<div class="line"><span>Desconto</span><b>-${fmt(o.discount)}</b></div>`:''}<div class="line big"><span>TOTAL</span><b>${fmt(o.total)}</b></div><div class="hr"></div><div class="center">Código: ${esc(o.tracking_code||'')}<br><br>O Caseirão Burger</div><script>setTimeout(()=>window.print(),250)<\/script><style id="packaging-role-style">.readyToast{background:#208a4d!important}.packQueue{display:grid;gap:13px;margin-top:14px}.packOrder{border:2px solid #343b46;background:linear-gradient(145deg,#171c22,#101317);border-radius:18px;padding:15px}.packOrderTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:11px;border-bottom:1px solid var(--line)}.packOrderTop strong{font-size:21px;color:#fff}.packOrderTop span{padding:6px 9px;border-radius:999px;background:#282e36;color:#dce2e9;font-size:11px;font-weight:950}.packItems{padding:8px 0}.packItem{padding:9px 2px;border-bottom:1px solid #252b33}.packItem b{display:block;font-size:16px}.packItem small{display:block;margin-top:4px;color:#bdc5cf;font-size:13px}.packItem .packNote,.packGeneralNote{color:#ffd77a}.packGeneralNote{margin:5px 0 12px;padding:10px;border-radius:11px;background:#33290f;font-size:13px;font-weight:850}.packReadyBtn{width:100%;min-height:62px;border:0;border-radius:14px;background:#218b4e;color:#fff;font-size:17px;font-weight:950;box-shadow:0 8px 22px rgba(33,139,78,.24)}.packReadyBtn:disabled{opacity:.65}.packEmpty{display:flex;flex-direction:column;gap:7px;padding:38px 18px;border:1px dashed #3b444f;border-radius:17px;text-align:center;color:#aeb7c2}.packEmpty b{font-size:19px;color:#89e6aa}</style>
 </body></html>`}
 const receiptBrowserHtmlOriginal=receiptBrowserHtml;receiptBrowserHtml=function(order){return receiptBrowserHtmlOriginal(order).replace(RECEIPT_LOGO_SVG,'').replace('.receiptLogo{display:block;width:34mm;max-height:34mm;object-fit:contain;margin:0 auto 2mm}','').replace('setTimeout(()=>window.print(),250)','setTimeout(()=>window.print(),100)')};
@@ -128,7 +148,20 @@ const BT_PROFILES=[
 function setPrinterState(msg,kind=''){const el=$('#printerState');if(el){el.textContent=msg;el.className='printerState '+kind}}
 async function connectBluetoothPrinter(){if(!navigator.bluetooth)throw new Error('Este navegador não oferece Web Bluetooth. Abra o sistema no Google Chrome do Android.');setPrinterState('Abrindo lista de dispositivos Bluetooth...');const optionalServices=BT_PROFILES.map(p=>p.service);const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices});if(!device.gatt)throw new Error('O dispositivo escolhido não oferece conexão BLE/GATT.');const server=await device.gatt.connect();let found=null;for(const p of BT_PROFILES){try{const service=await server.getPrimaryService(p.service);for(const cid of p.chars){try{const c=await service.getCharacteristic(cid);if(c.properties.write||c.properties.writeWithoutResponse){found=c;break}}catch{}}if(!found){const chars=await service.getCharacteristics();found=chars.find(c=>c.properties.write||c.properties.writeWithoutResponse)||null}if(found)break}catch{}}if(!found){try{const services=await server.getPrimaryServices();for(const service of services){try{const chars=await service.getCharacteristics();found=chars.find(c=>c.properties.write||c.properties.writeWithoutResponse)||null;if(found)break}catch{}}}catch{}}if(!found){server.disconnect();throw new Error('Conectou ao Bluetooth, mas não encontrei um canal BLE de impressão compatível. Essa impressora pode usar Bluetooth Clássico/SPP.');}btDevice=device;btWriteChar=found;btPrinterName=device.name||'Impressora Bluetooth';device.addEventListener('gattserverdisconnected',()=>{btWriteChar=null;setPrinterState('Impressora desconectada. Toque em Conectar novamente.','error')});setPrinterState(`Conectada: ${btPrinterName}`,'connected');return btPrinterName}
 async function btWrite(bytes){if(!btWriteChar||!btDevice?.gatt?.connected)await connectBluetoothPrinter();const chunk=20;for(let i=0;i<bytes.length;i+=chunk){const part=bytes.slice(i,i+chunk);if(btWriteChar.properties.writeWithoutResponse&&btWriteChar.writeValueWithoutResponse)await btWriteChar.writeValueWithoutResponse(part);else if(btWriteChar.properties.write&&btWriteChar.writeValueWithResponse)await btWriteChar.writeValueWithResponse(part);else await btWriteChar.writeValue(part);await new Promise(r=>setTimeout(r,10))}}
-async function escposBytes(o){const text=new TextEncoder().encode(receiptPlain(o)),head=new Uint8Array([0x1b,0x40]),tail=new Uint8Array([0x0a,0x0a,0x0a,0x0a]);return joinReceiptBytes(head,text,tail)}
+function escposQrBytes(value){
+ const data=new TextEncoder().encode(value),storeLen=data.length+3,pL=storeLen&255,pH=(storeLen>>8)&255;
+ return joinReceiptBytes(
+   new Uint8Array([0x1d,0x28,0x6b,0x04,0x00,0x31,0x41,0x32,0x00]),
+   new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x43,0x04]),
+   new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x45,0x31]),
+   new Uint8Array([0x1d,0x28,0x6b,pL,pH,0x31,0x50,0x30]),data,
+   new Uint8Array([0x1b,0x61,0x01,0x0a,0x1d,0x28,0x6b,0x03,0x00,0x31,0x51,0x30,0x0a,0x1b,0x61,0x00])
+ )
+}
+async function escposBytes(o){
+ const body=new TextEncoder().encode(receiptPlain(o)),head=new Uint8Array([0x1b,0x40]),qr=escposQrBytes('https://caseiraopedidos.api.br'),tail=new Uint8Array([0x0a,0x0a,0x0a]);
+ return joinReceiptBytes(head,body,new Uint8Array([0x0a]),qr,tail)
+}
 async function printOrderBluetooth(id,sourceOrders=null){const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');try{setPrinterState('Enviando os dados do pedido para a impressora...');await btWrite(await escposBytes(o));setPrinterState(`Pedido #${o.order_number} enviado para ${btPrinterName||'impressora'}.`,'connected')}catch(e){setPrinterState(e.message||String(e),'error');alert((e.message||String(e))+'\n\nVocê ainda pode usar o botão “Imprimir pedido”, que abre a impressão normal do Chrome.') }}
 function bindPrintButtons(sourceOrders=null){document.querySelectorAll('[data-webprint]').forEach(b=>b.onclick=()=>printOrderBrowser(b.dataset.webprint,sourceOrders));document.querySelectorAll('[data-btprint]').forEach(b=>b.onclick=()=>printOrderBluetooth(b.dataset.btprint,sourceOrders))}
 function renderOrders(box){const visible=admin.orders.filter(o=>!o.archived_at);const active=visible.filter(o=>!['entregue','cancelado'].includes(o.status));const finished=visible.filter(o=>['entregue','cancelado'].includes(o.status)&&localDay(o.created_at)===todayKey()).slice(0,20);box.innerHTML=`<div class="notice" style="margin:10px 0">🔔 Alerta de pedido novo ativo. Agora cada pedido mostra todos os dados do cliente, entrega, pagamento, itens, adicionais, observações e totais.</div><div class="printerBar"><div class="printerBarTop"><div class="grow"><b>🖨️ Impressora térmica</b><div id="printerState" class="printerState">${navigator.bluetooth?'Bluetooth direto disponível no Chrome para impressoras BLE compatíveis.':'Use “Imprimir pedido”. Web Bluetooth não está disponível neste navegador.'}</div></div><button id="connectPrinter" class="printerConnect">Conectar Bluetooth</button></div></div><div class="twoBtns" style="margin:10px 0"><button id="refreshOrders" class="secondary">Atualizar</button><button id="testSound" class="secondary">Testar toque</button></div><button id="manualOrder" class="secondary" style="margin-bottom:10px">Pedido manual</button><div class="sectionTitle">Pedidos em andamento</div>${active.length?active.map(o=>orderAdminCard(o,false)).join(''):'<div class="empty">Nenhum pedido em andamento.</div>'}${finished.length?`<div class="sectionTitle">Finalizados hoje</div>${finished.map(o=>orderAdminCard(o,true)).join('')}`:''}`;$('#refreshOrders').onclick=refreshAdmin;$('#testSound').onclick=()=>{unlockOrderSound();playOrderSound()};$('#manualOrder').onclick=openManualOrder;$('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};if(btWriteChar&&btDevice?.gatt?.connected)setPrinterState(`Conectada: ${btPrinterName}`,'connected');bindPrintButtons();document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const next=b.dataset.st;if(next==='cancelado'&&!confirm('Cancelar este pedido?'))return;if(next==='entregue'&&!confirm(completionConfirmText(b.dataset.oid)))return;try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.oid,status:next});admin=await adminCall('snapshot');renderAdmin()}catch(e){b.disabled=false;alert(e.message)}})}
@@ -2210,53 +2243,6 @@ renderOrders=function(box){
     bindCaseiraoPrinterPanel();
   }
   return result;
-};
-
-
-/* ===== CUPOM RAPIDO CASEIRAO • 80 MM / 58 MM • SOMENTE TEXTO ===== */
-function receiptMoneyPlain(v){return `R$ ${Number(v||0).toFixed(2).replace('.',',')}`}
-function receiptRightLine(label,value,width=printerTextWidth()){
-  label=stripAccents(label);value=stripAccents(value);const gap=Math.max(1,width-label.length-value.length);return label+' '.repeat(gap)+value;
-}
-function receiptCenter(text,width=printerTextWidth()){
-  text=stripAccents(text);if(text.length>=width)return text;const left=Math.floor((width-text.length)/2);return ' '.repeat(left)+text;
-}
-receiptPlain=function(o){
-  const width=printerTextWidth(),hr='-'.repeat(width),dbl='='.repeat(width),L=[],wr=t=>wrapReceipt(t,width);
-  const when=new Date(o.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  L.push(receiptCenter('O CASEIRAO BURGER',width),receiptCenter('HAMBURGUER ARTESANAL',width),'',dbl,receiptCenter(`PEDIDO #${o.order_number}`,width),receiptCenter(orderTypeLabel(o.type).toUpperCase(),width),receiptCenter(when,width),dbl);
-  L.push(`CLIENTE: ${o.customer_name||'Nao informado'}`);if(o.customer_phone)L.push(`FONE: ${o.customer_phone}`);
-  if(o.type==='delivery'){L.push(hr,'ENDERECO:',...wr(orderAddress(o)))}
-  L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment).toUpperCase()}`);
-  if(o.change_for){L.push(`TROCO PARA: ${o.change_for}`);const cf=Number(String(o.change_for).replace(/[^0-9,.-]/g,'').replace('.','').replace(',','.'));if(Number.isFinite(cf)&&cf>=Number(o.total||0))L.push(`TROCO: ${receiptMoneyPlain(cf-Number(o.total||0))}`)}
-  L.push(hr,'ITENS DO PEDIDO',hr);
-  (o.order_items||[]).forEach(it=>{const qty=Number(it.quantity||1),name=`${qty}x ${it.product_name||'Item'}`,price=receiptMoneyPlain(it.line_total||Number(it.unit_price||0)*qty);L.push(...wr(name));L.push(receiptRightLine('',price,width));(it.order_item_addons||[]).forEach(a=>L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?'  '+receiptMoneyPlain(a.price):''}`)));if(it.note)L.push(...wr(`  OBS: ${it.note}`));L.push('')});
-  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));
-  L.push(hr,receiptRightLine('Subtotal',receiptMoneyPlain(o.subtotal),width));
-  if(Number(o.delivery_fee||0))L.push(receiptRightLine('Taxa de entrega',receiptMoneyPlain(o.delivery_fee),width));
-  if(Number(o.delivery_discount||0))L.push(receiptRightLine('Desc. entrega','- '+receiptMoneyPlain(o.delivery_discount),width));
-  if(Number(o.discount||0))L.push(receiptRightLine(o.coupon_code?`Desconto ${o.coupon_code}`:'Desconto','- '+receiptMoneyPlain(o.discount),width));
-  L.push(dbl,receiptRightLine('TOTAL',receiptMoneyPlain(o.total),width),dbl,'',receiptCenter('PECA NOVAMENTE PELO NOSSO SISTEMA',width),receiptCenter('caseiraopedidos.api.br',width),'',receiptCenter('OBRIGADO PELA PREFERENCIA!',width),receiptCenter('O CASEIRAO BURGER',width),receiptCenter('Av. Monsenhor Matheus, 340 - Flores',width),'','','');
-  return stripAccents(L.join('\n'));
-};
-function escposQrBytes(value){
-  const enc=new TextEncoder().encode(value),storeLen=enc.length+3,pL=storeLen&255,pH=(storeLen>>8)&255;
-  return joinReceiptBytes(
-    new Uint8Array([0x1b,0x61,0x01]),
-    new Uint8Array([0x1d,0x28,0x6b,0x04,0x00,0x31,0x41,0x32,0x00]),
-    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x43,0x04]),
-    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x45,0x31]),
-    new Uint8Array([0x1d,0x28,0x6b,pL,pH,0x31,0x50,0x30]),enc,
-    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x51,0x30,0x0a,0x1b,0x61,0x00])
-  );
-}
-escposBytes=async function(o){
-  // Modo rapido: somente texto ESC/POS. Sem logo raster e sem QR Code,
-  // reduzindo bastante o volume de dados enviado por Bluetooth.
-  const init=new Uint8Array([0x1b,0x40,0x1b,0x61,0x00]);
-  const text=new TextEncoder().encode(receiptPlain(o));
-  const tail=new Uint8Array([0x0a,0x0a,0x0a,0x1d,0x56,0x41,0x03]);
-  return joinReceiptBytes(init,text,tail);
 };
 
 
