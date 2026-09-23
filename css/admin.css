@@ -1,9 +1,3 @@
-/* =========================================================
-   O CASEIRAO BURGER — ADMIN.CSS OFICIAL CONSOLIDADO
-   Base visual + módulos operacionais + responsividade.
-   Consolidado em 22/09/2026.
-   ========================================================= */
-
 /* ===== caseirao-adm-rebuild-v31 ===== */
 /* Reconstrução integral da navegação do aplicativo interno. */
 body.teamApp{background:#0d0f12}
@@ -20,284 +14,162 @@ body.teamApp{background:#0d0f12}
 @media(max-width:900px){.teamLauncherCard{max-width:680px!important}.teamAccessGrid{grid-template-columns:1fr}.teamAccessGrid #teamAdminBtn{grid-column:auto}.overlay:has(.admWorkspace){align-items:stretch!important;padding:0!important}.admWorkspace{display:block!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}.admWorkspace>.adminHead{position:relative!important;top:0!important;min-height:calc(68px + env(safe-area-inset-top));margin:0!important;padding:calc(12px + env(safe-area-inset-top)) 13px 12px!important}.admWorkspace>.adminHead h2{font-size:19px!important;line-height:1.15!important}.admWorkspace>.compactMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .metric{min-height:66px;padding:10px 12px!important}.admWorkspace>.compactMetrics .metric b{font-size:17px!important}.admWorkspace>.admbar{min-height:auto!important;overflow:visible!important;touch-action:pan-y}.admPrimaryNav{position:sticky;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px}.admPrimaryNav button{min-height:48px!important;font-size:10px!important}.admWorkspaceBody{display:block;min-height:0}.admManagement{position:relative;top:auto;height:auto;display:none;padding:9px;border-right:0;border-bottom:1px solid #dadee2}.admManagement.open{display:block}.admManagementTitle{display:none}.admManagementNav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.admManagementNav button{text-align:center!important;background:#fff!important;border-color:#dfe3e7!important}.admManagementToggle{display:flex;align-items:center;justify-content:center;width:calc(100% - 16px);min-height:42px;margin:8px;border:1px solid #d9dde2;border-radius:11px;background:#fff;color:#505861;font-size:11px;font-weight:950}.admWorkspaceMain{padding:11px 10px calc(88px + env(safe-area-inset-bottom))}.admWorkspaceMain .commandGrid{grid-template-columns:1fr!important}}
 @media(max-width:540px){.teamLauncher{padding:13px!important}.teamLauncherCard{padding:19px 14px!important;border-radius:24px!important}.teamLauncherIntro{grid-template-columns:58px minmax(0,1fr);gap:12px;padding-bottom:17px}.teamLauncherIntro .teamLogo{width:58px!important;height:58px!important;border-radius:18px!important;font-size:21px!important}.teamLauncherIntro h1{font-size:23px!important}.teamLauncherLive{grid-column:1/-1;width:max-content}.teamAccessGrid{margin-top:14px;gap:9px}.teamAccessGrid .teamChoice,.teamAccessGrid #teamAdminBtn{min-height:91px!important;padding:14px!important}.teamAccessGrid #teamAdminBtn:after{display:none}.admWorkspace>.compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .storeMetric{grid-column:auto!important}.admPrimaryNav{grid-template-columns:repeat(4,minmax(0,1fr))}.admPrimaryNav button{padding:7px 4px!important;font-size:9px!important}.admManagementNav{grid-template-columns:repeat(2,minmax(0,1fr))}.admWorkspaceMain{padding-left:8px;padding-right:8px}.admWorkspaceMain .compactMetrics,.admWorkspaceMain .admgrid{grid-template-columns:1fr 1fr!important}}
 
-
-/* ===== DESIGN SYSTEM OFICIAL ===== */
-/* ===== CASEIRAO ADM — DESIGN SYSTEM CONSOLIDADO =====
-   Camada visual principal. Mantém as classes e fluxos existentes.
-   Objetivo: desktop profissional, leitura rápida e operação sem poluição. */
-.admWorkspace{
-  --adm-bg:#f3f5f7;
-  --adm-surface:#ffffff;
-  --adm-surface-2:#f8f9fa;
-  --adm-border:#dfe3e7;
-  --adm-text:#20242a;
-  --adm-muted:#69717b;
-  --adm-orange:#e66020;
-  --adm-orange-dark:#c44710;
-  --adm-green:#208a50;
-  --adm-red:#c83b43;
-  --adm-blue:#17689d;
-  --adm-purple:#6254b5;
-  color:var(--adm-text)!important;
+/* ===== caseirao-admin-polish-v3 ===== */
+/* Central ADM 10/10 — acabamento visual, responsivo e sem alterar a operação. */
+.sheet.full:has(.adminHead){
+  --adm-orange:#e55b18;
+  --adm-orange-dark:#bf3f0d;
+  --adm-ink:#171a1e;
+  --adm-soft:#f5f6f8;
+  --adm-border:#e1e4e8;
+  width:min(100%,1040px);
+  padding:22px clamp(18px,3vw,32px) calc(28px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 100% 0,rgba(229,91,24,.08),transparent 260px),
+    #f6f7f9;
 }
-.admWorkspaceMain{background:var(--adm-bg)!important;color:var(--adm-text)!important}
-.admWorkspaceMain #admContent{color:var(--adm-text)!important}
-.admWorkspaceMain .sectionTitle{
-  margin:20px 0 10px!important;
-  color:#252a30!important;
-  font-size:14px!important;
-  font-weight:950!important;
-  letter-spacing:-.01em;
+.sheet.full:has(.adminHead)>.adminHead{
+  top:-22px;
+  margin:0 calc(clamp(18px,3vw,32px) * -1) 18px;
+  padding:18px clamp(18px,3vw,32px) 15px!important;
+  min-height:78px;
+  border-bottom:1px solid var(--adm-border);
+  background:rgba(255,255,255,.94)!important;
+  backdrop-filter:blur(18px);
 }
-.admWorkspaceMain .proToolbar{
-  grid-template-columns:minmax(0,1fr) auto!important;
-  align-items:center;
-  gap:9px!important;
-}
-.admWorkspaceMain .proToolbar .in,
-.admWorkspaceMain .search,
-.admWorkspaceMain .in,
-.admWorkspaceMain .sel,
-.admWorkspaceMain .ta{
-  min-height:46px;
-  border:1px solid var(--adm-border)!important;
-  border-radius:12px!important;
-  background:#fff!important;
-  color:var(--adm-text)!important;
-  -webkit-text-fill-color:var(--adm-text)!important;
-  box-shadow:0 1px 2px rgba(24,30,37,.03);
-}
-.admWorkspaceMain .proToolbar .primary{
-  width:auto!important;
-  min-width:150px;
-  min-height:46px;
-  padding:11px 16px!important;
-}
-.admWorkspaceMain .proFilters{
-  gap:7px!important;
-  padding:2px 0 10px!important;
-  scrollbar-width:none;
-}
-.admWorkspaceMain .proFilters::-webkit-scrollbar{display:none}
-.admWorkspaceMain .proFilters button{
-  min-height:38px!important;
-  padding:8px 13px!important;
-  border:1px solid var(--adm-border)!important;
-  border-radius:999px!important;
-  background:#fff!important;
-  color:#5b636d!important;
-  box-shadow:none!important;
-}
-.admWorkspaceMain .proFilters button.on{
-  border-color:var(--adm-orange)!important;
-  background:var(--adm-orange)!important;
-  color:#fff!important;
-}
-.admWorkspaceMain .operationHint{
-  margin:0 0 12px!important;
-  padding:10px 12px!important;
-  border:1px solid #efd7c8!important;
-  border-left:4px solid var(--adm-orange)!important;
+.sheet.full:has(.adminHead) .adminHead h2{font-size:clamp(25px,4vw,32px);line-height:1;letter-spacing:-.045em;color:var(--adm-ink)}
+.sheet.full:has(.adminHead) .adminSub{margin-top:7px;font-size:13px;font-weight:650;color:#747b84}
+.sheet.full:has(.adminHead) .adminLogout{
+  min-width:64px!important;
+  padding:9px 14px!important;
   border-radius:11px!important;
-  background:#fff8f3!important;
-  color:#744326!important;
-}
-
-/* Pedidos */
-.admWorkspaceMain .orderDetailed{
-  margin:9px 0!important;
-  overflow:hidden;
-  border:1px solid var(--adm-border)!important;
-  border-radius:15px!important;
   background:#fff!important;
-  color:var(--adm-text)!important;
-  box-shadow:0 3px 12px rgba(25,31,38,.045)!important;
+  color:#a63d12!important;
+  border:1px solid #edc8b6!important;
+  box-shadow:0 2px 8px rgba(35,39,44,.05)!important;
 }
-.admWorkspaceMain .orderDetailed[open]{
-  border-color:#e9b99f!important;
-  box-shadow:0 8px 24px rgba(25,31,38,.08)!important;
+.sheet.full:has(.adminHead) .compactMetrics{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 10px;
 }
-.admWorkspaceMain .orderSummary{
-  min-height:70px!important;
-  padding:13px 14px!important;
+.sheet.full:has(.adminHead) .compactMetrics .metric{
+  min-height:112px;
+  padding:17px 17px 15px;
+  border:1px solid var(--adm-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 5px 18px rgba(28,34,41,.045);
+}
+.sheet.full:has(.adminHead) .compactMetrics .metric:before{width:4px;background:linear-gradient(180deg,#f0752c,var(--adm-orange-dark))}
+.sheet.full:has(.adminHead) .compactMetrics .metric b{font-size:clamp(23px,3vw,31px);line-height:1.05;letter-spacing:-.045em;color:var(--adm-ink)}
+.sheet.full:has(.adminHead) .compactMetrics .metric span{margin-top:9px;font-size:12px;font-weight:700;color:#767d86}
+.sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:auto}
+.sheet.full:has(.adminHead) .compactMetrics .storeMetric b{font-size:clamp(19px,2.5vw,27px)}
+.sheet.full:has(.adminHead) .paymentMetrics{gap:10px;margin:0 0 16px}
+.sheet.full:has(.adminHead) .paymentMetric{
+  position:relative;
+  min-height:82px;
+  padding:14px 15px 13px 48px;
+  border:1px solid var(--adm-border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(28,34,41,.035);
+}
+.sheet.full:has(.adminHead) .paymentMetric:before{
+  content:'';
+  position:absolute;left:14px;top:15px;
+  width:24px;height:24px;border-radius:8px;
+  display:grid;place-items:center;
+  background:#f1f3f5;color:#4d555e;
+  font-size:13px;font-weight:950;
+}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(1):before{content:'▰';background:#fff0e7;color:#c94b12}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(2):before{content:'◆';background:#eaf6f2;color:#16795a}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(3):before{content:'$';background:#eaf5ec;color:#267a3c}
+.sheet.full:has(.adminHead) .paymentMetric span{font-size:11px;font-weight:800;color:#707780}
+.sheet.full:has(.adminHead) .paymentMetric b{margin-top:7px;font-size:19px;letter-spacing:-.025em}
+.sheet.full:has(.adminHead)>.admbar{
+  position:sticky;top:72px;z-index:8;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  overflow:visible;
+  gap:7px!important;
+  margin:0 -2px 16px!important;
+  padding:7px 2px 10px!important;
+  border:0;
+  background:rgba(246,247,249,.96)!important;
+  backdrop-filter:blur(16px);
+}
+.sheet.full:has(.adminHead)>.admbar button{
+  min-width:0;min-height:46px;
+  padding:8px 6px!important;
+  border:1px solid #dfe2e6!important;
+  border-radius:13px!important;
   background:#fff!important;
+  color:#555c65!important;
+  font-size:11px!important;
 }
-.admWorkspaceMain .summaryCustomer b,
-.admWorkspaceMain .orderNumber{
-  color:#20242a!important;
-  -webkit-text-fill-color:#20242a!important;
-}
-.admWorkspaceMain .summaryCustomer span,
-.admWorkspaceMain .orderTime,
-.admWorkspaceMain .mini{
-  color:var(--adm-muted)!important;
-  -webkit-text-fill-color:var(--adm-muted)!important;
-}
-.admWorkspaceMain .orderBody{
-  padding:14px!important;
-  border-top:1px solid #e8ebee!important;
-  background:#fafbfc!important;
-}
-.admWorkspaceMain .orderInfoGrid{gap:8px!important}
-.admWorkspaceMain .orderInfo{
-  border:1px solid #e0e4e8!important;
-  background:#fff!important;
-  color:var(--adm-text)!important;
-}
-.admWorkspaceMain .orderInfo span{color:#68717b!important}
-.admWorkspaceMain .orderInfo b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
-.admWorkspaceMain .orderInfo small{color:#4f5963!important;-webkit-text-fill-color:#4f5963!important}
-.admWorkspaceMain .addressBoxAdmin,
-.admWorkspaceMain .notesBoxAdmin{
-  border-color:#dce2e7!important;
-  background:#fff!important;
-  color:#34404a!important;
-}
-.admWorkspaceMain .addressBoxAdmin b,
-.admWorkspaceMain .notesBoxAdmin b{color:#20242a!important}
-.admWorkspaceMain .orderItemsBox{
-  border-color:#dfe3e7!important;
-  background:#fff!important;
-}
-.admWorkspaceMain .orderItemRow{
-  border-color:#e8ebee!important;
-  background:#fff!important;
-  color:#20242a!important;
-}
-.admWorkspaceMain .orderItemHead b,
-.admWorkspaceMain .orderItemPrice{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
-.admWorkspaceMain .orderAddonLine{color:#5f6872!important}
-.admWorkspaceMain .orderTotalsBox{border-color:#d9dde2!important}
-.admWorkspaceMain .orderTotalLine{color:#525b65!important}
-.admWorkspaceMain .orderTotalLine.grand{color:#171a1e!important}
-
-/* Botões operacionais */
-.admWorkspaceMain .orderactions{gap:6px!important}
-.admWorkspaceMain .orderactions button,
-.admWorkspaceMain .printActions button,
-.admWorkspaceMain .editbtn{
-  min-height:40px;
-  border-radius:10px!important;
-}
-.admWorkspaceMain .printActions{gap:7px!important}
-.admWorkspaceMain .mainPrint{
-  border-color:#20242a!important;
-  background:#20242a!important;
+.sheet.full:has(.adminHead)>.admbar button.on{
+  border-color:#292d32!important;
+  background:#292d32!important;
   color:#fff!important;
+  box-shadow:0 7px 16px rgba(31,35,40,.15)!important;
 }
-.admWorkspaceMain .whatsappAction{
-  border-color:#168c4c!important;
-  background:#168c4c!important;
+.sheet.full:has(.adminHead) #admContent>.alertControl.alertEnabled{margin:2px 0 12px}
+.sheet.full:has(.adminHead) .alertEnabled .enableAlertsBtn{padding:7px 10px;border-radius:10px;font-size:11px;letter-spacing:.015em}
+.sheet.full:has(.adminHead) .operationHint,.sheet.full:has(.adminHead) .notice{border-radius:14px;line-height:1.45}
+.sheet.full:has(.adminHead) #admContent>.operationHint{margin:8px 0 14px;padding:12px 14px;font-size:12px}
+.sheet.full:has(.adminHead) .search,.sheet.full:has(.adminHead) .in,.sheet.full:has(.adminHead) .sel{min-height:50px;border-radius:14px}
+.sheet.full:has(.adminHead) .primary{min-height:50px;border-radius:14px;letter-spacing:-.01em}
+.sheet.full:has(.adminHead) .loyaltyCard{background:#fff;border-color:#dfe3e7;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}
+.sheet.full:has(.adminHead) .loyaltyCardTop .grow>b{color:#171a1e!important;font-size:17px;font-weight:950;line-height:1.25}
+.sheet.full:has(.adminHead) .loyaltyCard .mini{color:#666f79!important;font-size:13px;line-height:1.45}
+.sheet.full:has(.adminHead) .loyaltyCard .loyaltyTrack{background:#e2e6e9}
+.sheet.full:has(.adminHead) .proFilters{gap:7px;padding:3px 0 8px;scrollbar-width:none}
+.sheet.full:has(.adminHead) .proFilters::-webkit-scrollbar{display:none}
+.sheet.full:has(.adminHead) .proFilters button{min-height:42px;padding:9px 14px;border-radius:12px;background:#fff;color:#626a73;border-color:#dfe3e7}
+.sheet.full:has(.adminHead) .proFilters button.on{background:var(--adm-orange);border-color:var(--adm-orange);color:#fff}
+.sheet.full:has(.adminHead) .empty.cleanEmpty{min-height:150px;justify-content:center;border:1px dashed #ccd1d7;border-radius:18px;background:rgba(255,255,255,.62)}
+.sheet.full:has(.adminHead) .orderDetailed,.sheet.full:has(.adminHead) .kitchenCard,.sheet.full:has(.adminHead) .tableitem{border-radius:17px;box-shadow:0 5px 18px rgba(28,34,41,.045)}
+@media(max-width:760px){
+  .sheet.full:has(.adminHead){padding:18px 14px calc(24px + env(safe-area-inset-bottom))}
+  .sheet.full:has(.adminHead)>.adminHead{top:-18px;margin:0 -14px 14px;padding:16px 18px 14px!important;min-height:72px}
+  .sheet.full:has(.adminHead) .adminHead h2{font-size:27px}
+  .sheet.full:has(.adminHead) .compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .sheet.full:has(.adminHead) .compactMetrics .metric{min-height:96px;padding:15px}
+  .sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:1/-1;min-height:88px}
+  .sheet.full:has(.adminHead)>.admbar{top:68px;display:flex;overflow-x:auto;gap:7px!important;margin:0 -14px 14px!important;padding:8px 14px 11px!important;scroll-padding:14px;scroll-snap-type:x proximity}
+  .sheet.full:has(.adminHead)>.admbar::-webkit-scrollbar{display:none}
+  .sheet.full:has(.adminHead)>.admbar button{flex:0 0 auto;min-width:88px;padding:8px 13px!important;scroll-snap-align:start;font-size:11px!important}
 }
-
-/* Indicadores e cartões */
-.admWorkspace .metric,
-.admWorkspaceMain .financeCard,
-.admWorkspaceMain .reportCard,
-.admWorkspaceMain .commandPanel{
-  border:1px solid var(--adm-border)!important;
-  background:#fff!important;
-  color:var(--adm-text)!important;
-  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
-}
-.admWorkspaceMain .financeCard b,
-.admWorkspaceMain .reportCard b{color:#20242a!important}
-.admWorkspaceMain .financeCard span,
-.admWorkspaceMain .reportCard span{color:var(--adm-muted)!important}
-
-/* Mesas, produção e listas */
-.admWorkspaceMain .tableitem,
-.admWorkspaceMain .kitchenCard,
-.admWorkspaceMain .reportBreak,
-.admWorkspaceMain .loyaltyCard,
-.admWorkspaceMain .cashbackConfig,
-.admWorkspaceMain .cashbackCustomers{
-  border:1px solid var(--adm-border)!important;
-  background:#fff!important;
-  color:var(--adm-text)!important;
-  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
-}
-.admWorkspaceMain .tableitem b,
-.admWorkspaceMain .kitchenCard b,
-.admWorkspaceMain .loyaltyCard b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
-
-/* Estados vazios */
-.admWorkspaceMain .cleanEmpty,
-.admWorkspaceMain .empty{
-  min-height:120px;
-  border:1px dashed #cbd1d7!important;
-  border-radius:15px!important;
-  background:rgba(255,255,255,.7)!important;
-  color:#707983!important;
+@media(max-width:430px){
+  .sheet.full:has(.adminHead) .adminHead h2{font-size:25px}
+  .sheet.full:has(.adminHead) .adminSub{font-size:12px}
+  .sheet.full:has(.adminHead) .adminLogout{min-width:58px!important;padding:8px 12px!important}
+  .sheet.full:has(.adminHead) .paymentMetrics{gap:7px}
+  .sheet.full:has(.adminHead) .paymentMetric{min-height:78px;padding:42px 8px 11px}
+  .sheet.full:has(.adminHead) .paymentMetric:before{left:10px;top:10px;width:24px;height:24px}
+  .sheet.full:has(.adminHead) .paymentMetric span{font-size:10px;white-space:normal}
+  .sheet.full:has(.adminHead) .paymentMetric b{font-size:clamp(12px,3.35vw,15px);margin-top:5px;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.045em}
 }
 
-/* Desktop: área de trabalho mais arejada */
-@media(min-width:901px){
-  .admWorkspace>.adminHead{padding-left:24px!important;padding-right:24px!important}
-  .admWorkspaceMain{padding:20px 24px 40px!important}
-  .admWorkspaceMain>#admContent{max-width:1180px!important}
-  .admWorkspaceMain .orderInfoGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+/* Contraste reforçado nas informações de Cliente e Pagamento dos pedidos. */
+.sheet.full:has(.adminHead) .orderInfo{
+  background:#ffffff;
+  border-color:#d7dce1;
+}
+.sheet.full:has(.adminHead) .orderInfo span{
+  color:#5f6872;
+}
+.sheet.full:has(.adminHead) .orderInfo b{
+  color:#171a1f;
+}
+.sheet.full:has(.adminHead) .orderInfo small{
+  color:#48515b;
+  font-weight:650;
 }
 
-
-/* ===== CENTRAL DE ENTREGAS — LAYOUT OPERACIONAL OFICIAL ===== */
-.admWorkspaceMain .deliveryProHero{margin:0 0 8px!important;padding:13px 14px!important;border-radius:17px!important;box-shadow:0 7px 18px rgba(20,24,28,.12)!important}
-.admWorkspaceMain .deliveryProHeroHead{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
-.admWorkspaceMain .deliveryProHero h2{font-size:18px!important;line-height:1.05!important}
-.admWorkspaceMain .deliveryProHero p{margin:3px 0 0!important;font-size:9px!important}
-.admWorkspaceMain .deliveryLiveTag{padding:5px 7px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.08);font-size:8px;font-weight:950;letter-spacing:.05em;color:#d9f6e4}
-.admWorkspaceMain .deliveryHeroMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin-top:9px!important}
-.admWorkspaceMain .deliveryHeroMetric{padding:7px 8px!important;border-radius:10px!important}
-.admWorkspaceMain .deliveryHeroMetric small{font-size:7px!important}
-.admWorkspaceMain .deliveryHeroMetric b{margin-top:2px!important;font-size:13px!important}
-.admWorkspaceMain .cashControlTotals{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin:0 0 8px!important}
-.admWorkspaceMain .cashControlTotal{min-width:0!important;padding:8px!important;border-radius:10px!important}
-.admWorkspaceMain .cashControlTotal small{font-size:7px!important;line-height:1.1!important}
-.admWorkspaceMain .cashControlTotal b{font-size:13px!important;white-space:nowrap}
-.admWorkspaceMain .deliveryClosingFold,.admWorkspaceMain .deliveryManageFold{margin:0 0 9px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;overflow:hidden}
-.admWorkspaceMain .deliveryClosingFold>summary,.admWorkspaceMain .deliveryManageFold>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;color:#343a40}
-.admWorkspaceMain .deliveryClosingFold>summary::-webkit-details-marker,.admWorkspaceMain .deliveryManageFold>summary::-webkit-details-marker{display:none}
-.admWorkspaceMain .deliveryClosingFold>summary b,.admWorkspaceMain .deliveryManageFold>summary b{display:block;font-size:11px}
-.admWorkspaceMain .deliveryClosingFold>summary small,.admWorkspaceMain .deliveryManageFold>summary small{display:block;margin-top:2px;color:#7a828b;font-size:8px}
-.admWorkspaceMain .deliveryClosingBody,.admWorkspaceMain .deliveryManageBody{padding:0 10px 10px;border-top:1px solid #eceff1}
-.admWorkspaceMain .closingActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:none!important;gap:5px!important;padding:8px 0!important}
-.admWorkspaceMain .closingActions button{min-height:34px!important;padding:5px!important;font-size:8px!important}
-.admWorkspaceMain .deliveryHubGrid{grid-template-columns:1fr!important;gap:8px!important}
-.admWorkspaceMain .deliveryPanel{padding:11px!important;border-radius:13px!important}
-.admWorkspaceMain .deliveryAvailablePanel>h3{margin:0 0 8px!important;font-size:13px!important}
-.admWorkspaceMain .deliveryOperationalCard{margin:7px 0!important;padding:10px!important;border-radius:13px!important}
-.admWorkspaceMain .deliveryCardTop{align-items:center!important}
-.admWorkspaceMain .deliveryOperationalCard h3{margin:0!important;font-size:13px!important;line-height:1.15!important}
-.admWorkspaceMain .deliveryOperationalCard .statusBadge{padding:5px 7px!important;font-size:8px!important;white-space:nowrap}
-.admWorkspaceMain .deliveryAddressLine{margin:7px 0;padding:7px 8px;border:1px solid #dce6ee;border-radius:9px;background:#f6faff;color:#35424c;font-size:10px;font-weight:800;line-height:1.25}
-.admWorkspaceMain .deliveryOperationalCard .deliveryMeta{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;margin:6px 0!important}
-.admWorkspaceMain .deliveryDriverLine{margin-top:2px;color:#6b737c;font-size:8px;font-weight:800}
-.admWorkspaceMain .deliveryOperationalCard .cashControlGrid{display:none!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryMeta>div{min-width:0;padding:6px!important;border-radius:8px!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryMeta small{font-size:6.5px!important;line-height:1!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryMeta b{margin-top:2px;display:block;font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.admWorkspaceMain .deliveryOrderDetails{margin:6px 0;border:1px solid #e2e6e9;border-radius:9px;background:#fff;overflow:hidden}
-.admWorkspaceMain .deliveryOrderDetails>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;cursor:pointer;padding:7px 8px;color:#4a5159;font-size:9px;font-weight:850}
-.admWorkspaceMain .deliveryOrderDetails>summary::-webkit-details-marker{display:none}
-.admWorkspaceMain .deliveryOrderDetails>summary span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.admWorkspaceMain .deliveryOrderDetails>summary b{flex:0 0 auto;color:#b94a16;font-size:7px}
-.admWorkspaceMain .deliveryOrderDetailsBody{padding:7px;border-top:1px solid #eceff1;background:#fafbfc}
-.admWorkspaceMain .deliveryOrderDetailsBody .orderItemRow{padding:7px!important}
-.admWorkspaceMain .deliveryOrderDetailsBody .orderItemHead b{font-size:10px!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryTimes{gap:4px!important;margin:6px 0!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryTimes span{padding:4px 5px!important;border-radius:7px!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryTimes small{font-size:6px!important}.admWorkspaceMain .deliveryOperationalCard .deliveryTimes b{font-size:8px!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryActions{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important;margin-top:6px!important}
-.admWorkspaceMain .deliveryOperationalCard .deliveryActions button{min-height:34px!important;padding:6px!important;font-size:8px!important}
-.admWorkspaceMain .driverClosingCard{padding:9px!important;border-radius:11px!important;margin:6px 0!important}
-.admWorkspaceMain .driverClosingHead h3{font-size:12px!important}.admWorkspaceMain .driverClosingHead>strong{font-size:13px!important}
-.admWorkspaceMain .neighborhoodPayRow{padding:6px 2px!important}.admWorkspaceMain .driverClosingSummary{padding:7px 8px!important;margin-top:6px!important}
-@media(max-width:420px){
-  .admWorkspaceMain .deliveryOperationalCard .deliveryMeta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .admWorkspaceMain .deliveryHeroMetric b,.admWorkspaceMain .cashControlTotal b{font-size:11px!important}
-}
-
-/* ===== MODULOS OPERACIONAIS PRESERVADOS ===== */
 /* ===== smart-order-workflow-style ===== */
 /* Fluxo operacional guiado: uma ação principal por vez. */
 .smartOrderFlow{margin-top:14px;padding:13px;border:1px solid #dfe3e7;border-radius:16px;background:#f8f9fa}
@@ -395,18 +267,8 @@ body.teamApp{background:#0d0f12}
 .opsConnection{position:fixed;z-index:1200;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #f0b9b9;border-radius:999px;background:#fff1f1;color:#9b292d;font-size:11px;font-weight:950;box-shadow:0 8px 25px rgba(0,0,0,.16)}
 .opsSync{display:inline-flex;align-items:center;gap:6px;margin-top:6px;color:#68717a;font-size:11px;font-weight:750}.opsSync:before{content:'';width:7px;height:7px;border-radius:50%;background:#27a45d;box-shadow:0 0 0 3px #dcf5e7}.opsSync.busy:before{background:#e7862f;box-shadow:0 0 0 3px #fff0df}
 .commandHero{padding:19px;border:1px solid #dfe3e7;border-radius:20px;background:linear-gradient(135deg,#24292f,#171a1e);color:#fff;box-shadow:0 12px 28px rgba(24,29,34,.16)}.commandHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.commandHero h2{margin:0;font-size:24px;letter-spacing:-.04em}.commandHero p{margin:5px 0 0;color:#b9c0c8;font-size:12px}.commandLive{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #40624d;border-radius:999px;background:#21392a;color:#91e5b2;font-size:10px;font-weight:950}.commandLive:before{content:'';width:7px;height:7px;border-radius:50%;background:#42d77c;animation:opsPulse 1.5s infinite}.commandKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}.commandKpi{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.055)}.commandKpi span{display:block;color:#b8bec6;font-size:10px;font-weight:800}.commandKpi b{display:block;margin-top:6px;font-size:21px;letter-spacing:-.035em}.commandGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:11px;margin-top:11px}.commandPanel{padding:16px;border:1px solid #dfe3e7;border-radius:18px;background:#fff;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}.commandPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.commandPanelHead b{font-size:15px}.commandPanelHead small{color:#747c85;font-size:10px;font-weight:850}.commandQueue{display:grid;gap:7px}.commandOrder{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border:1px solid #e4e7ea;border-radius:13px;background:#fafbfc}.commandOrder.critical{border-color:#efc1c3;background:#fff6f6}.commandOrder strong{font-size:13px}.commandOrder span{display:block;margin-top:2px;color:#6e7680;font-size:10px}.commandAge{min-width:52px;padding:6px 7px;border-radius:9px;background:#edf0f2;color:#525a63;text-align:center;font-size:10px;font-weight:950}.critical .commandAge{background:#c83b43;color:#fff}.commandEmpty{padding:22px 8px;text-align:center;color:#747c85;font-size:12px}.commandBars{display:grid;gap:11px}.commandBarTop{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:11px}.commandTrack{height:7px;overflow:hidden;border-radius:99px;background:#eceff1}.commandFill{height:100%;border-radius:99px;background:linear-gradient(90deg,#e66020,#f29a54)}.commandRank{display:grid;grid-template-columns:25px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:12px}.commandRank:last-child{border:0}.commandRank i{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff0e7;color:#bd480f;font-style:normal;font-size:10px;font-weight:950}.commandActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px}.commandActions button{min-height:47px;border:1px solid #dce1e5;border-radius:13px;background:#fff;color:#343a40;font-size:11px;font-weight:950}.commandActions button:first-child{border-color:#df6a32;background:#e35b1a;color:#fff}.slaStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:9px 0 12px}.slaCard{padding:10px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;color:#333a42}.slaCard span{display:block;color:#737b84;font-size:9px;font-weight:900;text-transform:uppercase}.slaCard b{display:block;margin-top:5px;font-size:16px}.slaCard.danger{border-color:#efc5c7;background:#fff7f7}.slaCard.danger b{color:#b73239}.opsTools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.opsTools button,.opsContactRow button,.opsContactRow a{min-height:43px;border:1px solid #dce1e5;border-radius:12px;background:#fff;color:#4a525b;font-size:11px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center}.opsContactRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.opsContactRow a{border-color:#bfe3cc;background:#f1fbf5;color:#197343}.opsSlaBadge{display:inline-flex;align-items:center;margin:5px 0 0;padding:4px 7px;border-radius:8px;background:#edf0f2;color:#59616a;font-size:9px;font-weight:950}.opsSlaBadge.warn{background:#fff0df;color:#a65313}.opsSlaBadge.late{background:#ffe5e6;color:#ad2d34}.opsSlaBadge.ok{background:#e4f6eb;color:#197244}
-/* Controles operacionais compactos da tela de pedidos */
-.admWorkspaceMain .slaStrip{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:7px 0 8px}
-.admWorkspaceMain .slaCard{min-width:0;padding:8px 7px;border-radius:11px}
-.admWorkspaceMain .slaCard span{font-size:8px;line-height:1.1}
-.admWorkspaceMain .slaCard b{margin-top:3px;font-size:14px;line-height:1}
-.admWorkspaceMain .opsTools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:7px 0}
-.admWorkspaceMain .opsTools button{min-width:0;min-height:38px;padding:7px 8px;border-radius:10px;font-size:9px;line-height:1.15}
-.admWorkspaceMain .alertControl{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0;padding:7px 9px;border:1px solid #dce1e5;border-radius:11px;background:#fff;color:#4a525b;font-size:9px;font-weight:900}
-.admWorkspaceMain .alertControl .enableAlertsBtn,.admWorkspaceMain .enableAlertsBtn{width:auto!important;min-width:0!important;min-height:36px!important;margin:0!important;padding:6px 10px!important;border-radius:9px!important;font-size:9px!important}
-.admWorkspaceMain .alertControl.alertEnabled{border-color:#bfe3cc;background:#f1fbf5;color:#197343}
 @keyframes opsPulse{50%{opacity:.35;transform:scale(.8)}}
-@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:repeat(3,minmax(0,1fr))}.slaStrip{grid-template-columns:repeat(4,minmax(0,1fr))}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
+@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:1fr}.slaStrip{grid-template-columns:1fr 1fr}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
 
 /* ===== loyalty-name-guarantee ===== */
 /* Regra final e isolada: nenhuma regra visual anterior pode ocultar o nome. */
@@ -487,6 +349,10 @@ body.teamApp{background:#0d0f12}
 /* ===== nightly-prize-admin-style ===== */
 .prizeAdmin{display:grid;gap:13px;margin-top:12px}.prizeHero{padding:16px;border:1px solid #6f4627;border-radius:17px;background:linear-gradient(145deg,#2a190f,#151515)}.prizeHero h3{margin:0 0 6px;color:#ffbd82}.prizeStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.prizeMetric{padding:12px;border:1px solid #333841;border-radius:13px;background:#14171b}.prizeMetric span{display:block;color:#9fa7b1;font-size:11px}.prizeMetric b{display:block;margin-top:4px;color:#fff;font-size:17px}.prizeWinner{padding:15px;border:1px solid #2d7b4a;border-radius:15px;background:#10291a}.prizeWinner h3{margin:0 0 8px;color:#92efb2}.prizeChecks{display:flex;flex-wrap:wrap;gap:8px}.prizeCheck{display:flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #343941;border-radius:11px;background:#171a1f;color:#e7ebef;font-weight:800}.prizeCheck input{width:18px;height:18px;accent-color:#e76620}.prizeActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}@media(max-width:520px){.prizeStatus,.prizeActions{grid-template-columns:1fr}.prizeHero{padding:14px}}
 
+/* ===== caseirao-admin-premium-v30 ===== */
+:root{--admin-ink:#17191d;--admin-orange:#e65f1f;--admin-gold:#efb75c;--admin-paper:#f5f6f7}
+.sheet.full:has(.adminHead){background:linear-gradient(160deg,#f7f8f9,#eef0f2)!important;color:var(--admin-ink)!important}.sheet.full:has(.adminHead) .adminHead h2{color:#16181c!important}.sheet.full:has(.adminHead) .adminSub{color:#69717b!important}
+.sheet.full:has(.adminHead)>.admbar{position:sticky;top:0;z-index:12;margin:0 -16px;padding:9px 16px 12px;background:rgba(247,248,249,.94)!important;border-color:#dde1e5!important;backdrop-filter:blur(18px)}.sheet.full:has(.adminHead)>.admbar button{color:#5f6670!important}.sheet.full:has(.adminHead)>.admbar button.on{background:linear-gradient(135deg,#24282e,#15171a)!important;border-color:#15171a!important;color:#fff!important;box-shadow:0 7px 18px rgba(20,23,27,.18)!important}
 .waStagePanel{margin-top:11px;padding:13px;border:1px solid #cfe1d6;border-radius:15px;background:#f4fbf6}.waStageHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}.waStageHead b{color:#175f36!important;font-size:13px}.waStageHead span{color:#668071!important;font-size:10px}.waStageGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.waStageButton{display:flex;align-items:center;justify-content:center;min-height:42px;padding:8px;border:1px solid #bcdcc8;border-radius:11px;background:#fff;color:#17663a;text-decoration:none;text-align:center;font-size:10px;font-weight:950}.waStageButton.current{background:#168c4c;color:#fff;border-color:#168c4c;box-shadow:0 5px 14px rgba(22,140,76,.2)}
 .cashbackAdminHero{padding:18px;border-radius:20px;background:linear-gradient(135deg,#25292f,#121417);color:#fff;box-shadow:0 12px 28px rgba(20,23,27,.18)}.cashbackAdminHero small{color:#efb05e;font-weight:950;letter-spacing:.1em}.cashbackAdminHero h2{margin:6px 0 4px;color:#fff!important;font-size:25px}.cashbackAdminHero p{margin:0;color:#bdc3ca}.cashbackKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.cashbackKpi{padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.06)}.cashbackKpi span{display:block;color:#bfc5cc;font-size:9px}.cashbackKpi b{display:block;margin-top:5px;color:#fff!important;font-size:18px}.cashbackConfig,.cashbackCustomers{margin-top:12px;padding:15px;border:1px solid #dde2e6;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(25,30,36,.05)}.cashbackConfigGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.cashbackCustomer{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #eceff1}.cashbackCustomer:last-child{border:0}.cashbackCustomer strong{display:block;color:#1d2024!important}.cashbackCustomer span{display:block;margin-top:3px;color:#69717a;font-size:11px}.cashbackCustomerBalance{min-width:82px;padding:8px 10px;border-radius:11px;background:#fff5e7;color:#ad4a16;text-align:center;font-weight:950}.cashbackAdjust{border:1px solid #dce1e5;border-radius:10px;background:#fff;color:#404750;padding:9px;font-size:10px;font-weight:900}.cashbackSearch{margin:11px 0}.cashbackStatusToggle{display:flex;align-items:center;gap:8px;padding:11px;border:1px solid #e1e4e7;border-radius:12px;background:#fafbfc;font-weight:900}
 @media(max-width:650px){.waStageGrid{grid-template-columns:1fr 1fr}.cashbackKpis{grid-template-columns:1fr 1fr}.cashbackConfigGrid{grid-template-columns:1fr 1fr}.cashbackCustomer{grid-template-columns:minmax(0,1fr) auto}.cashbackAdjust{grid-column:1/-1}.cashbackKpi:last-child{grid-column:1/-1}}
@@ -529,322 +395,125 @@ body.teamApp{background:#0d0f12}
 }
 
 
-/* ===== PEDIDO OPERACIONAL COMPACTO ===== */
-/* ===== CASEIRAO ADM — ETAPA 2 / PEDIDO COMPACTO =====
-   Ajuste visual baseado no uso real em celular.
-   Não altera lógica, status, impressão, WhatsApp ou entregas. */
-
-/* Cabeçalho/resumo do pedido */
-.admWorkspaceMain .orderDetailed .orderSummary{
-  min-height:62px!important;
-  padding:10px 12px!important;
-  gap:8px!important;
-}
-.admWorkspaceMain .orderDetailed .summaryMain{gap:8px!important}
-.admWorkspaceMain .orderDetailed .orderNumber{
-  font-size:17px!important;
-  line-height:1!important;
-}
-.admWorkspaceMain .orderDetailed .summaryCustomer b{
-  font-size:14px!important;
-  line-height:1.16!important;
-}
-.admWorkspaceMain .orderDetailed .summaryCustomer span{
-  font-size:11px!important;
-  line-height:1.25!important;
-}
-.admWorkspaceMain .orderDetailed .summaryRight{
-  gap:4px!important;
-  min-width:94px;
-}
-.admWorkspaceMain .orderDetailed .summaryRight .statusBadge{
-  padding:5px 8px!important;
-  font-size:10px!important;
-}
-.admWorkspaceMain .orderDetailed .waitBadge{
-  margin-top:3px!important;
-  padding:4px 7px!important;
-  font-size:10px!important;
-}
-
-/* Corpo mais denso, sem perder leitura */
-.admWorkspaceMain .orderDetailed .orderBody{
-  padding:10px!important;
-}
-.admWorkspaceMain .orderDetailed .orderInfoGrid{
-  gap:7px!important;
-  margin-top:8px!important;
-}
-.admWorkspaceMain .orderDetailed .orderInfo{
-  padding:9px 10px!important;
-  border-radius:11px!important;
-}
-.admWorkspaceMain .orderDetailed .orderInfo span{
-  margin-bottom:3px!important;
-  font-size:9px!important;
-}
-.admWorkspaceMain .orderDetailed .orderInfo b{
-  font-size:13px!important;
-  line-height:1.25!important;
-}
-.admWorkspaceMain .orderDetailed .orderInfo small{
-  font-size:11px!important;
-  line-height:1.3!important;
-}
-
-/* Ações rápidas */
-.admWorkspaceMain .orderDetailed .whatsappAction,
-.admWorkspaceMain .orderDetailed .deliveryAction{
-  min-height:44px!important;
-  margin-top:7px!important;
-  padding:9px 11px!important;
-  border-radius:11px!important;
-  font-size:11px!important;
-}
-.admWorkspaceMain .orderDetailed .addressBoxAdmin,
-.admWorkspaceMain .orderDetailed .notesBoxAdmin{
-  margin-top:7px!important;
-  padding:9px 10px!important;
-  border-radius:11px!important;
-  font-size:11px!important;
-  line-height:1.35!important;
-}
-.admWorkspaceMain .orderDetailed .addressBoxAdmin b,
-.admWorkspaceMain .orderDetailed .notesBoxAdmin b{
-  margin-bottom:2px!important;
-  font-size:11px!important;
-}
-
-/* Itens e totais */
-.admWorkspaceMain .orderDetailed .orderItemsBox{
-  margin-top:7px!important;
-  border-radius:11px!important;
-}
-.admWorkspaceMain .orderDetailed .orderItemRow{
-  padding:8px 9px!important;
-}
-.admWorkspaceMain .orderDetailed .orderItemHead b{
-  font-size:12px!important;
-}
-.admWorkspaceMain .orderDetailed .orderItemPrice{
-  font-size:12px!important;
-}
-.admWorkspaceMain .orderDetailed .orderAddonLine,
-.admWorkspaceMain .orderDetailed .orderItemNote{
-  margin-top:3px!important;
-  font-size:10px!important;
-}
-.admWorkspaceMain .orderDetailed .orderTotalsBox{
-  margin-top:7px!important;
-  padding-top:6px!important;
-}
-.admWorkspaceMain .orderDetailed .orderTotalLine{
-  padding:2px 0!important;
-  font-size:11px!important;
-}
-.admWorkspaceMain .orderDetailed .orderTotalLine.grand{
-  margin-top:2px!important;
-  font-size:16px!important;
-}
-
-/* Impressão */
-.admWorkspaceMain .orderDetailed .printActions{
-  gap:6px!important;
-  margin-top:8px!important;
-}
-.admWorkspaceMain .orderDetailed .printActions button{
-  min-height:42px!important;
-  padding:8px!important;
-  border-radius:10px!important;
-  font-size:10px!important;
-}
-
-/* Fluxo principal: continua destacado, mas ocupa menos altura */
-.admWorkspaceMain .orderDetailed .smartOrderFlow{
-  margin-top:9px!important;
-  padding:10px!important;
-  border-radius:13px!important;
-}
-.admWorkspaceMain .orderDetailed .smartFlowTop{
-  margin-bottom:7px!important;
-}
-.admWorkspaceMain .orderDetailed .smartFlowTop b{
-  font-size:10px!important;
-}
-.admWorkspaceMain .orderDetailed .smartFlowTop span{
-  font-size:9px!important;
-}
-.admWorkspaceMain .orderDetailed .smartFlowSteps{
-  gap:4px!important;
-  margin-bottom:8px!important;
-}
-.admWorkspaceMain .orderDetailed .smartFlowStep{
-  height:4px!important;
-}
-.admWorkspaceMain .orderDetailed .smartNextAction{
-  min-height:45px!important;
-  border-radius:11px!important;
-  font-size:12px!important;
-}
-.admWorkspaceMain .orderDetailed .statusAdvancedOptions{
-  margin-top:5px!important;
-}
-.admWorkspaceMain .orderDetailed .statusAdvancedOptions>summary{
-  padding:6px!important;
-  font-size:9px!important;
-}
-
-/* Mensagens de WhatsApp */
-.admWorkspaceMain .orderDetailed .waStagePanel{
-  margin-top:9px!important;
-  padding:10px!important;
-  border-radius:13px!important;
-}
-.admWorkspaceMain .orderDetailed .waStageHead{
-  margin-bottom:7px!important;
-}
-.admWorkspaceMain .orderDetailed .waStageHead b{
-  font-size:11px!important;
-}
-.admWorkspaceMain .orderDetailed .waStageHead span{
-  font-size:9px!important;
-}
-.admWorkspaceMain .orderDetailed .waStageGrid{
-  gap:5px!important;
-}
-.admWorkspaceMain .orderDetailed .waStageButton{
-  min-height:36px!important;
-  padding:6px!important;
-  border-radius:9px!important;
-  font-size:9px!important;
-}
-
-/* Controle operacional: contraste corrigido */
-.admWorkspaceMain .orderDetailed .opsOrder{
-  margin-top:9px!important;
-  padding-top:9px!important;
-  border-top:1px solid #d9dde2!important;
-}
-.admWorkspaceMain .orderDetailed .opsOrder .sectionTitle,
-.admWorkspaceMain .orderDetailed .manualSectionTitle,
-.admWorkspaceMain .orderDetailed h3,
-.admWorkspaceMain .orderDetailed h4{
-  color:#30363d!important;
-  -webkit-text-fill-color:#30363d!important;
-  opacity:1!important;
-}
-.admWorkspaceMain .orderDetailed .opsTools,
-.admWorkspaceMain .orderDetailed .opsContactRow{
-  gap:6px!important;
-  margin-top:7px!important;
-}
-.admWorkspaceMain .orderDetailed .opsTools button,
-.admWorkspaceMain .orderDetailed .opsContactRow button,
-.admWorkspaceMain .orderDetailed .opsContactRow a{
-  min-height:40px!important;
-  padding:8px!important;
-  border-radius:10px!important;
-  font-size:9px!important;
-}
-
-
-/* ===== TOPO OPERACIONAL COMPACTO — MOBILE ===== */
-@media(max-width:520px){
-  .admWorkspace>.adminHead{min-height:82px!important;padding:10px 14px 9px!important}
-  .admWorkspace>.adminHead h2{margin:0!important;font-size:18px!important;line-height:1.05!important}
-  .admWorkspace>.adminHead .adminSub{margin-top:3px!important;font-size:10px!important;line-height:1.15!important}
-  .admWorkspace>.adminHead .opsSync{margin-top:4px!important;font-size:9px!important}
-  .admWorkspace>.adminHead .x,.admWorkspace>.adminHead .adminLogout{min-height:38px!important;padding:7px 12px!important;border-radius:11px!important;font-size:11px!important}
-
-  .admWorkspace>.compactMetrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
-  .admWorkspace>.compactMetrics .metric{min-height:64px!important;padding:9px 10px!important;border-right:1px solid #e4e7ea!important}
-  .admWorkspace>.compactMetrics .metric b{font-size:15px!important;line-height:1.05!important}
-  .admWorkspace>.compactMetrics .metric span,.admWorkspace>.compactMetrics .metric small{margin-top:3px!important;font-size:8px!important;line-height:1.15!important}
-  .admWorkspace>.compactMetrics .storeMetric{grid-column:auto!important}
-
-  .admPrimaryNav{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;padding:7px 8px!important}
-  .admPrimaryNav button{min-height:44px!important;padding:6px 3px!important;border-radius:11px!important;font-size:8px!important;line-height:1.1!important}
-
-  .admManagementToggle{width:calc(100% - 16px)!important;min-height:36px!important;margin:6px 8px!important;padding:6px 10px!important;border-radius:10px!important;font-size:9px!important}
-  .admWorkspaceMain{padding-top:8px!important}
-
-  .admWorkspaceMain .slaStrip{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:6px 0 8px!important}
-  .admWorkspaceMain .slaCard{min-width:0!important;padding:7px 6px!important;border-radius:10px!important}
-  .admWorkspaceMain .slaCard span{font-size:7px!important;line-height:1.1!important}
-  .admWorkspaceMain .slaCard b{margin-top:3px!important;font-size:13px!important;line-height:1!important}
-
-  .admWorkspaceMain .commandActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin:7px 0!important}
-  .admWorkspaceMain .commandActions button{min-width:0!important;min-height:38px!important;padding:6px 5px!important;border-radius:10px!important;font-size:7.5px!important;line-height:1.15!important;white-space:normal!important}
-}
-
-/* ===== RESPONSIVIDADE OFICIAL — MOBILE OPERACIONAL ===== */
+/* ===== CENTRAL OPERAÇÃO COMPACTA v1 — mobile first ===== */
+/* Mantém todas as funções; reduz a altura e prioriza a próxima ação. */
 @media(max-width:900px){
-  .admWorkspaceMain .proToolbar{grid-template-columns:1fr!important}
-  .admWorkspaceMain .proToolbar .primary{width:100%!important}
-  .admWorkspaceMain .orderSummary{padding:12px!important}
-  .admWorkspaceMain .orderBody{padding:11px!important}
-}
-@media(max-width:520px){
-  .admWorkspaceMain .orderDetailed{border-radius:13px!important}
-  .admWorkspace .admWorkspaceNav{gap:7px!important;padding:8px 10px!important}
-  .admWorkspace .admWorkspaceNav button,.admWorkspace .admWorkspaceNav .admNavButton{min-height:54px!important;padding:8px 6px!important;border-radius:13px!important;font-size:10px!important;line-height:1.15!important}
-  .admWorkspaceMain .operationHint{margin-bottom:8px!important;padding:8px 10px!important;border-radius:10px!important;font-size:10px!important;line-height:1.3!important}
-  .admWorkspaceMain .proToolbar{gap:7px!important;margin-bottom:8px!important}
-  .admWorkspaceMain .proToolbar .in{min-height:43px!important;padding:9px 12px!important;font-size:13px!important}
-  .admWorkspaceMain .proToolbar .primary{min-height:42px!important;padding:8px 12px!important;font-size:10px!important}
-  .admWorkspaceMain .proFilters{gap:5px!important;padding:0 0 7px!important}
-  .admWorkspaceMain .proFilters button{min-height:34px!important;padding:6px 10px!important;font-size:9px!important;white-space:nowrap!important}
-  .admWorkspaceMain .orderDetailed .orderSummary{padding:9px 10px!important}
-  .admWorkspaceMain .orderDetailed .orderBody{padding:9px!important}
-  .admWorkspaceMain .orderDetailed .summaryCustomer b{font-size:13px!important}
-  .admWorkspaceMain .orderDetailed .summaryRight{min-width:86px!important;max-width:34%!important}
-  .admWorkspaceMain .orderDetailed .orderInfoGrid{display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr)!important;gap:6px!important}
-  .admWorkspaceMain .orderDetailed .orderInfo{min-width:0!important;padding:8px!important}
-  .admWorkspaceMain .orderDetailed .orderInfo b{font-size:11px!important;line-height:1.2!important;overflow-wrap:anywhere!important}
-  .admWorkspaceMain .orderDetailed .orderInfo small{font-size:9px!important}
-  .admWorkspaceMain .orderDetailed .orderInfo span{font-size:8px!important}
-  .admWorkspaceMain .orderDetailed .whatsappAction,.admWorkspaceMain .orderDetailed .deliveryAction{min-height:40px!important;margin-top:6px!important;padding:7px 9px!important;font-size:9px!important}
-  .admWorkspaceMain .orderDetailed .addressBoxAdmin,.admWorkspaceMain .orderDetailed .notesBoxAdmin{margin-top:6px!important;padding:8px 9px!important;font-size:10px!important;line-height:1.3!important}
-  .admWorkspaceMain .orderDetailed .addressBoxAdmin b,.admWorkspaceMain .orderDetailed .notesBoxAdmin b{font-size:10px!important}
-  .admWorkspaceMain .orderDetailed .printActions button{min-height:39px!important;font-size:9px!important}
-  .admWorkspaceMain .orderDetailed .smartOrderFlow{margin-top:7px!important;padding:9px!important}
-  .admWorkspaceMain .orderDetailed .smartNextAction{min-height:42px!important;font-size:10px!important}
-  .admWorkspaceMain .orderDetailed .waStagePanel{margin-top:7px!important;padding:9px!important}
-  .admWorkspaceMain .orderDetailed .waStageGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .admWorkspaceMain .orderDetailed .waStageButton{min-height:34px!important;font-size:8px!important}
-  .admWorkspaceMain .orderDetailed .opsTools button,.admWorkspaceMain .orderDetailed .opsContactRow button,.admWorkspaceMain .orderDetailed .opsContactRow a{min-height:38px!important;font-size:8px!important}
-}
-@media(max-width:350px){.admWorkspaceMain .orderDetailed .orderInfoGrid{grid-template-columns:1fr!important}}
+  .admWorkspaceMain #admContent{padding-bottom:28px!important}
+  .admWorkspaceMain details.ordercard,
+  .admWorkspaceMain .ordercard{
+    border-radius:18px!important;
+    margin:0 0 12px!important;
+    overflow:hidden!important;
+    box-shadow:0 5px 18px rgba(25,31,38,.07)!important;
+  }
 
-/* ===== LOGIN ADM OFICIAL — COMPACTO E CENTRALIZADO ===== */
-.sheet.admLoginPremium:has(#adminPin){
-  width:min(92vw,430px)!important;height:auto!important;min-height:0!important;max-height:calc(100dvh - 28px)!important;
-  margin:auto!important;padding:0!important;overflow:auto!important;border:1px solid #dde1e5!important;border-radius:24px!important;
-  background:#f7f8f9!important;box-shadow:0 24px 70px rgba(16,20,25,.20)!important;
-}
-.sheet.admLoginPremium:has(#adminPin)>.modalNav{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;margin:0!important;padding:12px 14px 0!important}
-.sheet.admLoginPremium:has(#adminPin)>.modalNav button{min-height:42px!important;margin:0!important;padding:8px 10px!important;border:1px solid #d9dde2!important;border-radius:11px!important;background:#20242a!important;color:#fff!important;font-size:12px!important;font-weight:900!important}
-.sheet.admLoginPremium:has(#adminPin)>.loginbox{width:auto!important;margin:12px 14px 14px!important;padding:20px!important;border:1px solid #e0e3e6!important;border-radius:20px!important;background:#fff!important;box-shadow:0 8px 28px rgba(23,28,34,.08)!important}
-.sheet.admLoginPremium:has(#adminPin) .admLoginBrand{width:58px;height:58px;margin:0 auto 10px;border-radius:17px;font-size:20px}
-.sheet.admLoginPremium:has(#adminPin) .admLoginIntro{text-align:center;margin:0 0 18px}
-.sheet.admLoginPremium:has(#adminPin) .admLoginIntro b{display:block;color:#1c2025;font-size:20px;line-height:1.15;font-weight:950}
-.sheet.admLoginPremium:has(#adminPin) .admLoginIntro span{display:block;margin-top:4px;color:#69717a;font-size:12px}
-.sheet.admLoginPremium:has(#adminPin) .field{margin:0 0 12px!important}
-.sheet.admLoginPremium:has(#adminPin) .field label{margin-bottom:6px!important;color:#565e68!important;font-size:10px!important;font-weight:950!important;letter-spacing:.07em!important;text-transform:uppercase}
-.sheet.admLoginPremium:has(#adminPin) .adminIdentityField .in,.sheet.admLoginPremium:has(#adminPin) #adminPin{min-height:48px!important;border-radius:12px!important;font-size:14px!important}
-.sheet.admLoginPremium:has(#adminPin) #adminLogin{width:100%!important;min-height:50px!important;margin-top:2px!important;border-radius:12px!important;font-size:14px!important}
-.sheet.admLoginPremium:has(#adminPin) .loginCopyright{margin:18px 0 0!important;padding:13px 0 0!important;font-size:9px!important;line-height:1.4!important}
-@media(max-width:520px){
-  .overlay:has(.sheet.admLoginPremium #adminPin){display:grid!important;place-items:center!important;padding:12px!important;overflow:auto!important}
-  .sheet.admLoginPremium:has(#adminPin){width:min(100%,410px)!important;max-height:calc(100dvh - 24px)!important;border-radius:22px!important}
-  .sheet.admLoginPremium:has(#adminPin)>.loginbox{margin:10px 12px 12px!important;padding:18px 16px!important}
-  .sheet.admLoginPremium:has(#adminPin)>.modalNav{padding:10px 12px 0!important}
-}
+  /* Cabeçalho do pedido mais compacto */
+  .admWorkspaceMain .orderhead,
+  .admWorkspaceMain .orderHead{
+    padding:12px 13px!important;
+    gap:8px!important;
+  }
+  .admWorkspaceMain .orderhead h3,
+  .admWorkspaceMain .orderHead h3{font-size:18px!important;line-height:1.1!important}
+  .admWorkspaceMain .orderhead .big,
+  .admWorkspaceMain .orderHead .big{font-size:23px!important}
 
-/* ===== CASHBACK ADMIN — COMPACTO V2 ===== */
-.admWorkspaceMain .cashbackAdminHeroCompact{padding:13px 14px!important;border-radius:16px!important}.cashbackHeroCopy{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.admWorkspaceMain .cashbackAdminHeroCompact small{font-size:8px!important}.admWorkspaceMain .cashbackAdminHeroCompact h2{margin:0!important;font-size:19px!important}.admWorkspaceMain .cashbackAdminHeroCompact p{width:100%;margin-top:2px!important;font-size:9px!important}.admWorkspaceMain .cashbackKpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;margin-top:8px!important}.admWorkspaceMain .cashbackKpi{min-width:0;padding:7px 8px!important;border-radius:10px!important}.admWorkspaceMain .cashbackKpi span{font-size:7px!important}.admWorkspaceMain .cashbackKpi b{margin-top:2px!important;font-size:13px!important}
-.cashbackRulesFold{margin:8px 0;border:1px solid #dde2e6;border-radius:13px;background:#fff;overflow:hidden;box-shadow:0 3px 12px rgba(25,30,36,.04)}.cashbackRulesFold>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;cursor:pointer;list-style:none}.cashbackRulesFold>summary::-webkit-details-marker{display:none}.cashbackRulesFold>summary b{display:block;color:#262b30;font-size:11px}.cashbackRulesFold>summary span{display:block;margin-top:2px;color:#717981;font-size:8px}.cashbackRulesFold>summary strong{flex:0 0 auto;color:#c85318;font-size:8px}.cashbackRulesFold[open]>summary{border-bottom:1px solid #eceff1}.cashbackRulesFold .cashbackConfig{margin:0!important;padding:11px!important;border:0!important;border-radius:0!important;box-shadow:none!important}.cashbackRulesFold .cashbackConfigGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}.cashbackRulesFold .field{margin-bottom:5px!important}.cashbackRulesFold .field label{font-size:8px!important}.cashbackRulesFold .in{min-height:38px!important;padding:7px 9px!important}.cashbackRulesFold .cashbackStatusToggle{padding:8px!important;margin-bottom:7px;font-size:9px!important}.cashbackRulesFold .operationHint{margin:6px 0!important;padding:8px!important;font-size:8px!important}.cashbackRulesFold .primary{min-height:38px!important}
-.admWorkspaceMain .cashbackCustomersCompact{margin-top:8px!important;padding:11px!important;border-radius:15px!important}.cashbackCustomersHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.cashbackCustomersHead .sectionTitle{margin:0!important;font-size:12px!important}.cashbackCustomersHead span{display:block;margin-top:2px;color:#747c84;font-size:8px}.admWorkspaceMain .cashbackSearch{min-height:40px!important;margin:8px 0 6px!important;padding:8px 10px!important}.cashbackSortBar{display:flex;align-items:center;gap:5px;overflow-x:auto;margin:0 0 4px;scrollbar-width:none}.cashbackSortBar::-webkit-scrollbar{display:none}.cashbackSortBar>span{flex:0 0 auto;color:#7a828a;font-size:7px;font-weight:950}.cashbackSortBar button{flex:0 0 auto;min-height:28px!important;padding:4px 8px!important;border:1px solid #dce1e5!important;border-radius:999px!important;background:#fff!important;color:#59616a!important;font-size:7.5px!important;font-weight:900!important}.cashbackSortBar button.on{border-color:#e45b19!important;background:#fff2e9!important;color:#bd4912!important}
-.admWorkspaceMain .cashbackCustomer{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;align-items:center!important;padding:8px 0!important}.cashbackCustomerIdentity{min-width:0}.cashbackCustomerIdentity strong{display:block!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px!important}.cashbackCustomerIdentity span{display:block!important;margin-top:2px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px!important}.cashbackCustomerActions{display:grid;grid-template-columns:auto auto;gap:5px;align-items:center}.admWorkspaceMain .cashbackCustomerBalance{min-width:70px!important;padding:6px 7px!important;border-radius:9px!important;font-size:11px!important}.cashbackCustomerBalance small{display:block;margin-bottom:1px;color:#a96739;font-size:6px;font-weight:950}.admWorkspaceMain .cashbackAdjust{min-height:30px!important;padding:5px 7px!important;border-radius:8px!important;font-size:7px!important}
-@media(max-width:420px){.admWorkspaceMain .cashbackAdminHeroCompact{padding:11px!important}.cashbackRulesFold>summary{padding:9px 10px}.admWorkspaceMain .cashbackCustomersCompact{padding:9px!important}.cashbackCustomerActions{grid-template-columns:1fr}.admWorkspaceMain .cashbackCustomerBalance{min-width:74px!important}.admWorkspaceMain .cashbackAdjust{width:100%}}
+  /* Informações essenciais em duas colunas, sem cartões gigantes */
+  .admWorkspaceMain .orderInfoGrid{
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+    margin:8px 0!important;
+  }
+  .admWorkspaceMain .orderInfoGrid>*{
+    min-height:0!important;
+    padding:9px 10px!important;
+    border-radius:12px!important;
+  }
 
+  /* WhatsApp principal e itens */
+  .admWorkspaceMain .whatsappAction{min-height:44px!important;margin:7px 0!important}
+  .admWorkspaceMain .orderItems,
+  .admWorkspaceMain .orderItemsBox{margin-top:7px!important}
+  .admWorkspaceMain .orderItem{padding:9px 10px!important;min-height:0!important}
+
+  /* Totais sem desperdiçar altura */
+  .admWorkspaceMain .orderTotalsBox{padding:8px 0!important;margin-top:6px!important}
+  .admWorkspaceMain .orderTotalLine{min-height:26px!important}
+  .admWorkspaceMain .orderTotalLine.grand{font-size:19px!important}
+
+  /* Impressão/Bluetooth viram ações secundárias compactas */
+  .admWorkspaceMain .printActions{
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+    margin:8px 0!important;
+  }
+  .admWorkspaceMain .printActions button{min-height:42px!important;font-size:11px!important}
+
+  /* Próxima ação é a protagonista */
+  .admWorkspaceMain .nextAction,
+  .admWorkspaceMain .nextActionBox,
+  .admWorkspaceMain .orderNextAction{
+    margin-top:8px!important;
+    padding:10px!important;
+    border-radius:14px!important;
+  }
+
+  /* Controles manuais/status ficam menores */
+  .admWorkspaceMain .orderactions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+    margin-top:8px!important;
+  }
+  .admWorkspaceMain .orderactions button{
+    min-height:48px!important;
+    padding:8px 6px!important;
+    font-size:11px!important;
+  }
+
+  /* Mensagens do pedido: fechadas por padrão e abertas só quando necessário */
+  .admWorkspaceMain .waStagePanel{
+    margin-top:9px!important;
+    padding:0!important;
+    border:1px solid #d8ddd9!important;
+    border-radius:14px!important;
+    background:#f8fbf9!important;
+    overflow:hidden!important;
+  }
+  .admWorkspaceMain .waStagePanel>summary{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:11px 12px;
+    cursor:pointer;
+  }
+  .admWorkspaceMain .waStagePanel>summary::-webkit-details-marker{display:none}
+  .admWorkspaceMain .waStagePanel>summary span{display:flex;flex-direction:column;gap:2px}
+  .admWorkspaceMain .waStagePanel>summary b{font-size:12px;color:#175f36!important}
+  .admWorkspaceMain .waStagePanel>summary small{font-size:9px;color:#728079!important}
+  .admWorkspaceMain .waStagePanel>summary strong{
+    font-size:10px;color:#17663a;background:#e7f4eb;border-radius:999px;padding:6px 9px
+  }
+  .admWorkspaceMain .waStagePanel[open]>summary strong{font-size:0}
+  .admWorkspaceMain .waStagePanel[open]>summary strong:after{content:'Fechar';font-size:10px}
+  .admWorkspaceMain .waStageGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:6px!important;
+    padding:0 10px 10px!important;
+  }
+  .admWorkspaceMain .waStageButton{min-height:38px!important;font-size:9px!important}
+
+  /* Cancelamento/correção: visual secundário */
+  .admWorkspaceMain .cancelOrder,
+  .admWorkspaceMain .dangerAction{min-height:42px!important;font-size:11px!important}
+
+  /* Evita textos/valores quebrando linha desnecessariamente */
+  .admWorkspaceMain .orderItemPrice,
+  .admWorkspaceMain .orderTotalLine b,
+  .admWorkspaceMain .orderTotalLine strong{white-space:nowrap!important}
+}
+@media(max-width:390px){
+  .admWorkspaceMain .orderInfoGrid{grid-template-columns:1fr 1fr!important}
+  .admWorkspaceMain .orderactions{grid-template-columns:1fr 1fr!important}
+}
