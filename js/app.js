@@ -2213,4 +2213,51 @@ renderOrders=function(box){
 };
 
 
+/* ===== CUPOM PREMIUM CASEIRAO • 80 MM / 58 MM • LOGO + QR ===== */
+function receiptMoneyPlain(v){return `R$ ${Number(v||0).toFixed(2).replace('.',',')}`}
+function receiptRightLine(label,value,width=printerTextWidth()){
+  label=stripAccents(label);value=stripAccents(value);const gap=Math.max(1,width-label.length-value.length);return label+' '.repeat(gap)+value;
+}
+function receiptCenter(text,width=printerTextWidth()){
+  text=stripAccents(text);if(text.length>=width)return text;const left=Math.floor((width-text.length)/2);return ' '.repeat(left)+text;
+}
+receiptPlain=function(o){
+  const width=printerTextWidth(),hr='-'.repeat(width),dbl='='.repeat(width),L=[],wr=t=>wrapReceipt(t,width);
+  const when=new Date(o.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  L.push(receiptCenter('O CASEIRAO BURGER',width),receiptCenter('HAMBURGUER ARTESANAL',width),'',dbl,receiptCenter(`PEDIDO #${o.order_number}`,width),receiptCenter(orderTypeLabel(o.type).toUpperCase(),width),receiptCenter(when,width),dbl);
+  L.push(`CLIENTE: ${o.customer_name||'Nao informado'}`);if(o.customer_phone)L.push(`FONE: ${o.customer_phone}`);
+  if(o.type==='delivery'){L.push(hr,'ENDERECO:',...wr(orderAddress(o)))}
+  L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment).toUpperCase()}`);
+  if(o.change_for){L.push(`TROCO PARA: ${o.change_for}`);const cf=Number(String(o.change_for).replace(/[^0-9,.-]/g,'').replace('.','').replace(',','.'));if(Number.isFinite(cf)&&cf>=Number(o.total||0))L.push(`TROCO: ${receiptMoneyPlain(cf-Number(o.total||0))}`)}
+  L.push(hr,'ITENS DO PEDIDO',hr);
+  (o.order_items||[]).forEach(it=>{const qty=Number(it.quantity||1),name=`${qty}x ${it.product_name||'Item'}`,price=receiptMoneyPlain(it.line_total||Number(it.unit_price||0)*qty);L.push(...wr(name));L.push(receiptRightLine('',price,width));(it.order_item_addons||[]).forEach(a=>L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?'  '+receiptMoneyPlain(a.price):''}`)));if(it.note)L.push(...wr(`  OBS: ${it.note}`));L.push('')});
+  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));
+  L.push(hr,receiptRightLine('Subtotal',receiptMoneyPlain(o.subtotal),width));
+  if(Number(o.delivery_fee||0))L.push(receiptRightLine('Taxa de entrega',receiptMoneyPlain(o.delivery_fee),width));
+  if(Number(o.delivery_discount||0))L.push(receiptRightLine('Desc. entrega','- '+receiptMoneyPlain(o.delivery_discount),width));
+  if(Number(o.discount||0))L.push(receiptRightLine(o.coupon_code?`Desconto ${o.coupon_code}`:'Desconto','- '+receiptMoneyPlain(o.discount),width));
+  L.push(dbl,receiptRightLine('TOTAL',receiptMoneyPlain(o.total),width),dbl,'',receiptCenter('PECA NOVAMENTE PELO NOSSO SISTEMA',width),receiptCenter('caseiraopedidos.api.br',width),'',receiptCenter('OBRIGADO PELA PREFERENCIA!',width),receiptCenter('O CASEIRAO BURGER',width),receiptCenter('Av. Monsenhor Matheus, 340 - Flores',width),'','','');
+  return stripAccents(L.join('\n'));
+};
+function escposQrBytes(value){
+  const enc=new TextEncoder().encode(value),storeLen=enc.length+3,pL=storeLen&255,pH=(storeLen>>8)&255;
+  return joinReceiptBytes(
+    new Uint8Array([0x1b,0x61,0x01]),
+    new Uint8Array([0x1d,0x28,0x6b,0x04,0x00,0x31,0x41,0x32,0x00]),
+    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x43,0x06]),
+    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x45,0x31]),
+    new Uint8Array([0x1d,0x28,0x6b,pL,pH,0x31,0x50,0x30]),enc,
+    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x51,0x30,0x0a,0x1b,0x61,0x00])
+  );
+}
+escposBytes=async function(o){
+  const init=new Uint8Array([0x1b,0x40]);
+  let logo=new Uint8Array();try{logo=await receiptLogoRasterBytes()}catch{}
+  const text=new TextEncoder().encode(receiptPlain(o));
+  const qr=escposQrBytes('https://caseiraopedidos.api.br');
+  const tail=new Uint8Array([0x0a,0x0a,0x0a,0x1d,0x56,0x41,0x03]);
+  return joinReceiptBytes(init,logo,text,new Uint8Array([0x0a]),qr,tail);
+};
+
+
 })();
