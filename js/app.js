@@ -115,6 +115,21 @@ async function receiptLogoRasterBytes(){
  const head=new Uint8Array([0x1b,0x61,0x01,0x1d,0x76,0x30,0x00,rowBytes&255,(rowBytes>>8)&255,h&255,(h>>8)&255]);
  return joinReceiptBytes(head,data,new Uint8Array([0x0a,0x1b,0x61,0x00]))
 }
+function wrapReceipt(value,width=32){
+ const text=stripAccents(String(value??'')).replace(/\s+/g,' ').trim();
+ const limit=Math.max(8,Number(width)||32);
+ if(!text)return [''];
+ const out=[];
+ let rest=text;
+ while(rest.length>limit){
+   let cut=rest.lastIndexOf(' ',limit);
+   if(cut<1)cut=limit;
+   out.push(rest.slice(0,cut).trimEnd());
+   rest=rest.slice(cut).trimStart();
+ }
+ if(rest||!out.length)out.push(rest);
+ return out;
+}
 function receiptPlain(o){
  const L=[],hr='--------------------------------';
  L.push('       O CASEIRAO BURGER',`         PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr);
@@ -168,7 +183,7 @@ async function escposBytes(o){
 }
 async function printOrderBluetooth(id,sourceOrders=null){const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');try{setPrinterState('Enviando os dados do pedido para a impressora...');await btWrite(await escposBytes(o));setPrinterState(`Pedido #${o.order_number} enviado para ${btPrinterName||'impressora'}.`,'connected')}catch(e){setPrinterState(e.message||String(e),'error');alert((e.message||String(e))+'\n\nVocê ainda pode usar o botão “Imprimir pedido”, que abre a impressão normal do Chrome.') }}
 function bindPrintButtons(sourceOrders=null){document.querySelectorAll('[data-webprint]').forEach(b=>b.onclick=()=>printOrderBrowser(b.dataset.webprint,sourceOrders));document.querySelectorAll('[data-btprint]').forEach(b=>b.onclick=()=>printOrderBluetooth(b.dataset.btprint,sourceOrders))}
-function renderOrders(box){const visible=admin.orders.filter(o=>!o.archived_at);const active=visible.filter(o=>!['entregue','cancelado'].includes(o.status));const finished=visible.filter(o=>['entregue','cancelado'].includes(o.status)&&localDay(o.created_at)===todayKey()).slice(0,20);box.innerHTML=`<div class="notice" style="margin:10px 0">🔔 Alerta de pedido novo ativo. Agora cada pedido mostra todos os dados do cliente, entrega, pagamento, itens, adicionais, observações e totais.</div><div class="printerBar"><div class="printerBarTop"><div class="grow"><b>🖨️ Impressora térmica</b><div id="printerState" class="printerState">${navigator.bluetooth?'Bluetooth direto disponível no Chrome para impressoras BLE compatíveis.':'Use “Imprimir pedido”. Web Bluetooth não está disponível neste navegador.'}</div></div><button id="connectPrinter" class="printerConnect">Conectar Bluetooth</button></div></div><div class="twoBtns" style="margin:10px 0"><button id="refreshOrders" class="secondary">Atualizar</button><button id="testSound" class="secondary">Testar toque</button></div><button id="manualOrder" class="secondary" style="margin-bottom:10px">Pedido manual</button><div class="sectionTitle">Pedidos em andamento</div>${active.length?active.map(o=>orderAdminCard(o,false)).join(''):'<div class="empty">Nenhum pedido em andamento.</div>'}${finished.length?`<div class="sectionTitle">Finalizados hoje</div>${finished.map(o=>orderAdminCard(o,true)).join('')}`:''}`;$('#refreshOrders').onclick=refreshAdmin;$('#testSound').onclick=()=>{unlockOrderSound();playOrderSound()};$('#manualOrder').onclick=openManualOrder;$('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};if(btWriteChar&&btDevice?.gatt?.connected)setPrinterState(`Conectada: ${btPrinterName}`,'connected');bindPrintButtons();document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const next=b.dataset.st;if(next==='cancelado'&&!confirm('Cancelar este pedido?'))return;if(next==='entregue'&&!confirm(completionConfirmText(b.dataset.oid)))return;try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.oid,status:next});admin=await adminCall('snapshot');renderAdmin()}catch(e){b.disabled=false;alert(e.message)}})}
+function renderOrders(box){const visible=admin.orders.filter(o=>!o.archived_at);const active=visible.filter(o=>!['entregue','cancelado'].includes(o.status));const finished=visible.filter(o=>['entregue','cancelado'].includes(o.status)&&localDay(o.created_at)===todayKey()).slice(0,20);box.innerHTML=`<div class="notice" style="margin:10px 0">🔔 Alerta de pedido novo ativo. Agora cada pedido mostra todos os dados do cliente, entrega, pagamento, itens, adicionais, observações e totais.</div><div class="printerBar"><div class="printerBarTop"><div class="grow"><b>🖨️ Impressora térmica</b><div id="printerState" class="printerState">${navigator.bluetooth?'Bluetooth direto disponível no Chrome para impressoras BLE compatíveis.':'Use “Imprimir pedido”. Web Bluetooth não está disponível neste navegador.'}</div></div><button id="connectPrinter" class="printerConnect">Conectar Bluetooth</button></div></div><div class="twoBtns" style="margin:10px 0"><button id="refreshOrders" class="secondary">Atualizar</button><button id="testSound" class="secondary">Testar toque</button></div><button id="manualOrder" class="secondary" style="margin-bottom:10px">Pedido manual</button><div class="sectionTitle">Pedidos em andamento</div>${active.length?active.map(o=>orderAdminCard(o,false)).join(''):'<div class="empty">Nenhum pedido em andamento.</div>'}${finished.length?`<div class="sectionTitle">Finalizados hoje</div>${finished.map(o=>orderAdminCard(o,true)).join('')}`:''}`;$('#refreshOrders').onclick=refreshAdmin;$('#testSound').onclick=()=>{unlockOrderSound();playOrderSound()};$('#manualOrder').onclick=openManualOrder;$('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};if(btWriteChar&&btDevice?.gatt?.connected)setPrinterState(`Conectada: ${btPrinterName}`,'connected');bindPrintButtons();document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const next=b.dataset.st;if(next==='cancelado'&&!confirm('Cancelar este pedido?'))return;if(next==='entregue'&&!confirm(completionConfirmText(b.dataset.oid)))return;try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.oid,status:next});admin=await adminCall('snapshot');try{refreshPendingPrintStatus()}catch{}renderAdmin()}catch(e){b.disabled=false;alert(e.message)}})}
 function renderReportsAdmin(box){const defaultDay=todayKey();box.innerHTML=`<div class="field"><label>Dia do relatório</label><input id="reportDate" class="in" type="date" value="${defaultDay}"></div><div id="reportBody"></div>`;const draw=async()=>{const day=$('#reportDate').value||defaultDay;const body=$('#reportBody');body.innerHTML='<div class="notice" style="margin-top:10px">Carregando histórico completo do dia...</div>';try{const r=await archiveCall('report_day',{day});const all=r.orders||[];const valid=all.filter(o=>o.status!=='cancelado');const sales=valid.reduce((s,o)=>s+Number(o.total||0),0);const delivered=all.filter(o=>o.status==='entregue').length;const cancelled=all.filter(o=>o.status==='cancelado').length;const archived=all.filter(o=>o.archived_at).length;const avg=valid.length?sales/valid.length:0;const byPay={};const byType={};valid.forEach(o=>{byPay[o.payment||'Não informado']=(byPay[o.payment||'Não informado']||0)+Number(o.total||0);const t=orderTypeLabel(o.type);byType[t]=(byType[t]||0)+1});body.innerHTML=`<div class="reportGrid"><div class="reportCard"><b>${fmt(sales)}</b><span>Vendas do dia</span></div><div class="reportCard"><b>${valid.length}</b><span>Pedidos válidos</span></div><div class="reportCard"><b>${fmt(avg)}</b><span>Ticket médio</span></div><div class="reportCard"><b>${archived}</b><span>Arquivados</span></div></div><div class="reportBreak"><b>Resumo</b><div class="reportRow"><span>Pedidos finalizados</span><b>${delivered}</b></div><div class="reportRow"><span>Cancelados</span><b>${cancelled}</b></div>${Object.entries(byType).map(([k,v])=>`<div class="reportRow"><span>${esc(k)}</span><b>${v}</b></div>`).join('')}</div><div class="reportBreak"><b>Por pagamento</b>${Object.keys(byPay).length?Object.entries(byPay).map(([k,v])=>`<div class="reportRow"><span>${esc(k)}</span><b>${fmt(v)}</b></div>`).join(''):'<div class="mini" style="margin-top:8px">Sem vendas neste dia.</div>'}</div><div class="sectionTitle">Histórico detalhado de pedidos</div>${all.length?all.map(o=>orderAdminCard(o,true)).join(''):'<div class="empty">Nenhum pedido neste dia.</div>'}`;bindPrintButtons(all)}catch(e){body.innerHTML=`<div class="err">${esc(e.message||'Falha ao carregar o histórico.')}</div>`}};$('#reportDate').onchange=draw;draw()}
 function renderProductsAdmin(box){box.innerHTML=`<button id="newProduct" class="primary" style="margin:10px 0">+ Novo produto</button>${admin.products.map(p=>`<div class="tableitem"><div class="grow"><b>${esc(p.name)}</b><div class="mini">${esc(p.category)} • ${fmt(p.price)} ${p.promo_price?`• Promo ${fmt(p.promo_price)}`:''} • ${p.active?'Ativo':'Inativo'} ${p.featured?'• ⭐ Destaque':''}</div></div><button class="editbtn" data-editp="${p.id}">Editar</button></div>`).join('')}`;$('#newProduct').onclick=()=>editProduct(null);document.querySelectorAll('[data-editp]').forEach(b=>b.onclick=()=>editProduct(admin.products.find(p=>p.id===b.dataset.editp)))}
 function editProduct(p){p=p||{name:'',category:'Lanches',description:'',price:'',promo_price:'',image_url:'',active:true,featured:false};const selected=new Set(admin.product_addons.filter(x=>x.product_id===p.id).map(x=>x.addon_id));modal(`<div class="sheeth"><h2>${p.id?'Editar produto':'Novo produto'}</h2><button class="x" data-close>×</button></div><div class="row"><div class="field"><label>Nome</label><input id="pName" class="in" value="${esc(p.name)}"></div><div class="field"><label>Categoria</label><input id="pCat" class="in" value="${esc(p.category||'Lanches')}"></div></div><div class="field"><label>Descrição</label><textarea id="pDesc" class="ta">${esc(p.description||'')}</textarea></div><div class="row"><div class="field"><label>Preço</label><input id="pPrice" class="in" inputmode="decimal" value="${esc(p.price)}"></div><div class="field"><label>Preço promocional</label><input id="pPromo" class="in" inputmode="decimal" value="${esc(p.promo_price||'')}"></div></div><div class="field"><label>Foto</label><input id="pFile" class="in" type="file" accept="image/jpeg,image/png,image/webp"><input id="pImg" class="in" style="margin-top:8px" placeholder="URL da foto" value="${esc(p.image_url||'')}"></div><div class="field"><label>Adicionais permitidos</label>${admin.addons.map(a=>`<label class="addon"><input type="checkbox" data-pa="${a.id}" ${selected.has(a.id)?'checked':''}><span class="grow">${esc(a.name)}</span><span>${fmt(a.price)}</span></label>`).join('')}</div><label class="addon"><input id="pActive" type="checkbox" ${p.active?'checked':''}><span>Produto ativo</span></label><label class="addon"><input id="pFeatured" type="checkbox" ${p.featured?'checked':''}><span><b>⭐ Mostrar em Ofertas e Destaques</b><br><small style="color:var(--muted)">Quando marcado, este produto poderá aparecer no carrossel do cardápio.</small></span></label><div class="twoBtns"><button id="saveP" class="primary">Salvar</button>${p.id?'<button id="delP" class="secondary danger">Excluir</button>':'<button class="secondary" data-close>Cancelar</button>'}</div>`);bindClose();$('#pFile').onchange=async()=>{const f=$('#pFile').files[0];if(!f)return;try{$('#pImg').value='Enviando...';const base64=await fileToBase64(f);const pin=sessionStorage.getItem('caseirao_admin_pin')||'';const j=await api('admin-upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin,content_type:f.type,base64})});$('#pImg').value=j.public_url}catch(e){alert(e.message);$('#pImg').value=p.image_url||''}};$('#saveP').onclick=async()=>{try{await adminCall('upsert_product',{id:p.id,name:$('#pName').value.trim(),category:$('#pCat').value.trim(),description:$('#pDesc').value.trim(),price:num($('#pPrice').value),promo_price:$('#pPromo').value.trim()===''?null:num($('#pPromo').value),image_url:$('#pImg').value.trim(),active:$('#pActive').checked,featured:$('#pFeatured').checked,addon_ids:[...document.querySelectorAll('[data-pa]:checked')].map(i=>i.dataset.pa)});admin=await adminCall('snapshot');adminTab='produtos';renderAdmin()}catch(e){alert(e.message)}};if($('#delP'))$('#delP').onclick=async()=>{if(confirm('Excluir este produto?')){try{await adminCall('delete_product',{id:p.id});admin=await adminCall('snapshot');adminTab='produtos';renderAdmin()}catch(e){alert(e.message)}}}}
@@ -2134,8 +2149,23 @@ function eligibleForAutoPrint(o){
   if(pay==='pix')return String(o.payment_status||'').toLowerCase()==='confirmed';
   return true;
 }
+function cleanPendingAutoPrint(){
+  const pending=pendingAutoPrintIds();
+  if(!pending.size)return pending;
+  const orders=admin?.orders||[];
+  const byId=new Map(orders.map(o=>[String(o.id),o]));
+  let changed=false;
+  for(const id of [...pending]){
+    const o=byId.get(String(id));
+    if(!o||!eligibleForAutoPrint(o)||wasAutoPrinted(id)){
+      pending.delete(String(id));changed=true;
+    }
+  }
+  if(changed)savePendingAutoPrint(pending);
+  return pending;
+}
 function refreshPendingPrintStatus(){
-  const n=pendingAutoPrintIds().size;
+  const n=cleanPendingAutoPrint().size;
   document.querySelectorAll('[data-print-pending]').forEach(el=>{
     el.textContent=n?`${n} pedido${n===1?'':'s'} aguardando impressão`:'Nenhum pedido aguardando impressão';
     el.classList.toggle('hasPending',n>0);
@@ -2143,14 +2173,14 @@ function refreshPendingPrintStatus(){
 }
 async function flushPendingAutoPrint(){
   if(!printerPrefs().auto||!printerConnected()||autoPrintQueueBusy)return;
-  const pending=pendingAutoPrintIds();if(!pending.size)return;
+  const pending=cleanPendingAutoPrint();if(!pending.size)return;
   autoPrintQueueBusy=true;
   try{
     for(const id of [...pending]){
       const o=(admin?.orders||[]).find(x=>String(x.id)===String(id));
       if(!o){unqueueAutoPrint(id);continue}
       if(wasAutoPrinted(id)){unqueueAutoPrint(id);continue}
-      if(!eligibleForAutoPrint(o))continue;
+      if(!eligibleForAutoPrint(o)){unqueueAutoPrint(id);continue}
       /* Reserva antes do envio para impedir dois disparos concorrentes. */
       markAutoPrinted(id);
       const ok=await printOrderBluetoothAuto(id,admin.orders,true);
