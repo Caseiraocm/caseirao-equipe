@@ -2182,10 +2182,8 @@ function ensureCaseiraoPrinterPanel(){
   }
   bindCaseiraoPrinterPanel();
 }
-const printerPanelObserver=new MutationObserver(()=>{if(document.querySelector('#admContent')&&adminTab==='pedidos')queueMicrotask(ensureCaseiraoPrinterPanel)});
-printerPanelObserver.observe(document.body,{childList:true,subtree:true});
-document.addEventListener('click',()=>setTimeout(ensureCaseiraoPrinterPanel,0),true);
-setTimeout(ensureCaseiraoPrinterPanel,250);
+/* CORRECAO LOGIN/TRAVAMENTO: observador global removido.
+   O painel Bluetooth e montado somente pelo renderOrders final. */
 
 /* Nunca abre o seletor de dispositivo por uma impressao. O seletor Bluetooth
    aparece somente quando o operador toca em CONECTAR BLUETOOTH. */
