@@ -2213,7 +2213,7 @@ renderOrders=function(box){
 };
 
 
-/* ===== CUPOM PREMIUM CASEIRAO • 80 MM / 58 MM • LOGO + QR ===== */
+/* ===== CUPOM RAPIDO CASEIRAO • 80 MM / 58 MM • SOMENTE TEXTO ===== */
 function receiptMoneyPlain(v){return `R$ ${Number(v||0).toFixed(2).replace('.',',')}`}
 function receiptRightLine(label,value,width=printerTextWidth()){
   label=stripAccents(label);value=stripAccents(value);const gap=Math.max(1,width-label.length-value.length);return label+' '.repeat(gap)+value;
@@ -2251,12 +2251,12 @@ function escposQrBytes(value){
   );
 }
 escposBytes=async function(o){
-  const init=new Uint8Array([0x1b,0x40]);
-  let logo=new Uint8Array();try{logo=await receiptLogoRasterBytes()}catch{}
+  // Modo rapido: somente texto ESC/POS. Sem logo raster e sem QR Code,
+  // reduzindo bastante o volume de dados enviado por Bluetooth.
+  const init=new Uint8Array([0x1b,0x40,0x1b,0x61,0x00]);
   const text=new TextEncoder().encode(receiptPlain(o));
-  const qr=escposQrBytes('https://caseiraopedidos.api.br');
   const tail=new Uint8Array([0x0a,0x0a,0x0a,0x1d,0x56,0x41,0x03]);
-  return joinReceiptBytes(init,logo,text,new Uint8Array([0x0a]),qr,tail);
+  return joinReceiptBytes(init,text,tail);
 };
 
 
