@@ -2396,3 +2396,122 @@ escposBytes=async function(o){
   return joinReceiptBytes(head,body,tail);
 };
 /* ===== FIM BLUETOOTH STABLE FIX ===== */
+
+/* ===== CASEIRAO PRINTER ENGINE V3 • 2026-09-23 =====
+   Modulo final/autoritativo de impressao Bluetooth.
+   Objetivos: conexao unica, escrita conservadora, fila limpa e sem pedidos fantasmas. */
+const CASEIRAO_PRINT_V3_PENDING='caseirao_print_pending_v3';
+const CASEIRAO_PRINT_V3_DONE='caseirao_print_done_v3';
+try{localStorage.removeItem('caseirao_auto_print_pending_v2')}catch(e){}
+let caseiraoPrintV3Busy=false;
+let caseiraoPrintV3ConnectPromise=null;
+let caseiraoPrintV3WritePromise=Promise.resolve();
+let caseiraoPrintV3Generation=0;
+
+function caseiraoPrintV3Set(key,set,limit){try{localStorage.setItem(key,JSON.stringify([...set].slice(-limit)))}catch(e){}}
+function caseiraoPrintV3Get(key){try{return new Set(JSON.parse(localStorage.getItem(key)||'[]').map(String))}catch(e){return new Set()}}
+function pendingAutoPrintIds(){return caseiraoPrintV3Get(CASEIRAO_PRINT_V3_PENDING)}
+function savePendingAutoPrint(set){caseiraoPrintV3Set(CASEIRAO_PRINT_V3_PENDING,set,100)}
+function autoPrintedOrders(){return caseiraoPrintV3Get(CASEIRAO_PRINT_V3_DONE)}
+function saveAutoPrinted(set){caseiraoPrintV3Set(CASEIRAO_PRINT_V3_DONE,set,500)}
+function markAutoPrinted(id){const s=autoPrintedOrders();s.add(String(id));saveAutoPrinted(s)}
+function wasAutoPrinted(id){return autoPrintedOrders().has(String(id))}
+function queueAutoPrint(id){const s=pendingAutoPrintIds();s.add(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()}
+function unqueueAutoPrint(id){const s=pendingAutoPrintIds();s.delete(String(id));savePendingAutoPrint(s);refreshPendingPrintStatus()}
+function caseiraoPrintV3CleanQueue(){
+  const orders=admin?.orders||[],byId=new Map(orders.map(o=>[String(o.id),o])),pending=pendingAutoPrintIds();
+  let changed=false;
+  for(const id of [...pending]){
+    const o=byId.get(String(id));
+    if(!o||['cancelado','entregue'].includes(String(o.status||''))||wasAutoPrinted(id)){pending.delete(String(id));changed=true}
+  }
+  if(changed)savePendingAutoPrint(pending);
+  refreshPendingPrintStatus();
+  return pending;
+}
+function refreshPendingPrintStatus(){
+  const n=caseiraoPrintV3CleanQueue.__running?pendingAutoPrintIds().size:(()=>{caseiraoPrintV3CleanQueue.__running=true;try{return caseiraoPrintV3CleanQueue().size}finally{caseiraoPrintV3CleanQueue.__running=false}})();
+  document.querySelectorAll('[data-print-pending]').forEach(el=>{el.textContent=n?`${n} pedido${n===1?'':'s'} aguardando impressão`:'Nenhum pedido aguardando impressão';el.classList.toggle('hasPending',n>0)});
+}
+
+async function caseiraoPrintV3FindChannel(server){
+  const preferred=[];
+  for(const p of BT_PROFILES){
+    try{
+      const service=await server.getPrimaryService(p.service);
+      for(const cid of p.chars){try{const c=await service.getCharacteristic(cid);if(c.properties.write||c.properties.writeWithoutResponse)preferred.push(c)}catch(e){}}
+      try{for(const c of await service.getCharacteristics())if((c.properties.write||c.properties.writeWithoutResponse)&&!preferred.includes(c))preferred.push(c)}catch(e){}
+    }catch(e){}
+  }
+  if(!preferred.length){
+    try{for(const service of await server.getPrimaryServices()){try{for(const c of await service.getCharacteristics())if(c.properties.write||c.properties.writeWithoutResponse)preferred.push(c)}catch(e){}}}catch(e){}
+  }
+  return preferred.find(c=>c.properties.write&&typeof c.writeValueWithResponse==='function')||preferred.find(c=>c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')||preferred[0]||null;
+}
+async function caseiraoPrintV3Attach(device){
+  if(!device?.gatt)throw new Error('O dispositivo escolhido não oferece BLE/GATT para impressão.');
+  const generation=++caseiraoPrintV3Generation;
+  const server=device.gatt.connected?device.gatt:await device.gatt.connect();
+  const channel=await caseiraoPrintV3FindChannel(server);
+  if(!channel)throw new Error('Conectou ao Bluetooth, mas não encontrei um canal de escrita compatível.');
+  btDevice=device;btWriteChar=channel;btPrinterName=device.name||'Impressora Bluetooth';
+  if(!device.__caseiraoV3Bound){device.__caseiraoV3Bound=true;device.addEventListener('gattserverdisconnected',()=>{if(generation<=caseiraoPrintV3Generation){btWriteChar=null;setPrinterState('🔴 DESCONECTADA','error');try{refreshPrinterStatus()}catch(e){}}})}
+  setPrinterState(`🟢 CONECTADA • ${btPrinterName}`,'connected');try{refreshPrinterStatus()}catch(e){}
+  return btPrinterName;
+}
+connectBluetoothPrinter=async function(){
+  if(caseiraoPrintV3ConnectPromise)return caseiraoPrintV3ConnectPromise;
+  caseiraoPrintV3ConnectPromise=(async()=>{
+    if(!navigator.bluetooth)throw new Error('Abra a Central no Chrome do Android para usar Bluetooth.');
+    if(btDevice){try{return await caseiraoPrintV3Attach(btDevice)}catch(e){btWriteChar=null}}
+    setPrinterState('Selecione a impressora...');
+    const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:BT_PROFILES.map(p=>p.service)});
+    return caseiraoPrintV3Attach(device);
+  })();
+  try{return await caseiraoPrintV3ConnectPromise}finally{caseiraoPrintV3ConnectPromise=null}
+};
+function printerConnected(){return !!(btDevice?.gatt?.connected&&btWriteChar)}
+async function caseiraoPrintV3Ensure(){if(printerConnected())return btWriteChar;if(!btDevice)throw new Error('Conecte a impressora primeiro.');await caseiraoPrintV3Attach(btDevice);return btWriteChar}
+function caseiraoPrintV3Sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+btWrite=function(bytes){
+  const run=async()=>{
+    let c=await caseiraoPrintV3Ensure();
+    const CHUNK=20,PAUSE=70;
+    for(let i=0;i<bytes.length;i+=CHUNK){
+      if(!btDevice?.gatt?.connected){await caseiraoPrintV3Attach(btDevice);c=btWriteChar}
+      const part=bytes.slice(i,i+CHUNK);
+      if(c.properties.write&&typeof c.writeValueWithResponse==='function')await c.writeValueWithResponse(part);
+      else if(c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')await c.writeValueWithoutResponse(part);
+      else await c.writeValue(part);
+      await caseiraoPrintV3Sleep(PAUSE);
+    }
+    await caseiraoPrintV3Sleep(250);return true;
+  };
+  caseiraoPrintV3WritePromise=caseiraoPrintV3WritePromise.catch(()=>{}).then(run);
+  return caseiraoPrintV3WritePromise;
+};
+escposBytes=async function(o){
+  const width=printerTextWidth(),hr='-'.repeat(width),L=[];
+  const wr=t=>wrapReceipt(t,width);
+  L.push('O CASEIRAO BURGER',`PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
+  if(o.type==='delivery')L.push(hr,'ENDERECO:',...wr(orderAddress(o)));
+  L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');
+  for(const it of (o.order_items||[])){L.push(...wr(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));for(const a of (it.order_item_addons||[]))L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`));if(it.note)L.push(...wr(`  OBS: ${it.note}`))}
+  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));
+  L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,'','','');
+  return joinReceiptBytes(new Uint8Array([0x1b,0x40]),new TextEncoder().encode(stripAccents(L.join('\n'))),new Uint8Array([0x0a,0x0a]));
+};
+printOrderBluetoothAuto=async function(id,sourceOrders=null,silent=false){
+  const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));
+  if(!o||['cancelado','entregue'].includes(String(o.status||''))){unqueueAutoPrint(id);return false}
+  try{if(!printerConnected())await caseiraoPrintV3Ensure();setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));markAutoPrinted(id);unqueueAutoPrint(id);setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){setPrinterState(`Erro ao imprimir: ${e.message||e}`,'error');if(!silent)alert(e.message||String(e));return false}
+};
+printOrderBluetooth=async function(id,sourceOrders=null){return printOrderBluetoothAuto(id,sourceOrders,false)};
+flushPendingAutoPrint=async function(){
+  if(caseiraoPrintV3Busy||!printerPrefs().auto)return;
+  const pending=caseiraoPrintV3CleanQueue();if(!pending.size||!printerConnected())return;
+  caseiraoPrintV3Busy=true;
+  try{for(const id of [...pending]){const ok=await printOrderBluetoothAuto(id,admin?.orders||[],true);if(!ok)break}}finally{caseiraoPrintV3Busy=false;refreshPendingPrintStatus()}
+};
+try{caseiraoPrintV3CleanQueue()}catch(e){}
+/* ===== FIM CASEIRAO PRINTER ENGINE V3 ===== */
