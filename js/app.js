@@ -100,19 +100,21 @@ const RECEIPT_LOGO_SVG="<svg class=\"receiptLogo\" xmlns=\"http://www.w3.org/200
 let receiptLogoRasterCache=null;
 function joinReceiptBytes(...parts){const size=parts.reduce((sum,p)=>sum+p.length,0),all=new Uint8Array(size);let offset=0;for(const part of parts){all.set(part,offset);offset+=part.length}return all}
 async function receiptLogoRasterBytes(){
-  if(receiptLogoRasterCache)return receiptLogoRasterCache;
-  const image=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Não foi possível preparar o logo para impressão.'));el.src=RECEIPT_LOGO_DATA_URL});
-  const width=300,height=Math.round(image.height*(width/image.width)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);ctx.drawImage(image,0,0,width,height);
-  const pixels=ctx.getImageData(0,0,width,height).data,rowBytes=Math.ceil(width/8),raster=new Uint8Array(rowBytes*height);
-  for(let y=0;y<height;y++)for(let px=0;px<width;px++){const i=(y*width+px)*4,lum=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];if(pixels[i+3]>40&&lum<150)raster[y*rowBytes+(px>>3)]|=0x80>>(px&7)}
-  const command=new Uint8Array([0x1b,0x61,0x01,0x1d,0x76,0x30,0x00,rowBytes&255,(rowBytes>>8)&255,height&255,(height>>8)&255]);
-  receiptLogoRasterCache=joinReceiptBytes(command,raster,new Uint8Array([0x0a,0x1b,0x61,0x00]));
-  return receiptLogoRasterCache;
+ const targetWidth=(typeof printerPaperWidth==='function'&&printerPaperWidth()===80)?150:125;
+ const img=new Image();img.src=RECEIPT_LOGO_DATA_URL;
+ await new Promise((ok,fail)=>{img.onload=ok;img.onerror=fail});
+ const ratio=img.naturalHeight/img.naturalWidth,h=Math.max(1,Math.round(targetWidth*ratio));
+ const c=document.createElement('canvas');c.width=targetWidth;c.height=h;
+ const x=c.getContext('2d',{willReadFrequently:true});
+ x.fillStyle='#fff';x.fillRect(0,0,targetWidth,h);x.drawImage(img,0,0,targetWidth,h);
+ const px=x.getImageData(0,0,targetWidth,h).data,rowBytes=Math.ceil(targetWidth/8),data=new Uint8Array(rowBytes*h);
+ for(let y=0;y<h;y++)for(let xx=0;xx<targetWidth;xx++){
+   const i=(y*targetWidth+xx)*4,lum=.299*px[i]+.587*px[i+1]+.114*px[i+2];
+   if(px[i+3]>80&&lum<82)data[y*rowBytes+(xx>>3)]|=(0x80>>(xx&7));
+ }
+ const head=new Uint8Array([0x1b,0x61,0x01,0x1d,0x76,0x30,0x00,rowBytes&255,(rowBytes>>8)&255,h&255,(h>>8)&255]);
+ return joinReceiptBytes(head,data,new Uint8Array([0x0a,0x1b,0x61,0x00]))
 }
-function findAdminOrder(id){return (admin?.orders||[]).find(o=>String(o.id)===String(id))}
-function stripAccents(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/[^\x09\x0A\x0D\x20-\x7E]/g,'')}
-function wrapReceipt(text,width=32){const words=stripAccents(text).trim().split(/\s+/).filter(Boolean);if(!words.length)return [''];const out=[];let line='';for(const w of words){if(w.length>width){if(line){out.push(line);line=''};for(let i=0;i<w.length;i+=width)out.push(w.slice(i,i+width));continue}if(!line)line=w;else if((line+' '+w).length<=width)line+=' '+w;else{out.push(line);line=w}}if(line)out.push(line);return out}
 function receiptPlain(o){
  const L=[],hr='--------------------------------';
  L.push('       O CASEIRAO BURGER',`         PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr);
@@ -159,8 +161,10 @@ function escposQrBytes(value){
  )
 }
 async function escposBytes(o){
- const body=new TextEncoder().encode(receiptPlain(o)),head=new Uint8Array([0x1b,0x40]),qr=escposQrBytes('https://caseiraopedidos.api.br'),tail=new Uint8Array([0x0a,0x0a,0x0a]);
- return joinReceiptBytes(head,body,new Uint8Array([0x0a]),qr,tail)
+ const body=new TextEncoder().encode(receiptPlain(o)),head=new Uint8Array([0x1b,0x40]);
+ let logo=new Uint8Array();try{logo=await receiptLogoRasterBytes()}catch(e){}
+ const qr=escposQrBytes('https://caseiraopedidos.api.br'),tail=new Uint8Array([0x0a,0x0a,0x0a]);
+ return joinReceiptBytes(head,logo,body,new Uint8Array([0x0a]),qr,tail)
 }
 async function printOrderBluetooth(id,sourceOrders=null){const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');try{setPrinterState('Enviando os dados do pedido para a impressora...');await btWrite(await escposBytes(o));setPrinterState(`Pedido #${o.order_number} enviado para ${btPrinterName||'impressora'}.`,'connected')}catch(e){setPrinterState(e.message||String(e),'error');alert((e.message||String(e))+'\n\nVocê ainda pode usar o botão “Imprimir pedido”, que abre a impressão normal do Chrome.') }}
 function bindPrintButtons(sourceOrders=null){document.querySelectorAll('[data-webprint]').forEach(b=>b.onclick=()=>printOrderBrowser(b.dataset.webprint,sourceOrders));document.querySelectorAll('[data-btprint]').forEach(b=>b.onclick=()=>printOrderBluetooth(b.dataset.btprint,sourceOrders))}
