@@ -102,10 +102,10 @@ function joinReceiptBytes(...parts){const size=parts.reduce((sum,p)=>sum+p.lengt
 async function receiptLogoRasterBytes(){
   if(receiptLogoRasterCache)return receiptLogoRasterCache;
   const image=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Não foi possível preparar o logo para impressão.'));el.src=RECEIPT_LOGO_DATA_URL});
-  const width=300,height=Math.round(image.height*(width/image.width)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const width=(typeof printerPaperWidth==='function'&&printerPaperWidth()===80)?180:150,height=Math.round(image.height*(width/image.width)),canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);ctx.drawImage(image,0,0,width,height);
   const pixels=ctx.getImageData(0,0,width,height).data,rowBytes=Math.ceil(width/8),raster=new Uint8Array(rowBytes*height);
-  for(let y=0;y<height;y++)for(let px=0;px<width;px++){const i=(y*width+px)*4,lum=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];if(pixels[i+3]>40&&lum<150)raster[y*rowBytes+(px>>3)]|=0x80>>(px&7)}
+  for(let y=0;y<height;y++)for(let px=0;px<width;px++){const i=(y*width+px)*4,lum=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];if(pixels[i+3]>40&&lum<110)raster[y*rowBytes+(px>>3)]|=0x80>>(px&7)}
   const command=new Uint8Array([0x1b,0x61,0x01,0x1d,0x76,0x30,0x00,rowBytes&255,(rowBytes>>8)&255,height&255,(height>>8)&255]);
   receiptLogoRasterCache=joinReceiptBytes(command,raster,new Uint8Array([0x0a,0x1b,0x61,0x00]));
   return receiptLogoRasterCache;
@@ -2244,7 +2244,7 @@ function escposQrBytes(value){
   return joinReceiptBytes(
     new Uint8Array([0x1b,0x61,0x01]),
     new Uint8Array([0x1d,0x28,0x6b,0x04,0x00,0x31,0x41,0x32,0x00]),
-    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x43,0x06]),
+    new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x43,0x04]),
     new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x45,0x31]),
     new Uint8Array([0x1d,0x28,0x6b,pL,pH,0x31,0x50,0x30]),enc,
     new Uint8Array([0x1d,0x28,0x6b,0x03,0x00,0x31,0x51,0x30,0x0a,0x1b,0x61,0x00])
