@@ -2222,11 +2222,13 @@ function ensureCaseiraoPrinterPanel(){
 /* CORRECAO LOGIN/TRAVAMENTO: observador global removido.
    O painel Bluetooth e montado somente pelo renderOrders final. */
 
-/* CORRECAO IMPRESSAO 2026-09-23
-   Restaurado o motor Bluetooth original: btWrite volta a chamar
-   connectBluetoothPrinter() quando a conexao nao estiver ativa.
-   Isso remove a sobrescrita tardia que bloqueava a tentativa de conexao
-   durante IMPRIMIR TESTE / impressao manual. */
+/* Nunca abre o seletor de dispositivo por uma impressao. O seletor Bluetooth
+   aparece somente quando o operador toca em CONECTAR BLUETOOTH. */
+btWrite=async function(bytes){
+  if(!btWriteChar||!btDevice?.gatt?.connected)throw new Error('Impressora Bluetooth desconectada. Toque em CONECTAR BLUETOOTH primeiro.');
+  const chunk=20;
+  for(let i=0;i<bytes.length;i+=chunk){const part=bytes.slice(i,i+chunk);if(btWriteChar.properties.writeWithoutResponse&&btWriteChar.writeValueWithoutResponse)await btWriteChar.writeValueWithoutResponse(part);else if(btWriteChar.properties.write&&btWriteChar.writeValueWithResponse)await btWriteChar.writeValueWithResponse(part);else await btWriteChar.writeValue(part);await new Promise(r=>setTimeout(r,10))}
+};
 
 const printerPanelStyle=document.createElement('style');printerPanelStyle.textContent=`#caseiraoPrinterPanel{display:block!important;margin:12px 0!important;padding:12px!important;border:1px solid #cfdfeb!important;border-radius:16px!important;background:#eef6fb!important}#caseiraoPrinterPanel .printerBarTop{display:flex!important;gap:10px!important;align-items:center!important}#caseiraoPrinterPanel .printerConnect{min-height:44px!important}#caseiraoPrinterPanel .printerConfigGrid{display:grid!important;grid-template-columns:1fr 1.35fr 1fr!important;gap:9px!important;margin-top:10px!important}#caseiraoPrinterPanel .printerAutoToggle{display:flex!important;align-items:center!important;gap:10px!important}#caseiraoPrinterPanel .printerAutoToggle input{display:block!important;appearance:auto!important;width:22px!important;height:22px!important;opacity:1!important;position:static!important}@media(max-width:700px){#caseiraoPrinterPanel .printerBarTop{align-items:stretch!important;flex-direction:column!important}#caseiraoPrinterPanel .printerConfigGrid{grid-template-columns:1fr!important}}`;document.head.appendChild(printerPanelStyle);
 const printerPendingStyle=document.createElement('style');printerPendingStyle.textContent=`#caseiraoPrinterPanel .printerPending{grid-column:1/-1;padding:8px 10px;border-radius:10px;background:#f7f9fb;color:#6d7580;font-size:10px;font-weight:800;text-align:center}#caseiraoPrinterPanel .printerPending.hasPending{background:#fff3d6;color:#8b5a00}`;document.head.appendChild(printerPendingStyle);
@@ -2249,3 +2251,118 @@ renderOrders=function(box){
 
 
 })();
+
+
+/* ===== CASEIRAO • BLUETOOTH STABLE FIX 2026-09-23 =====
+   Fluxo unico para a impressora: reutiliza o dispositivo autorizado,
+   reconecta o GATT sem reabrir o seletor, serializa escritas e usa
+   cupom ESC/POS leve (sem logo/QR) para evitar sobrecarga no BLE. */
+let caseiraoBtWriteChain=Promise.resolve();
+let caseiraoBtConnecting=null;
+
+async function caseiraoFindWriteCharacteristic(server){
+  for(const p of BT_PROFILES){
+    try{
+      const service=await server.getPrimaryService(p.service);
+      for(const cid of p.chars){
+        try{
+          const c=await service.getCharacteristic(cid);
+          if(c.properties.write||c.properties.writeWithoutResponse)return c;
+        }catch(e){}
+      }
+      try{
+        const chars=await service.getCharacteristics();
+        const c=chars.find(x=>x.properties.write||x.properties.writeWithoutResponse);
+        if(c)return c;
+      }catch(e){}
+    }catch(e){}
+  }
+  try{
+    const services=await server.getPrimaryServices();
+    for(const service of services){
+      try{
+        const chars=await service.getCharacteristics();
+        const c=chars.find(x=>x.properties.write||x.properties.writeWithoutResponse);
+        if(c)return c;
+      }catch(e){}
+    }
+  }catch(e){}
+  return null;
+}
+
+async function caseiraoConnectKnownDevice(device){
+  if(!device?.gatt)throw new Error('A impressora selecionada não oferece conexão BLE/GATT.');
+  const server=device.gatt.connected?device.gatt:await device.gatt.connect();
+  const characteristic=await caseiraoFindWriteCharacteristic(server);
+  if(!characteristic){
+    try{server.disconnect()}catch(e){}
+    throw new Error('Bluetooth conectado, mas o canal de impressão não foi encontrado.');
+  }
+  btDevice=device;
+  btWriteChar=characteristic;
+  btPrinterName=device.name||'Impressora Bluetooth';
+  if(!device.__caseiraoDisconnectBound){
+    device.__caseiraoDisconnectBound=true;
+    device.addEventListener('gattserverdisconnected',()=>{
+      btWriteChar=null;
+      setPrinterState('🔴 DESCONECTADA • reconecta automaticamente ao imprimir','error');
+      try{refreshPrinterStatus()}catch(e){}
+    });
+  }
+  setPrinterState(`🟢 CONECTADA • ${btPrinterName}`,'connected');
+  try{refreshPrinterStatus()}catch(e){}
+  return btPrinterName;
+}
+
+connectBluetoothPrinter=async function(){
+  if(caseiraoBtConnecting)return caseiraoBtConnecting;
+  caseiraoBtConnecting=(async()=>{
+    if(!navigator.bluetooth)throw new Error('Abra a Central no Google Chrome do Android para usar Bluetooth.');
+    let device=btDevice;
+    if(!device){
+      setPrinterState('Abrindo lista de dispositivos Bluetooth...');
+      device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:BT_PROFILES.map(p=>p.service)});
+    }
+    return caseiraoConnectKnownDevice(device);
+  })();
+  try{return await caseiraoBtConnecting}finally{caseiraoBtConnecting=null}
+};
+
+async function caseiraoEnsurePrinterConnection(){
+  if(btWriteChar&&btDevice?.gatt?.connected)return btWriteChar;
+  if(!btDevice)throw new Error('Toque em CONECTAR BLUETOOTH e selecione a impressora primeiro.');
+  await caseiraoConnectKnownDevice(btDevice);
+  if(!btWriteChar)throw new Error('Não foi possível recuperar o canal de impressão.');
+  return btWriteChar;
+}
+
+btWrite=function(bytes){
+  const job=async()=>{
+    const characteristic=await caseiraoEnsurePrinterConnection();
+    const chunk=20;
+    for(let i=0;i<bytes.length;i+=chunk){
+      if(!btDevice?.gatt?.connected){
+        await caseiraoConnectKnownDevice(btDevice);
+      }
+      const c=btWriteChar||characteristic;
+      const part=bytes.slice(i,i+chunk);
+      if(c.properties.writeWithoutResponse&&typeof c.writeValueWithoutResponse==='function')await c.writeValueWithoutResponse(part);
+      else if(c.properties.write&&typeof c.writeValueWithResponse==='function')await c.writeValueWithResponse(part);
+      else await c.writeValue(part);
+      await new Promise(resolve=>setTimeout(resolve,30));
+    }
+    return true;
+  };
+  caseiraoBtWriteChain=caseiraoBtWriteChain.catch(()=>{}).then(job);
+  return caseiraoBtWriteChain;
+};
+
+/* Cupom Bluetooth leve: primeiro estabiliza texto/ESC-POS.
+   Logo e QR permanecem fora deste fluxo para não derrubar a conexão. */
+escposBytes=async function(o){
+  const head=new Uint8Array([0x1b,0x40]);
+  const body=new TextEncoder().encode(receiptPlain(o));
+  const tail=new Uint8Array([0x0a,0x0a,0x0a]);
+  return joinReceiptBytes(head,body,tail);
+};
+/* ===== FIM BLUETOOTH STABLE FIX ===== */
