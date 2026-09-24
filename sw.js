@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-v39';
+const CACHE = 'caseirao-equipe-v40';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
