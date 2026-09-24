@@ -1189,3 +1189,25 @@ body.teamApp{background:#0d0f12}
   .admWorkspaceMain .orderDetailed .orderInfo{padding:7px 8px!important}
   .admWorkspaceMain .orderDetailed .orderBody{padding:8px!important}
 }
+
+/* ===== CASEIRAO ADM v46 — segunda via no pedido =====
+   Mantém o cartão compacto e devolve somente a impressão Bluetooth manual. */
+.admWorkspaceMain .orderDetailed .printActions{
+  display:flex!important;
+  margin-top:8px!important;
+  gap:0!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-webprint]{
+  display:none!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-btprint]{
+  display:flex!important;
+  width:100%!important;
+  min-height:42px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-btprint]::after{
+  content:' 2ª VIA';
+}
