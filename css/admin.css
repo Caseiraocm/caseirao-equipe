@@ -962,3 +962,124 @@ body.teamApp{background:#0d0f12}
  .proToolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
  .orderDetailed .opsOrder{margin-top:7px!important}
 }
+
+
+/* ===== CASEIRAO ADM MOBILE HOTFIX v40 =====
+   Corrige a navegacao mobile sem tocar em Pix, pedidos, banco ou impressao. */
+@media(max-width:900px){
+  .admWorkspace>.admbar{
+    display:block!important;
+    position:relative!important;
+    overflow:visible!important;
+    min-height:0!important;
+  }
+  .admWorkspaceBody{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding-bottom:72px!important;
+  }
+  .admWorkspaceMain{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:8px 8px calc(78px + env(safe-area-inset-bottom))!important;
+  }
+  .admWorkspaceMain>#admContent{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    min-height:1px!important;
+  }
+  .admPrimaryNav{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    top:auto!important;
+    z-index:100!important;
+    width:100%!important;
+    height:calc(60px + env(safe-area-inset-bottom))!important;
+    min-height:60px!important;
+    max-height:calc(60px + env(safe-area-inset-bottom))!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:48px!important;
+    align-items:start!important;
+    gap:4px!important;
+    padding:6px 5px calc(6px + env(safe-area-inset-bottom))!important;
+    margin:0!important;
+    overflow:visible!important;
+    border:0!important;
+    border-top:1px solid #dfe3e7!important;
+    background:#fff!important;
+    box-shadow:0 -5px 18px rgba(25,30,36,.10)!important;
+  }
+  .admPrimaryNav button,
+  .admPrimaryNav button[data-tab="pedidos"],
+  .admPrimaryNav button[data-tab="mesas"],
+  .admPrimaryNav button[data-tab="producao"],
+  .admPrimaryNav button[data-tab="entregas"]{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    font-size:9px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+  .admManagementToggle{
+    display:flex!important;
+    position:fixed!important;
+    left:auto!important;
+    right:5px!important;
+    bottom:calc(6px + env(safe-area-inset-bottom))!important;
+    z-index:101!important;
+    width:calc(20% - 6px)!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    font-size:0!important;
+    line-height:1!important;
+  }
+  .admManagementToggle:after{
+    content:'☰ MAIS'!important;
+    display:block!important;
+    font-size:9px!important;
+    font-weight:950!important;
+  }
+  .admManagement{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(68px + env(safe-area-inset-bottom))!important;
+    z-index:99!important;
+    width:auto!important;
+    height:auto!important;
+    max-height:62vh!important;
+    margin:0!important;
+    padding:9px!important;
+    overflow:auto!important;
+    border:1px solid #d9dde2!important;
+    border-radius:16px!important;
+    background:#f1f3f5!important;
+    box-shadow:0 14px 38px rgba(20,25,30,.20)!important;
+  }
+  .admManagement:not(.open){display:none!important}
+  .admManagement.open{display:block!important}
+  .admManagementNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .admManagementNav button{min-height:44px!important;height:auto!important;font-size:10px!important}
+}
