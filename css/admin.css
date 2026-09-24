@@ -916,3 +916,49 @@ body.teamApp{background:#0d0f12}
   .admWorkspaceMain .opsOrder.opsOrderCollapsed>summary{min-height:44px!important;padding:9px 11px!important}
   .admWorkspaceMain .opsOrderContent{padding:8px!important}
 }
+
+/* ===== CASEIRAO ADM CLEAN v39 — operacao primeiro ===== */
+/* Camada final deliberadamente pequena: preserva contratos/IDs do app e reduz poluicao visual. */
+.admWorkspace>.compactMetrics,.admWorkspace>.paymentMetrics{display:none!important}
+.admWorkspaceMain{background:#f6f7f8!important}
+.admWorkspaceMain>#admContent{max-width:1040px!important}
+.caseiraoPrinterPanel{margin:0 0 9px!important;padding:9px 11px!important;border-radius:14px!important;box-shadow:none!important}
+.caseiraoPrinterPanel .printerBarTop{gap:7px!important;align-items:center!important}
+.caseiraoPrinterPanel .printerBarTop b{font-size:12px!important}
+.caseiraoPrinterPanel .printerState{font-size:10px!important;margin-top:2px!important}
+.caseiraoPrinterPanel .printerConnect,.caseiraoPrinterPanel .printerConfigToggle{min-height:36px!important;padding:7px 9px!important;font-size:9px!important;border-radius:10px!important}
+.caseiraoPrinterPanel .printerConfigGrid.printerConfigCollapsed{display:none!important}
+.caseiraoPrinterPanel .printerConfigGrid.printerConfigCollapsed.printerConfigOpen{display:grid!important}
+.operationHint{display:none!important}
+.alertControl{margin:0 0 8px!important;padding:9px 11px!important;border-radius:13px!important}
+.alertControlTop span{display:none!important}
+.proToolbar{margin:0 0 8px!important;gap:7px!important}
+.proToolbar .in{min-height:43px!important}
+.proToolbar .primary{min-height:43px!important;white-space:nowrap!important}
+.proFilters{position:sticky!important;top:0!important;z-index:8!important;margin:0 -2px 9px!important;padding:5px 2px!important;background:#f6f7f8!important;overflow-x:auto!important;display:flex!important;gap:5px!important;scrollbar-width:none}
+.proFilters::-webkit-scrollbar{display:none}
+.proFilters button{flex:0 0 auto!important;min-height:37px!important;padding:7px 10px!important;font-size:10px!important;border-radius:10px!important}
+.orderDetailed{margin:8px 0!important;border-radius:15px!important}
+.orderDetailed>summary{padding:11px!important}
+.admManagementToggle{font-weight:900!important}
+@media(max-width:900px){
+ .admWorkspace>.adminHead{min-height:58px!important;padding:calc(8px + env(safe-area-inset-top)) 11px 8px!important}
+ .admWorkspace>.adminHead .adminSub{display:none!important}
+ .admWorkspace>.adminHead h2{font-size:17px!important}
+ .admWorkspace>.admbar{display:flex!important;flex-direction:column!important}
+ .admPrimaryNav{order:3!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:80!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;padding:6px 6px calc(6px + env(safe-area-inset-bottom))!important;border-top:1px solid #dfe3e7!important;background:rgba(255,255,255,.98)!important;box-shadow:0 -5px 18px rgba(25,30,36,.08)!important}
+ .admPrimaryNav button{display:none!important}
+ .admPrimaryNav button[data-tab="pedidos"],.admPrimaryNav button[data-tab="mesas"],.admPrimaryNav button[data-tab="producao"],.admPrimaryNav button[data-tab="entregas"]{display:block!important;min-height:43px!important;padding:5px 2px!important;font-size:9px!important}
+ .admManagementToggle{position:fixed!important;right:7px!important;bottom:calc(6px + env(safe-area-inset-bottom))!important;z-index:81!important;width:calc(20% - 8px)!important;min-height:43px!important;margin:0!important;padding:5px 2px!important;font-size:0!important;border-radius:10px!important}
+ .admManagementToggle:after{content:'☰ MAIS';font-size:9px!important;font-weight:950}
+ .admWorkspaceBody{order:1!important;padding-bottom:62px!important}
+ .admManagement{position:fixed!important;left:8px!important;right:8px!important;bottom:calc(61px + env(safe-area-inset-bottom))!important;z-index:79!important;max-height:58vh!important;overflow:auto!important;border:1px solid #d9dde2!important;border-radius:16px!important;box-shadow:0 14px 38px rgba(20,25,30,.18)!important;background:#f1f3f5!important}
+ .admManagement:not(.open){display:none!important}
+ .admManagement.open{display:block!important}
+ .admManagementNav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .admWorkspaceMain{padding:7px 7px calc(78px + env(safe-area-inset-bottom))!important}
+ .caseiraoPrinterPanel{margin-top:0!important}
+ .alertControl{display:none!important}
+ .proToolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
+ .orderDetailed .opsOrder{margin-top:7px!important}
+}
