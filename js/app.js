@@ -912,8 +912,7 @@ $('#teamInstallBtn').onclick=installApp;
 catalog();
 /* ADM distribuido como arquivo unico: remove workers/caches antigos para impedir
    que o navegador continue exibindo uma versao anterior depois do deploy. */
-if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(registrations=>Promise.all(registrations.map(registration=>registration.unregister()))).catch(()=>{});}
-if('caches' in window){caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260924-v39').catch(()=>{}));}
 
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
@@ -2219,10 +2218,11 @@ function caseiraoPrinterPanelHtml(){
   const prefs=printerPrefs();
   return `<section id="caseiraoPrinterPanel" class="printerBar caseiraoPrinterPanel">
     <div class="printerBarTop">
-      <div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div>
-      <button type="button" id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button>
+      <div class="grow"><b>🖨️ Impressora</b><div id="printerState" class="printerState"></div></div>
+      <button type="button" id="printerConfigToggle" class="secondary printerConfigToggle">CONFIGURAR</button>
+      <button type="button" id="connectPrinter" class="printerConnect">CONECTAR</button>
     </div>
-    <div class="printerConfigGrid">
+    <div class="printerConfigGrid printerConfigCollapsed">
       <label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label>
       <label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Pedido novo imprime sozinho após conectar.</small></span></label>
       <button type="button" id="printerTest" class="secondary">IMPRIMIR TESTE</button>
@@ -2233,6 +2233,8 @@ function caseiraoPrinterPanelHtml(){
 function bindCaseiraoPrinterPanel(){
   const panel=document.querySelector('#caseiraoPrinterPanel');if(!panel)return;
   const connect=panel.querySelector('#connectPrinter'),paper=panel.querySelector('#printerPaper'),auto=panel.querySelector('#printerAuto'),test=panel.querySelector('#printerTest');
+  const toggle=panel.querySelector('#printerConfigToggle'),grid=panel.querySelector('.printerConfigGrid');
+  if(toggle&&!toggle.dataset.bound){toggle.dataset.bound='1';toggle.onclick=()=>{const open=grid?.classList.toggle('printerConfigOpen');toggle.textContent=open?'FECHAR':'CONFIGURAR'}}
   if(connect&&!connect.dataset.bound){connect.dataset.bound='1';connect.onclick=async()=>{try{await connectBluetoothPrinter();refreshPrinterStatus();await flushPendingAutoPrint()}catch(e){refreshPrinterStatus();const msg=String(e?.message||e||'');if(/cancelled|canceled|chooser/i.test(msg))showAppToast('Seleção Bluetooth cancelada. Toque em CONECTAR quando quiser tentar novamente.','warn');else alert(msg)}}}
   if(paper&&!paper.dataset.bound){paper.dataset.bound='1';paper.onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')}}
   if(auto&&!auto.dataset.bound){auto.dataset.bound='1';auto.onchange=async e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok');if(e.target.checked)await flushPendingAutoPrint();refreshPendingPrintStatus()}}
