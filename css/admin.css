@@ -1132,3 +1132,60 @@ body.teamApp{background:#0d0f12}
   .admWorkspaceBody{min-height:0!important}
   .admWorkspaceMain{min-height:0!important}
 }
+
+/* ===== CASEIRAO ADM v45 — pedido expandido essencial =====
+   Mantém operação/status e um único contato por WhatsApp.
+   Remove controles auxiliares que alongavam o cartão. */
+.admWorkspaceMain .orderDetailed .printActions,
+.admWorkspaceMain .orderDetailed .orderMeta,
+.admWorkspaceMain .orderDetailed .waStagePanel,
+.admWorkspaceMain .orderDetailed .opsTools,
+.admWorkspaceMain .orderDetailed .whatsappAction,
+.admWorkspaceMain .orderDetailed .deliveryAction{
+  display:none!important;
+}
+
+/* Um único contato: WhatsApp do cliente. */
+.admWorkspaceMain .orderDetailed .opsContactRow{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:0!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .opsContactRow button{
+  display:none!important;
+}
+.admWorkspaceMain .orderDetailed .opsContactRow a{
+  display:flex!important;
+  width:100%!important;
+  min-height:42px!important;
+  margin:0!important;
+}
+
+/* Status continua sendo o controle operacional principal. */
+.admWorkspaceMain .orderDetailed .smartOrderFlow{
+  margin-top:8px!important;
+  padding:9px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions .statusWorkflow{
+  gap:5px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions .statusWorkflow button{
+  min-height:38px!important;
+  padding:7px 8px!important;
+  font-size:9px!important;
+}
+
+/* Informação essencial mais densa. */
+.admWorkspaceMain .orderDetailed .orderInfoGrid{margin-top:6px!important;gap:6px!important}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin{margin-top:6px!important;padding:8px 9px!important}
+.admWorkspaceMain .orderDetailed .sectionTitle{margin-top:8px!important;margin-bottom:3px!important}
+.admWorkspaceMain .orderDetailed .orderItemsBox{margin-top:4px!important}
+.admWorkspaceMain .orderDetailed .orderTotalsBox{margin-top:5px!important}
+
+@media(max-width:520px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{grid-template-columns:1fr 1fr!important}
+  .admWorkspaceMain .orderDetailed .orderInfo{padding:7px 8px!important}
+  .admWorkspaceMain .orderDetailed .orderBody{padding:8px!important}
+}
