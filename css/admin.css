@@ -1083,3 +1083,36 @@ body.teamApp{background:#0d0f12}
   .admManagementNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
   .admManagementNav button{min-height:44px!important;height:auto!important;font-size:10px!important}
 }
+
+/* ===== CASEIRAO ADM MOBILE CLEAN v41 =====
+   Tela operacional: pedidos primeiro. Nao altera Pix, Bluetooth ou regras de negocio. */
+@media(max-width:900px){
+  .admWorkspace>.adminHead{position:sticky!important;top:0!important;z-index:70!important}
+  .admWorkspaceMain{padding:8px 8px calc(70px + env(safe-area-inset-bottom))!important}
+
+  /* Impressora vira uma faixa compacta. Configuracoes so aparecem ao tocar CONFIGURAR. */
+  #caseiraoPrinterPanel.caseiraoPrinterPanel{padding:7px 9px!important;margin:0 0 7px!important}
+  #caseiraoPrinterPanel .printerBarTop{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:5px!important;align-items:center!important}
+  #caseiraoPrinterPanel .printerBarTop>.grow{min-width:0!important}
+  #caseiraoPrinterPanel .printerBarTop b{font-size:11px!important}
+  #caseiraoPrinterPanel .printerState{font-size:9px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #caseiraoPrinterPanel .printerConnect,#caseiraoPrinterPanel .printerConfigToggle{width:auto!important;min-width:0!important;min-height:32px!important;height:32px!important;margin:0!important;padding:5px 7px!important;font-size:8px!important}
+  #caseiraoPrinterPanel .printerConfigGrid{display:none!important;margin-top:7px!important}
+  #caseiraoPrinterPanel .printerConfigGrid.printerConfigOpen{display:grid!important}
+
+  /* Indicadores e ferramentas administrativas saem da frente dos pedidos. */
+  #admContent>.slaStrip,#admContent>.opsTools{display:none!important}
+  #admContent>.operationHint{display:none!important}
+
+  /* Busca, pedido manual e filtros ficam imediatamente antes da lista. */
+  #admContent .proToolbar{margin:0 0 6px!important}
+  #admContent .proFilters{margin-bottom:7px!important}
+
+  /* Barra inferior realmente fixa em cinco espacos. */
+  .admPrimaryNav{grid-template-columns:repeat(5,1fr)!important;height:58px!important;min-height:58px!important;max-height:58px!important;gap:3px!important;padding:5px 4px calc(5px + env(safe-area-inset-bottom))!important;overflow:hidden!important}
+  .admPrimaryNav button[data-tab="pedidos"],.admPrimaryNav button[data-tab="mesas"],.admPrimaryNav button[data-tab="producao"],.admPrimaryNav button[data-tab="entregas"]{height:46px!important;min-height:46px!important;max-height:46px!important;padding:3px 1px!important;font-size:9px!important;overflow:hidden!important}
+  .admManagementToggle{right:4px!important;bottom:calc(5px + env(safe-area-inset-bottom))!important;width:calc(20% - 5px)!important;height:46px!important;min-height:46px!important;max-height:46px!important;padding:0!important;margin:0!important;font-size:0!important;color:transparent!important;white-space:nowrap!important;overflow:hidden!important}
+  .admManagementToggle::after{content:'☰ MAIS'!important;display:block!important;font-size:9px!important;line-height:46px!important;font-weight:950!important;color:#505861!important;text-align:center!important}
+  .admManagementToggle[aria-expanded="true"]::after{content:'× FECHAR'!important}
+  .admManagement{bottom:calc(62px + env(safe-area-inset-bottom))!important}
+}
