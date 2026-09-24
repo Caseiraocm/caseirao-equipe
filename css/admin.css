@@ -1116,3 +1116,19 @@ body.teamApp{background:#0d0f12}
   .admManagementToggle[aria-expanded="true"]::after{content:'× FECHAR'!important}
   .admManagement{bottom:calc(62px + env(safe-area-inset-bottom))!important}
 }
+\n/* ===== CASEIRAO ADM v43 — ajuste cirurgico do botao Mais ===== */
+@media(max-width:900px){
+  .admManagementToggle{
+    font-size:9px!important;
+    font-weight:950!important;
+    line-height:1.1!important;
+    color:#505861!important;
+    text-indent:0!important;
+    opacity:1!important;
+    visibility:visible!important;
+  }
+  .admManagementToggle::before,.admManagementToggle::after{content:none!important;display:none!important}
+  .admManagement.open{display:block!important}
+  .admWorkspaceBody{min-height:0!important}
+  .admWorkspaceMain{min-height:0!important}
+}
