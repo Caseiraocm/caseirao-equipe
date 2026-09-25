@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-delivery-control-v33';
+const CACHE = 'caseirao-equipe-launcher-contrast-v34';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './js/config.js', './js/foundation.js',
