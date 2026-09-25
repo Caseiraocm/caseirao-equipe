@@ -1,10 +1,10 @@
 'use strict';
-/* ===== IMPRESSAO BLUETOOTH AUTOMATICA • 58/80 MM ===== */
+/* ===== IMPRESSAO BLUETOOTH AUTOMATICA • 80 MM ===== */
 const PRINTER_PREF_KEY='caseirao_printer_prefs_v1';
-function printerPrefs(){try{return {...{paper:'58',auto:false},...JSON.parse(localStorage.getItem(PRINTER_PREF_KEY)||'{}')}}catch{return {paper:'58',auto:false}}}
+function printerPrefs(){try{return {...{auto:false},...JSON.parse(localStorage.getItem(PRINTER_PREF_KEY)||'{}'),paper:'80'}}catch{return {paper:'80',auto:false}}}
 function savePrinterPrefs(next){const value={...printerPrefs(),...next};localStorage.setItem(PRINTER_PREF_KEY,JSON.stringify(value));return value}
-function printerPaperWidth(){return printerPrefs().paper==='80'?80:58}
-function printerTextWidth(){return printerPaperWidth()===80?48:32}
+function printerPaperWidth(){return 80}
+function printerTextWidth(){return 48}
 function printerConnected(){return !!(btWriteChar&&btDevice?.gatt?.connected)}
 function printerStatusText(){return printerConnected()?`🟢 CONECTADA • ${btPrinterName||'Impressora Bluetooth'}`:'🔴 DESCONECTADA'}
 function refreshPrinterStatus(){const el=$('#printerState');if(!el)return;el.textContent=printerStatusText();el.className='printerState '+(printerConnected()?'connected':'error')}
@@ -20,7 +20,15 @@ receiptPlain=function(o){
   if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,`CODIGO: ${o.tracking_code||''}`,'','','');return stripAccents(L.join('\n'));
 };
 const receiptBrowserPaperBase=receiptBrowserHtml;
-receiptBrowserHtml=function(o){const mm=printerPaperWidth(),body=mm===80?76:54;return receiptBrowserPaperBase(o).replace('@page{size:58mm auto;margin:2mm}',`@page{size:${mm}mm auto;margin:2mm}`).replace('width:54mm',`width:${body}mm`)};
+receiptBrowserHtml=function(o){return receiptBrowserPaperBase(o)
+  .replace('@page{size:58mm auto;margin:2mm}','@page{size:80mm auto;margin:1.5mm}')
+  .replace('width:54mm','width:77mm')
+  .replace('font-size:10.5px','font-size:13.5px')
+  .replace('line-height:1.3','line-height:1.38')
+  .replace('.title{font-size:16px', '.title{font-size:23px')
+  .replace('.sub,.obs{padding-left:7px;font-size:9px}', '.sub,.obs{padding-left:9px;font-size:12px}')
+  .replace('.big{font-size:14px', '.big{font-size:20px')
+  .replace('<div class="title">O CASEIRÃO BURGER</div>','<div class="title">O CASEIRÃO BURGER</div><b>DESDE 2022</b><div>CAMPO MAIOR – PI</div>')};
 
 const connectBluetoothPrinterStatusBase=connectBluetoothPrinter;
 connectBluetoothPrinter=async function(){try{const name=await connectBluetoothPrinterStatusBase();refreshPrinterStatus();return name}catch(e){refreshPrinterStatus();throw e}};
@@ -35,7 +43,7 @@ printOrderBluetooth=async function(id,sourceOrders=null){return printOrderBlueto
 const renderOrdersPrinterBase=renderOrders;
 renderOrders=function(box){
   const result=renderOrdersPrinterBase(box),bar=box.querySelector('.printerBar');
-  if(bar){const prefs=printerPrefs();bar.innerHTML=`<div class="printerBarTop"><div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div><button id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button></div><div class="printerConfigGrid"><label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label><label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Imprime pedido novo quando o Bluetooth já estiver conectado.</small></span></label><button id="printerTest" class="secondary">IMPRIMIR TESTE</button></div>`;
+  if(bar){const prefs=printerPrefs();bar.innerHTML=`<div class="printerBarTop"><div class="grow"><b>🖨️ Impressora Bluetooth</b><div id="printerState" class="printerState"></div></div><button id="connectPrinter" class="printerConnect">CONECTAR BLUETOOTH</button></div><div class="printerConfigGrid"><label><span>Largura do papel</span><select id="printerPaper" class="sel" disabled><option value="80" selected>80 mm</option></select></label><label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Imprime pedido novo quando o Bluetooth já estiver conectado.</small></span></label><button id="printerTest" class="secondary">IMPRIMIR TESTE</button></div>`;
     $('#connectPrinter').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){refreshPrinterStatus();alert(e.message||String(e))}};
     $('#printerPaper').onchange=e=>{savePrinterPrefs({paper:e.target.value});showAppToast(`Impressora configurada para ${e.target.value} mm.`,'ok')};
     $('#printerAuto').onchange=e=>{savePrinterPrefs({auto:e.target.checked});showAppToast(e.target.checked?'Impressão automática ativada.':'Impressão automática desativada.','ok')};
@@ -116,7 +124,7 @@ function caseiraoPrinterPanelHtml(){
       <button type="button" id="connectPrinter" class="printerConnect">CONECTAR</button>
     </div>
     <div class="printerConfigGrid printerConfigCollapsed">
-      <label><span>Largura do papel</span><select id="printerPaper" class="sel"><option value="58" ${prefs.paper==='58'?'selected':''}>58 mm</option><option value="80" ${prefs.paper==='80'?'selected':''}>80 mm</option></select></label>
+      <label><span>Largura do papel</span><select id="printerPaper" class="sel" disabled><option value="80" selected>80 mm</option></select></label>
       <label class="printerAutoToggle"><input id="printerAuto" type="checkbox" ${prefs.auto?'checked':''}><span><b>Impressão automática</b><small>Pedido novo imprime sozinho após conectar.</small></span></label>
       <button type="button" id="printerTest" class="secondary">IMPRIMIR TESTE</button>
       <div class="printerPending" data-print-pending>Nenhum pedido aguardando impressão</div>
@@ -274,15 +282,36 @@ btWrite=function(bytes){
   return caseiraoPrintV3WritePromise;
 };
 escposBytes=async function(o){
-  const width=printerTextWidth(),hr='-'.repeat(width),L=[];
-  const wr=t=>wrapReceipt(t,width);
-  L.push('O CASEIRAO BURGER',`PEDIDO #${o.order_number}`,new Date(o.created_at).toLocaleString('pt-BR'),hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
-  if(o.type==='delivery')L.push(hr,'ENDERECO:',...wr(orderAddress(o)));
-  L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');
-  for(const it of (o.order_items||[])){L.push(...wr(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));for(const a of (it.order_item_addons||[]))L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`));if(it.note)L.push(...wr(`  OBS: ${it.note}`))}
-  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));
-  L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,'','','');
-  return joinReceiptBytes(new Uint8Array([0x1b,0x40]),new TextEncoder().encode(stripAccents(L.join('\n'))),new Uint8Array([0x0a,0x0a]));
+  const width=48,hr='-'.repeat(width),enc=t=>new TextEncoder().encode(stripAccents(String(t)));
+  const txt=(...lines)=>enc(lines.join('\n')+'\n');
+  const center=new Uint8Array([0x1b,0x61,0x01]),left=new Uint8Array([0x1b,0x61,0x00]);
+  const normal=new Uint8Array([0x1d,0x21,0x00]),tall=new Uint8Array([0x1d,0x21,0x01]),doubleSize=new Uint8Array([0x1d,0x21,0x11]);
+  const boldOn=new Uint8Array([0x1b,0x45,0x01]),boldOff=new Uint8Array([0x1b,0x45,0x00]);
+  const wrap=t=>wrapReceipt(stripAccents(String(t||'')),width);
+  const pair=(label,value)=>{label=stripAccents(String(label));value=stripAccents(String(value));const room=width-label.length-value.length;return room>0?label+' '.repeat(room)+value:label+' '+value};
+  const body=[];
+  body.push(hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
+  if(o.type==='delivery')body.push(hr,'ENDERECO:',...wrap(orderAddress(o)));
+  body.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)body.push(`TROCO PARA: ${o.change_for}`);
+  body.push(hr,'ITENS:');
+  for(const it of (o.order_items||[])){
+    const itemName=`${it.quantity||1}x ${it.product_name||'Item'}`,price=fmt(it.line_total||0);
+    if(itemName.length+price.length+1<=width)body.push(pair(itemName,price));else body.push(...wrap(itemName),pair('',price));
+    for(const a of (it.order_item_addons||[]))body.push(...wrap(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`));
+    if(it.note)body.push(...wrap(`  OBS: ${it.note}`));
+  }
+  if(o.notes)body.push(hr,'OBSERVACOES:',...wrap(o.notes));
+  const totals=[hr,pair('SUBTOTAL',fmt(o.subtotal))];
+  if(Number(o.delivery_fee||0))totals.push(pair('ENTREGA',fmt(o.delivery_fee)));
+  if(Number(o.delivery_discount||0))totals.push(pair('DESC. ENTREGA',`-${fmt(o.delivery_discount)}`));
+  if(Number(o.discount||0))totals.push(pair('DESCONTO',`-${fmt(o.discount)}`));
+  return joinReceiptBytes(
+    new Uint8Array([0x1b,0x40]),center,boldOn,doubleSize,txt('O CASEIRAO BURGER'),
+    normal,txt('DESDE 2022','CAMPO MAIOR - PI',''),doubleSize,txt(`PEDIDO #${o.order_number}`),
+    normal,boldOff,txt(new Date(o.created_at).toLocaleString('pt-BR')),left,tall,txt(...body),
+    normal,boldOn,txt(...totals),center,doubleSize,txt(`TOTAL ${fmt(o.total)}`),
+    normal,boldOff,left,txt(hr,'','','')
+  );
 };
 printOrderBluetoothAuto=async function(id,sourceOrders=null,silent=false){
   let o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));
