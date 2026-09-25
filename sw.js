@@ -1,5 +1,11 @@
-const CACHE = 'caseirao-equipe-v45';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'caseirao-equipe-profissional-v1';
+const APP_SHELL = [
+  './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './css/base.css', './css/admin.css', './js/config.js', './js/foundation.js',
+  './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
+  './js/operations.js', './js/management.js', './js/runtime-bridge.js',
+  './js/printing.js', './js/admin-ui.js'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)));
