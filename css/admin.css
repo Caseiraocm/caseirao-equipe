@@ -1264,3 +1264,59 @@ body.teamApp{background:var(--light-bg)!important;color:var(--light-text)!import
 .admWorkspaceMain .in,.admWorkspaceMain .sel,.admWorkspaceMain .ta,.deliveryLogin .in,.driverOrder .in{background:#fff!important;border-color:#cfd3d8!important;color:var(--light-text)!important}.admWorkspaceMain .field>label{color:#555d66!important}.admWorkspaceMain .secondary,.driverScreenNew .secondary{background:#f2f3f5!important;border-color:#d5d8dc!important;color:#33383e!important}.admWorkspaceMain .secondary.danger,.driverScreenNew .secondary.danger{background:#fff2f3!important;border-color:#edc0c4!important;color:#a32e36!important}.admWorkspaceMain .notice{background:#eef6ff!important;border-color:#c9dcef!important;color:#315b80!important}.admWorkspaceMain .err{background:#fff0f1!important;border-color:#edc0c4!important;color:#a32e36!important}
 .admLoginPremium{background:var(--light-bg)!important}.admLoginPremium .loginbox{background:#fff!important;border-color:var(--light-line)!important;color:var(--light-text)!important;box-shadow:0 18px 45px rgba(25,30,36,.12)!important}
 @media(max-width:900px){.admWorkspace,.admWorkspace>.admbar{background:var(--light-bg)!important}.admManagement{background:#f1f2f4!important;border-color:var(--light-line)!important}.admManagementNav button{background:#fff!important;border-color:var(--light-line)!important;color:#555d66!important}.admPrimaryNav{background:#fff!important;border-top-color:var(--light-line)!important;box-shadow:0 -5px 18px rgba(25,30,36,.09)!important}}
+
+/* CASEIRÃO EQUIPE — LAUNCHER CONTRASTE v3.4
+   Isola a tela de acessos do restante do tema e elimina regras antigas que
+   deixavam os textos brancos sobre cartões claros. */
+body.teamApp #teamHome.teamLauncher{
+  background:
+    radial-gradient(circle at 18% 8%,rgba(246,185,30,.14),transparent 34%),
+    radial-gradient(circle at 88% 92%,rgba(246,185,30,.07),transparent 30%),
+    #090a0c!important;
+  color:#fff!important;
+}
+body.teamApp #teamHome .teamLauncherCard{
+  border:1px solid rgba(246,185,30,.20)!important;
+  background:linear-gradient(145deg,#191a1e,#0e0f12)!important;
+  color:#fff!important;
+  box-shadow:0 30px 85px rgba(0,0,0,.52)!important;
+}
+body.teamApp #teamHome .teamLauncherIntro{border-bottom-color:rgba(255,255,255,.10)!important}
+body.teamApp #teamHome .teamLauncherIntro h1{color:#fff!important;-webkit-text-fill-color:#fff!important}
+body.teamApp #teamHome .teamLauncherIntro p{color:#b9bec5!important;-webkit-text-fill-color:#b9bec5!important}
+body.teamApp #teamHome .teamLauncherKicker{color:#f6b91e!important}
+body.teamApp #teamHome .teamAccessGrid .teamChoice,
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn,
+body.teamApp #teamHome .teamAccessGrid #teamDriverBtn{
+  border-color:rgba(255,255,255,.13)!important;
+  background:linear-gradient(145deg,#202126,#15161a)!important;
+  color:#fff!important;
+  opacity:1!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.22)!important;
+}
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn{
+  border-color:rgba(246,185,30,.38)!important;
+  background:linear-gradient(135deg,#2b2615,#18191d 66%)!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice:hover,
+body.teamApp #teamHome .teamAccessGrid .teamChoice:focus-visible{
+  border-color:#f6b91e!important;
+  background:linear-gradient(145deg,#29291f,#1a1b1f)!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoiceIcon{
+  background:#2b2c31!important;
+  color:#f6b91e!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice strong{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice small{
+  color:#c4c8ce!important;
+  -webkit-text-fill-color:#c4c8ce!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamInstall{color:#f6b91e!important;-webkit-text-fill-color:#f6b91e!important}
+body.teamApp #teamHome .teamVersion{color:#858b93!important;-webkit-text-fill-color:#858b93!important}
