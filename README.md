@@ -2,6 +2,8 @@
 
 Aplicativo interno da equipe, Central ADM, mesas, produção, caixa e entregas do O Caseirão Burger.
 
+Versão visual: **Signature Premium 3.0**, padronizada com o Delivery.
+
 ## Estrutura ativa
 
 - `index.html`: entrada única do aplicativo.
@@ -21,3 +23,13 @@ Aplicativo interno da equipe, Central ADM, mesas, produção, caixa e entregas d
 - `sw.js`: instalação e atualização do PWA.
 
 Arquivos antigos, cópias repetidas e versões que não eram carregadas pelo `index.html` foram retirados deste pacote.
+
+## Central de entregas
+
+- Cadastro, bloqueio e exclusão de entregadores.
+- Atribuição do pedido com registro do troco levado.
+- Acompanhamento de rota, GPS, horários e problemas.
+- Remoção da entrega da rota antes da conclusão.
+- Impressão ou reimpressão dentro da própria Central de Entregas.
+- Registro do dinheiro recebido, troco devolvido, retorno e acerto.
+- Fechamento por entregador, bairro e ajuda de gasolina.
