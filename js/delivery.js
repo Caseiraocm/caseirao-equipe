@@ -9,8 +9,12 @@ const driverAppStyle=document.createElement('style');driverAppStyle.textContent=
 let deliveryHub=null,driverSnapshot=null,driverLocationWatch=null,driverLocationTimer=null;
 const driverTokenKey='caseirao_driver_token';
 const internalResumeKey='caseirao_internal_resume';
+const deliveryClearedKey='caseirao_delivery_cleared_records_v33';
 function setInternalResume(area){try{sessionStorage.setItem(internalResumeKey,area)}catch{}}
 function clearInternalResume(){try{sessionStorage.removeItem(internalResumeKey)}catch{}}
+function deliveryClearedRecords(){try{const saved=JSON.parse(localStorage.getItem(deliveryClearedKey)||'{}');return{orders:Array.isArray(saved.orders)?saved.orders.map(String):[],assignments:Array.isArray(saved.assignments)?saved.assignments.map(String):[],cleared_at:saved.cleared_at||''}}catch{return{orders:[],assignments:[],cleared_at:''}}}
+function saveDeliveryClearedRecords(records){try{localStorage.setItem(deliveryClearedKey,JSON.stringify(records))}catch{}}
+function visibleDeliverySnapshot(snapshot){const cleared=deliveryClearedRecords(),orders=new Set(cleared.orders),assignments=new Set(cleared.assignments);return{...snapshot,orders:(snapshot.orders||[]).filter(o=>!orders.has(String(o.id))),assignments:(snapshot.assignments||[]).filter(a=>!assignments.has(String(a.id))&&!orders.has(String(a.order_id)))}}
 async function driverAppApi(action,payload={},adminMode=false){const body={action,payload};if(adminMode)body.pin=sessionStorage.getItem('caseirao_admin_pin')||'';else body.token=localStorage.getItem(driverTokenKey)||'';return api('driver-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})}
 const deliveryStatusLabel=s=>({assigned:'Aguardando saída',route:'Em rota',arrived:'No cliente',delivered:'Entregue',problem:'Problema',returned:'Retornou',settled:'Acertado'}[s]||s);
 const safeMapsLink=o=>`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderAddress(o))}`;
@@ -24,7 +28,7 @@ function deliveryTimesHtml(a){
   return parts.length?`<div class="deliveryTimes">${parts.join('')}</div>`:'';
 }
 
-async function loadDeliveryHub(){deliveryHub=await driverAppApi('admin_snapshot',{},true);return deliveryHub}
+async function loadDeliveryHub(){deliveryHub=visibleDeliverySnapshot(await driverAppApi('admin_snapshot',{},true));return deliveryHub}
 async function renderDeliveryHub(box){
   try{box.innerHTML='<div class="notice">Carregando controle de entregas...</div>';await loadDeliveryHub();
     const active=(deliveryHub.assignments||[]).filter(a=>a.status!=='settled'),settled=(deliveryHub.assignments||[]).filter(a=>a.status==='settled').slice(0,10),assignedIds=new Set(active.map(a=>a.order_id));
@@ -263,5 +267,63 @@ async function restoreInternalAreaAfterReload(){
 
 setTimeout(restoreInternalAreaAfterReload,180);
 
-const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/)||[])[1]||'');if(driverToken)setTimeout(()=>openDriverTracking(driverToken),100);
+/* CASEIRÃO ENTREGAS — CONTROLE TOTAL DO EXPEDIENTE 3.3 */
+const deliveryControlStyle=document.createElement('style');deliveryControlStyle.textContent=`
+.deliveryControlPanel{margin:12px 0;border:1px solid #efc9bd;background:#fff8f5;border-radius:17px;padding:14px}.deliveryControlPanelHead{display:flex;align-items:center;gap:10px;margin-bottom:9px}.deliveryControlPanelIcon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#fff0e9}.deliveryControlPanel h3{margin:0;font-size:16px}.deliveryControlPanel p{margin:3px 0 0;color:#6d747c;font-size:11px}.deliveryControlPanel button{margin-top:8px}.deliveryEditHint{margin:10px 0;color:#68717a;font-size:11px;line-height:1.45}.deliveryControlDanger{background:#fff!important;color:#a72d35!important;border-color:#e4aeb2!important}.deliveryControlDanger:hover{background:#fff1f1!important}
+`;document.head.appendChild(deliveryControlStyle);
 
+function openDeliveryControlEditor(assignment){
+  if(!assignment)return;
+  const order=assignment.orders||{},drivers=(deliveryHub?.drivers||[]).filter(d=>d.active||String(d.id)===String(assignment.driver_id));
+  modal(`<div class="sheeth"><div><h2>Editar entrega #${esc(order.order_number||'')}</h2><div class="adminSub">Controle antes da saída do entregador</div></div><button class="x" id="backDeliveryControl">←</button></div>
+  <div class="notice"><b>${esc(order.customer_name||'Cliente')}</b><br>${esc(orderAddress(order))}<br>${esc(paymentLabel(order.payment))} • ${fmt(order.total)}</div>
+  <div class="field"><label>Entregador responsável</label><select id="deliveryControlDriver" class="sel">${drivers.map(d=>`<option value="${d.id}" ${String(d.id)===String(assignment.driver_id)?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
+  <div class="field"><label>Troco que o entregador vai levar</label><input id="deliveryControlChange" class="in" inputmode="decimal" value="${Number(assignment.change_float||0).toFixed(2).replace('.',',')}"></div>
+  <details class="deliveryOrderDetails" open><summary><span>Comanda completa</span><b>CONFERIR</b></summary><div class="deliveryOrderDetailsBody"><div class="orderItemsBox">${orderItemsHtml(order)}</div>${order.notes?`<div class="notesBoxAdmin"><b>Observações</b>${esc(order.notes)}</div>`:'<div class="mini">Sem observações.</div>'}</div></details>
+  <button id="saveDeliveryControl" class="primary">SALVAR ALTERAÇÕES</button>
+  <div class="deliveryEditHint">Esta alteração troca o entregador e o valor de troco da rota sem modificar o valor original da venda.</div>`,true);
+  $('#backDeliveryControl').onclick=()=>{adminTab='entregas';renderAdmin()};
+  $('#saveDeliveryControl').onclick=async()=>{
+    const button=$('#saveDeliveryControl'),driverId=$('#deliveryControlDriver').value,change=Math.max(0,num($('#deliveryControlChange').value));
+    if(!driverId)return alert('Selecione o entregador.');
+    if(!confirm('Salvar o novo entregador e o novo valor de troco?'))return;
+    try{
+      button.disabled=true;button.textContent='SALVANDO...';
+      await driverAppApi('admin_unassign',{assignment_id:assignment.id},true);
+      await driverAppApi('admin_assign',{order_id:assignment.order_id||order.id,driver_id:driverId,change_float:change},true);
+      adminTab='entregas';renderAdmin();showAppToast('Entrega atualizada.','ok');
+    }catch(error){button.disabled=false;button.textContent='SALVAR ALTERAÇÕES';alert(`Não foi possível concluir a alteração: ${error.message}`)}
+  };
+}
+
+async function clearDeliveryCenterV33(){
+  const snapshot=deliveryHub||{orders:[],assignments:[]},orderCount=(snapshot.orders||[]).length,assignmentCount=(snapshot.assignments||[]).length;
+  if(!orderCount&&!assignmentCount)return alert('A central já está vazia.');
+  if(!confirm(`APAGAR E ZERAR TODA A CENTRAL?\n\nSerão retiradas da tela ${orderCount} comandas e ${assignmentCount} registros de rota atuais. Pedidos novos continuarão aparecendo normalmente.`))return;
+  if(!confirm('Confirme mais uma vez: deseja iniciar um novo expediente com a tela de entregas vazia?'))return;
+  const buttons=[...document.querySelectorAll('[data-clear-delivery-center],#resetDriverDeliveries')];
+  try{
+    buttons.forEach(b=>{b.disabled=true;b.textContent='LIMPANDO TUDO...'});
+    for(const assignment of snapshot.assignments||[]){
+      if(!['delivered','returned','settled'].includes(assignment.status)){try{await driverAppApi('admin_unassign',{assignment_id:assignment.id},true)}catch{}}
+    }
+    try{await driverAppApi('admin_reset_deliveries',{},true)}catch{}
+    const previous=deliveryClearedRecords();
+    saveDeliveryClearedRecords({orders:[...new Set([...previous.orders,...(snapshot.orders||[]).map(o=>String(o.id))])],assignments:[...new Set([...previous.assignments,...(snapshot.assignments||[]).map(a=>String(a.id))])],cleared_at:new Date().toISOString()});
+    await loadDeliveryHub();const box=$('#admContent');if(box)await renderDeliveryHub(box);
+    showAppToast('Central zerada. Novo expediente iniciado.','ok');
+  }catch(error){alert(error.message||'Não foi possível limpar a central.');buttons.forEach(b=>b.disabled=false)}
+}
+
+resetDriverDeliveries=clearDeliveryCenterV33;
+const renderDeliveryHubControlBase=renderDeliveryHub;
+renderDeliveryHub=async function(box){
+  await renderDeliveryHubControlBase(box);if(!box||!deliveryHub)return;
+  const settings=document.createElement('section');settings.className='deliveryControlPanel';settings.innerHTML=`<div class="deliveryControlPanelHead"><span class="deliveryControlPanelIcon">⚙️</span><div><h3>Configurações das entregas</h3><p>Editar rotas, controlar troco e limpar o expediente.</p></div></div><button class="secondary deliveryControlDanger" data-clear-delivery-center>🗑 APAGAR E ZERAR TUDO</button>`;
+  const hint=box.querySelector('.operationHint');hint?hint.after(settings):box.prepend(settings);
+  settings.querySelector('[data-clear-delivery-center]').onclick=clearDeliveryCenterV33;
+  const visibleAssignments=[...(deliveryHub.assignments||[]).filter(a=>a.status!=='settled'),...(deliveryHub.assignments||[]).filter(a=>a.status==='settled').slice(0,10)];
+  box.querySelectorAll('.deliveryOperationalCard').forEach((card,index)=>{const assignment=visibleAssignments[index];if(!assignment||['delivered','returned','settled'].includes(assignment.status))return;const actions=card.querySelector('.deliveryActions');if(!actions||actions.querySelector('[data-edit-delivery-control]'))return;const button=document.createElement('button');button.type='button';button.className='primary';button.dataset.editDeliveryControl=assignment.id;button.textContent='✎ EDITAR ENTREGA';button.onclick=()=>openDeliveryControlEditor(assignment);actions.prepend(button)});
+};
+
+const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/)||[])[1]||'');if(driverToken)setTimeout(()=>openDriverTracking(driverToken),100);
