@@ -180,10 +180,35 @@ function escposQrBytes(value){
  )
 }
 async function escposBytes(o){
- const body=new TextEncoder().encode(receiptPlain(o)),head=new Uint8Array([0x1b,0x40]);
- let logo=new Uint8Array();try{logo=await receiptLogoRasterBytes()}catch(e){}
- const qr=escposQrBytes('https://caseiraopedidos.api.br'),tail=new Uint8Array([0x0a,0x0a,0x0a]);
- return joinReceiptBytes(head,logo,body,new Uint8Array([0x0a]),qr,tail)
+ const enc=t=>new TextEncoder().encode(stripAccents(String(t??'')));
+ const cmd=(...n)=>new Uint8Array(n);
+ const nl=()=>enc('\n');
+ const width=printerPaperWidth()===80?48:32;
+ const hr='-'.repeat(width);
+ const center=cmd(0x1b,0x61,0x01),left=cmd(0x1b,0x61,0x00),boldOn=cmd(0x1b,0x45,0x01),boldOff=cmd(0x1b,0x45,0x00);
+ const normal=cmd(0x1d,0x21,0x00),doubleH=cmd(0x1d,0x21,0x01),double=cmd(0x1d,0x21,0x11);
+ const parts=[cmd(0x1b,0x40),center,boldOn,doubleH,enc('O CASEIRAO BURGER'),nl(),normal,boldOff,enc('DESDE 2022'),nl(),enc('CAMPO MAIOR - PI'),nl(),nl(),boldOn,double,enc(`PEDIDO #${o.order_number}`),nl(),normal,boldOff,enc(new Date(o.created_at).toLocaleString('pt-BR')),nl(),left,enc(hr),nl()];
+ const line=t=>{parts.push(enc(t),nl())};
+ line(`CLIENTE: ${o.customer_name||''}`);line(`FONE: ${o.customer_phone||''}`);
+ parts.push(boldOn,doubleH);line(`TIPO: ${orderTypeLabel(o.type)}`);parts.push(normal,boldOff);
+ if(o.type==='delivery'){parts.push(enc(hr),nl(),boldOn);line('ENDERECO:');parts.push(boldOff);wrapReceipt(orderAddress(o),width).forEach(line)}
+ parts.push(enc(hr),nl(),boldOn,doubleH);line(`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)line(`TROCO PARA: ${o.change_for}`);parts.push(normal,boldOff,enc(hr),nl(),boldOn);line('ITENS:');parts.push(boldOff);
+ (o.order_items||[]).forEach(it=>{
+   const qty=Number(it.quantity||1),name=String(it.product_name||'Item'),price=fmt(it.line_total||Number(it.unit_price||0)*qty);
+   const priceText=String(price),avail=Math.max(8,width-priceText.length-1),nameLines=wrapReceipt(`${qty}x ${name}`,avail);
+   nameLines.forEach((txt,i)=>{if(i===nameLines.length-1)line(txt.padEnd(width-priceText.length,' ')+priceText);else line(txt)});
+   (it.order_item_addons||[]).forEach(a=>wrapReceipt(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`,width).forEach(line));
+   if(it.note)wrapReceipt(`  OBS: ${it.note}`,width).forEach(line);
+ });
+ if(o.notes){parts.push(enc(hr),nl(),boldOn);line('OBSERVACOES:');parts.push(boldOff);wrapReceipt(o.notes,width).forEach(line)}
+ parts.push(enc(hr),nl());line(`SUBTOTAL`.padEnd(width-String(fmt(o.subtotal)).length,' ')+fmt(o.subtotal));
+ if(Number(o.delivery_fee||0)){const v=fmt(o.delivery_fee);line('ENTREGA'.padEnd(width-v.length,' ')+v)}
+ if(Number(o.delivery_discount||0)){const v='-'+fmt(o.delivery_discount);line('DESC. ENTREGA'.padEnd(width-v.length,' ')+v)}
+ if(Number(o.discount||0)){const v='-'+fmt(o.discount);line('DESCONTO'.padEnd(width-v.length,' ')+v)}
+ parts.push(enc(hr),nl(),center,boldOn,double);line(`TOTAL ${fmt(o.total)}`);parts.push(normal,boldOff,enc(hr),nl());
+ parts.push(center,enc('PECA NOVAMENTE PELO NOSSO SISTEMA:'),nl(),boldOn,enc('caseiraopedidos.api.br'),nl(),boldOff);
+ const qr=escposQrBytes('https://caseiraopedidos.api.br');
+ return joinReceiptBytes(...parts,qr,nl(),nl(),nl())
 }
 async function printOrderBluetooth(id,sourceOrders=null){const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');try{setPrinterState('Enviando os dados do pedido para a impressora...');await btWrite(await escposBytes(o));setPrinterState(`Pedido #${o.order_number} enviado para ${btPrinterName||'impressora'}.`,'connected')}catch(e){setPrinterState(e.message||String(e),'error');alert((e.message||String(e))+'\n\nVocê ainda pode usar o botão “Imprimir pedido”, que abre a impressão normal do Chrome.') }}
 function bindPrintButtons(sourceOrders=null){document.querySelectorAll('[data-webprint]').forEach(b=>b.onclick=()=>printOrderBrowser(b.dataset.webprint,sourceOrders));document.querySelectorAll('[data-btprint]').forEach(b=>b.onclick=()=>printOrderBluetooth(b.dataset.btprint,sourceOrders))}
@@ -2062,7 +2087,7 @@ Object.assign(window,{api,customerWhatsAppNumber,esc,$,num,showAppToast});
 
 /* ===== IMPRESSAO BLUETOOTH AUTOMATICA • 58/80 MM ===== */
 const PRINTER_PREF_KEY='caseirao_printer_prefs_v1';
-function printerPrefs(){try{return {...{paper:'58',auto:false},...JSON.parse(localStorage.getItem(PRINTER_PREF_KEY)||'{}')}}catch{return {paper:'58',auto:false}}}
+function printerPrefs(){try{return {...{paper:'80',auto:false},...JSON.parse(localStorage.getItem(PRINTER_PREF_KEY)||'{}')}}catch{return {paper:'80',auto:false}}}
 function savePrinterPrefs(next){const value={...printerPrefs(),...next};localStorage.setItem(PRINTER_PREF_KEY,JSON.stringify(value));return value}
 function printerPaperWidth(){return printerPrefs().paper==='80'?80:58}
 function printerTextWidth(){return printerPaperWidth()===80?48:32}
