@@ -1,0 +1,1322 @@
+/* ===== caseirao-adm-rebuild-v31 ===== */
+/* Reconstrução integral da navegação do aplicativo interno. */
+body.teamApp{background:#0d0f12}
+.teamLauncher{background:radial-gradient(circle at 18% 10%,rgba(232,95,29,.18),transparent 35%),radial-gradient(circle at 88% 84%,rgba(242,181,88,.09),transparent 32%),#0d0f12!important;padding:26px!important}
+.teamLauncherCard{width:min(100%,1040px)!important;max-width:1040px!important;padding:30px!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:30px!important;background:linear-gradient(145deg,rgba(29,32,37,.97),rgba(15,17,20,.98))!important;box-shadow:0 32px 90px rgba(0,0,0,.42)!important}
+.teamLauncherIntro{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:17px;align-items:center;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.teamLauncherIntro .teamLogo{margin:0!important;width:76px!important;height:76px!important;border-radius:23px!important;font-size:28px!important;box-shadow:0 14px 34px rgba(230,95,31,.28)!important}.teamLauncherIntro h1{margin:0!important;font-size:31px!important;text-align:left!important}.teamLauncherIntro p{margin:5px 0 0!important;text-align:left!important;color:#aeb5bd!important}.teamLauncherKicker{display:block;margin-bottom:6px;color:#f19a67;font-size:10px;font-weight:1000;letter-spacing:.14em}.teamLauncherLive{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #315c42;border-radius:999px;background:#172a1f;color:#87e1aa;font-size:10px;font-weight:950}.teamLauncherLive:before{content:'';width:8px;height:8px;border-radius:50%;background:#42d47a;box-shadow:0 0 0 5px rgba(66,212,122,.1)}
+.teamAccessGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}.teamAccessGrid .teamChoice{position:relative;margin:0!important;min-height:104px;padding:18px!important;border-color:#30353d!important;background:linear-gradient(145deg,#20242a,#171a1f)!important}.teamAccessGrid .teamChoice:hover{border-color:#e76620!important;transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.23)}.teamAccessGrid #teamAdminBtn{grid-column:1/-1;min-height:120px;border-color:#754323!important;background:linear-gradient(135deg,#2c1e16,#191b20 64%)!important}.teamAccessGrid #teamAdminBtn:after{content:'ACESSO PRINCIPAL';position:absolute;right:15px;top:14px;padding:6px 8px;border-radius:999px;background:#e76520;color:#fff;font-size:8px;font-weight:1000;letter-spacing:.08em}.teamAccessGrid .teamChoiceIcon{width:52px!important;height:52px!important;flex-basis:52px!important;border-radius:16px!important}.teamAccessGrid strong{font-size:17px!important}.teamInstall{margin-top:16px!important;border-radius:13px!important}.teamVersion{margin-top:18px!important}
+.admWorkspace{display:flex!important;flex-direction:column!important;width:min(100%,1500px)!important;max-width:1500px!important;height:min(96dvh,1050px)!important;max-height:96dvh!important;padding:0!important;border-radius:26px!important;background:#f2f4f6!important;overflow:hidden!important;box-shadow:0 34px 100px rgba(0,0,0,.44)!important}.admWorkspace>.adminHead{position:relative;z-index:20;top:0!important;flex:0 0 auto;min-height:78px;margin:0!important;padding:17px 22px!important;border-bottom:1px solid #2c3036!important;background:linear-gradient(135deg,#22262c,#111317)!important;color:#fff!important}.admWorkspace>.adminHead h2{color:#fff!important;font-size:24px!important}.admWorkspace>.adminHead .adminSub{color:#aeb5bd!important}.admWorkspace>.adminHead .x,.admWorkspace>.adminHead .adminLogout{border-color:#3e444c!important;background:#2a2f36!important;color:#fff!important}
+.admWorkspace>.compactMetrics{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:0!important;margin:0!important;border-bottom:1px solid #dce0e4;background:#fff}.admWorkspace>.compactMetrics .metric{min-height:78px;margin:0!important;padding:14px 18px!important;border:0!important;border-right:1px solid #e4e7ea!important;border-radius:0!important;box-shadow:none!important;background:#fff!important}.admWorkspace>.compactMetrics .metric:before{display:none!important}.admWorkspace>.compactMetrics .metric b{font-size:21px!important}.admWorkspace>.paymentMetrics{display:none!important}
+.admWorkspace>.admbar{position:relative!important;top:auto!important;display:block!important;flex:1 1 auto;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:#f2f4f6!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:none!important}.admPrimaryNav{position:sticky;z-index:18;top:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:11px 14px;border-bottom:1px solid #d9dde1;background:rgba(248,249,250,.96);backdrop-filter:blur(16px)}.admPrimaryNav button{min-height:54px!important;padding:9px 7px!important;border:1px solid #dde1e5!important;border-radius:13px!important;background:#fff!important;color:#4e5660!important;font-size:11px!important;font-weight:950!important;white-space:normal!important;line-height:1.15!important}.admPrimaryNav button.on{border-color:#20242a!important;background:#20242a!important;color:#fff!important;box-shadow:0 7px 17px rgba(20,24,29,.16)!important}.admPrimaryNav [data-tab="mesas"]{border-color:#cfc6ee!important;background:#f7f4ff!important;color:#5f4da1!important}.admPrimaryNav [data-tab="cashback"]{border-color:#efcf9c!important;background:#fff8e9!important;color:#98500e!important}.admPrimaryNav [data-tab="mesas"].on{background:#6753ae!important;color:#fff!important}.admPrimaryNav [data-tab="cashback"].on{background:#b85a13!important;color:#fff!important}
+.admWorkspaceBody{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:0}.admManagement{position:sticky;top:76px;align-self:start;height:calc(96vh - 235px);overflow:auto;padding:15px 11px;border-right:1px solid #dadee2;background:#e9ecef}.admManagementTitle{padding:3px 8px 11px;color:#767e87;font-size:9px;font-weight:1000;letter-spacing:.11em}.admManagementNav{display:grid;gap:5px}.admManagementNav button{width:100%;min-height:43px!important;padding:10px 12px!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#4f5760!important;text-align:left!important;font-size:11px!important;font-weight:900!important}.admManagementNav button:hover{background:#fff!important}.admManagementNav button.on{border-color:#d9dde1!important;background:#fff!important;color:#d65618!important;box-shadow:0 4px 13px rgba(25,30,36,.06)!important}.admManagementToggle{display:none}.admWorkspaceMain{min-width:0;padding:16px 18px 36px;background:#f6f7f8}.admWorkspaceMain>#admContent{max-width:1120px;margin:0 auto}.admWorkspaceMain .operationHint{margin-top:0!important}.admWorkspaceMain .commandGrid{grid-template-columns:1.15fr .85fr!important}.admWorkspaceMain .orderDetailed,.admWorkspaceMain .kitchenCard,.admWorkspaceMain .reportBreak,.admWorkspaceMain .cashbackConfig,.admWorkspaceMain .cashbackCustomers{box-shadow:0 5px 18px rgba(27,33,39,.055)!important}
+.admLoginPremium{display:grid!important;place-items:center!important;min-height:70vh}.admLoginPremium .loginbox{width:min(100%,430px);margin:0!important;padding:25px;border:1px solid #dde1e5;border-radius:22px;background:#fff;box-shadow:0 18px 48px rgba(19,24,29,.13)}.admLoginBrand{display:grid;place-items:center;width:62px;height:62px;margin:0 auto 15px;border-radius:19px;background:linear-gradient(145deg,#f17832,#c94812);color:#fff;font-size:22px;font-weight:1000;box-shadow:0 10px 24px rgba(211,74,17,.25)}
+@media(max-width:900px){.teamLauncherCard{max-width:680px!important}.teamAccessGrid{grid-template-columns:1fr}.teamAccessGrid #teamAdminBtn{grid-column:auto}.overlay:has(.admWorkspace){align-items:stretch!important;padding:0!important}.admWorkspace{display:block!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}.admWorkspace>.adminHead{position:relative!important;top:0!important;min-height:calc(68px + env(safe-area-inset-top));margin:0!important;padding:calc(12px + env(safe-area-inset-top)) 13px 12px!important}.admWorkspace>.adminHead h2{font-size:19px!important;line-height:1.15!important}.admWorkspace>.compactMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .metric{min-height:66px;padding:10px 12px!important}.admWorkspace>.compactMetrics .metric b{font-size:17px!important}.admWorkspace>.admbar{min-height:auto!important;overflow:visible!important;touch-action:pan-y}.admPrimaryNav{position:sticky;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px}.admPrimaryNav button{min-height:48px!important;font-size:10px!important}.admWorkspaceBody{display:block;min-height:0}.admManagement{position:relative;top:auto;height:auto;display:none;padding:9px;border-right:0;border-bottom:1px solid #dadee2}.admManagement.open{display:block}.admManagementTitle{display:none}.admManagementNav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.admManagementNav button{text-align:center!important;background:#fff!important;border-color:#dfe3e7!important}.admManagementToggle{display:flex;align-items:center;justify-content:center;width:calc(100% - 16px);min-height:42px;margin:8px;border:1px solid #d9dde2;border-radius:11px;background:#fff;color:#505861;font-size:11px;font-weight:950}.admWorkspaceMain{padding:11px 10px calc(88px + env(safe-area-inset-bottom))}.admWorkspaceMain .commandGrid{grid-template-columns:1fr!important}}
+@media(max-width:540px){.teamLauncher{padding:13px!important}.teamLauncherCard{padding:19px 14px!important;border-radius:24px!important}.teamLauncherIntro{grid-template-columns:58px minmax(0,1fr);gap:12px;padding-bottom:17px}.teamLauncherIntro .teamLogo{width:58px!important;height:58px!important;border-radius:18px!important;font-size:21px!important}.teamLauncherIntro h1{font-size:23px!important}.teamLauncherLive{grid-column:1/-1;width:max-content}.teamAccessGrid{margin-top:14px;gap:9px}.teamAccessGrid .teamChoice,.teamAccessGrid #teamAdminBtn{min-height:91px!important;padding:14px!important}.teamAccessGrid #teamAdminBtn:after{display:none}.admWorkspace>.compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admWorkspace>.compactMetrics .storeMetric{grid-column:auto!important}.admPrimaryNav{grid-template-columns:repeat(4,minmax(0,1fr))}.admPrimaryNav button{padding:7px 4px!important;font-size:9px!important}.admManagementNav{grid-template-columns:repeat(2,minmax(0,1fr))}.admWorkspaceMain{padding-left:8px;padding-right:8px}.admWorkspaceMain .compactMetrics,.admWorkspaceMain .admgrid{grid-template-columns:1fr 1fr!important}}
+
+
+/* ===== CASEIRAO ADM — DESIGN SYSTEM CONSOLIDADO =====
+   Camada visual principal. Mantém as classes e fluxos existentes.
+   Objetivo: desktop profissional, leitura rápida e operação sem poluição. */
+.admWorkspace{
+  --adm-bg:#f3f5f7;
+  --adm-surface:#ffffff;
+  --adm-surface-2:#f8f9fa;
+  --adm-border:#dfe3e7;
+  --adm-text:#20242a;
+  --adm-muted:#69717b;
+  --adm-orange:#e66020;
+  --adm-orange-dark:#c44710;
+  --adm-green:#208a50;
+  --adm-red:#c83b43;
+  --adm-blue:#17689d;
+  --adm-purple:#6254b5;
+  color:var(--adm-text)!important;
+}
+.admWorkspaceMain{background:var(--adm-bg)!important;color:var(--adm-text)!important}
+.admWorkspaceMain #admContent{color:var(--adm-text)!important}
+.admWorkspaceMain .sectionTitle{
+  margin:20px 0 10px!important;
+  color:#252a30!important;
+  font-size:14px!important;
+  font-weight:950!important;
+  letter-spacing:-.01em;
+}
+.admWorkspaceMain .proToolbar{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center;
+  gap:9px!important;
+}
+.admWorkspaceMain .proToolbar .in,
+.admWorkspaceMain .search,
+.admWorkspaceMain .in,
+.admWorkspaceMain .sel,
+.admWorkspaceMain .ta{
+  min-height:46px;
+  border:1px solid var(--adm-border)!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  -webkit-text-fill-color:var(--adm-text)!important;
+  box-shadow:0 1px 2px rgba(24,30,37,.03);
+}
+.admWorkspaceMain .proToolbar .primary{
+  width:auto!important;
+  min-width:150px;
+  min-height:46px;
+  padding:11px 16px!important;
+}
+.admWorkspaceMain .proFilters{
+  gap:7px!important;
+  padding:2px 0 10px!important;
+  scrollbar-width:none;
+}
+.admWorkspaceMain .proFilters::-webkit-scrollbar{display:none}
+.admWorkspaceMain .proFilters button{
+  min-height:38px!important;
+  padding:8px 13px!important;
+  border:1px solid var(--adm-border)!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:#5b636d!important;
+  box-shadow:none!important;
+}
+.admWorkspaceMain .proFilters button.on{
+  border-color:var(--adm-orange)!important;
+  background:var(--adm-orange)!important;
+  color:#fff!important;
+}
+.admWorkspaceMain .operationHint{
+  margin:0 0 12px!important;
+  padding:10px 12px!important;
+  border:1px solid #efd7c8!important;
+  border-left:4px solid var(--adm-orange)!important;
+  border-radius:11px!important;
+  background:#fff8f3!important;
+  color:#744326!important;
+}
+
+/* Pedidos */
+.admWorkspaceMain .orderDetailed{
+  margin:9px 0!important;
+  overflow:hidden;
+  border:1px solid var(--adm-border)!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.045)!important;
+}
+.admWorkspaceMain .orderDetailed[open]{
+  border-color:#e9b99f!important;
+  box-shadow:0 8px 24px rgba(25,31,38,.08)!important;
+}
+.admWorkspaceMain .orderSummary{
+  min-height:70px!important;
+  padding:13px 14px!important;
+  background:#fff!important;
+}
+.admWorkspaceMain .summaryCustomer b,
+.admWorkspaceMain .orderNumber{
+  color:#20242a!important;
+  -webkit-text-fill-color:#20242a!important;
+}
+.admWorkspaceMain .summaryCustomer span,
+.admWorkspaceMain .orderTime,
+.admWorkspaceMain .mini{
+  color:var(--adm-muted)!important;
+  -webkit-text-fill-color:var(--adm-muted)!important;
+}
+.admWorkspaceMain .orderBody{
+  padding:14px!important;
+  border-top:1px solid #e8ebee!important;
+  background:#fafbfc!important;
+}
+.admWorkspaceMain .orderInfoGrid{gap:8px!important}
+.admWorkspaceMain .orderInfo{
+  border:1px solid #e0e4e8!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+}
+.admWorkspaceMain .orderInfo span{color:#68717b!important}
+.admWorkspaceMain .orderInfo b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+.admWorkspaceMain .orderInfo small{color:#4f5963!important;-webkit-text-fill-color:#4f5963!important}
+.admWorkspaceMain .addressBoxAdmin,
+.admWorkspaceMain .notesBoxAdmin{
+  border-color:#dce2e7!important;
+  background:#fff!important;
+  color:#34404a!important;
+}
+.admWorkspaceMain .addressBoxAdmin b,
+.admWorkspaceMain .notesBoxAdmin b{color:#20242a!important}
+.admWorkspaceMain .orderItemsBox{
+  border-color:#dfe3e7!important;
+  background:#fff!important;
+}
+.admWorkspaceMain .orderItemRow{
+  border-color:#e8ebee!important;
+  background:#fff!important;
+  color:#20242a!important;
+}
+.admWorkspaceMain .orderItemHead b,
+.admWorkspaceMain .orderItemPrice{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+.admWorkspaceMain .orderAddonLine{color:#5f6872!important}
+.admWorkspaceMain .orderTotalsBox{border-color:#d9dde2!important}
+.admWorkspaceMain .orderTotalLine{color:#525b65!important}
+.admWorkspaceMain .orderTotalLine.grand{color:#171a1e!important}
+
+/* Botões operacionais */
+.admWorkspaceMain .orderactions{gap:6px!important}
+.admWorkspaceMain .orderactions button,
+.admWorkspaceMain .printActions button,
+.admWorkspaceMain .editbtn{
+  min-height:40px;
+  border-radius:10px!important;
+}
+.admWorkspaceMain .printActions{gap:7px!important}
+.admWorkspaceMain .mainPrint{
+  border-color:#20242a!important;
+  background:#20242a!important;
+  color:#fff!important;
+}
+.admWorkspaceMain .whatsappAction{
+  border-color:#168c4c!important;
+  background:#168c4c!important;
+}
+
+/* Indicadores e cartões */
+.admWorkspace .metric,
+.admWorkspaceMain .financeCard,
+.admWorkspaceMain .reportCard,
+.admWorkspaceMain .commandPanel{
+  border:1px solid var(--adm-border)!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
+}
+.admWorkspaceMain .financeCard b,
+.admWorkspaceMain .reportCard b{color:#20242a!important}
+.admWorkspaceMain .financeCard span,
+.admWorkspaceMain .reportCard span{color:var(--adm-muted)!important}
+
+/* Mesas, produção e listas */
+.admWorkspaceMain .tableitem,
+.admWorkspaceMain .kitchenCard,
+.admWorkspaceMain .reportBreak,
+.admWorkspaceMain .loyaltyCard,
+.admWorkspaceMain .cashbackConfig,
+.admWorkspaceMain .cashbackCustomers{
+  border:1px solid var(--adm-border)!important;
+  background:#fff!important;
+  color:var(--adm-text)!important;
+  box-shadow:0 3px 12px rgba(25,31,38,.04)!important;
+}
+.admWorkspaceMain .tableitem b,
+.admWorkspaceMain .kitchenCard b,
+.admWorkspaceMain .loyaltyCard b{color:#20242a!important;-webkit-text-fill-color:#20242a!important}
+
+/* Estados vazios */
+.admWorkspaceMain .cleanEmpty,
+.admWorkspaceMain .empty{
+  min-height:120px;
+  border:1px dashed #cbd1d7!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.7)!important;
+  color:#707983!important;
+}
+
+/* Desktop: área de trabalho mais arejada */
+@media(min-width:901px){
+  .admWorkspace>.adminHead{padding-left:24px!important;padding-right:24px!important}
+  .admWorkspaceMain{padding:20px 24px 40px!important}
+  .admWorkspaceMain>#admContent{max-width:1180px!important}
+  .admWorkspaceMain .orderInfoGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* Celular/tablet: preservar a correção de rolagem e reduzir densidade */
+@media(max-width:900px){
+  .admWorkspaceMain .proToolbar{grid-template-columns:1fr!important}
+  .admWorkspaceMain .proToolbar .primary{width:100%!important}
+  .admWorkspaceMain .orderSummary{padding:12px!important}
+  .admWorkspaceMain .orderBody{padding:11px!important}
+}
+@media(max-width:520px){
+  .admWorkspaceMain .orderInfoGrid{grid-template-columns:1fr!important}
+  .admWorkspaceMain .proFilters button{padding:8px 11px!important}
+  .admWorkspaceMain .orderDetailed{border-radius:13px!important}
+}
+
+
+/* ===== smart-order-workflow-style ===== */
+/* Fluxo operacional guiado: uma ação principal por vez. */
+.smartOrderFlow{margin-top:14px;padding:13px;border:1px solid #dfe3e7;border-radius:16px;background:#f8f9fa}
+.smartFlowTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.smartFlowTop b{color:#2b3036;font-size:12px;font-weight:950}
+.smartFlowTop span{color:#727a84;font-size:10px;font-weight:800}
+.smartFlowSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:11px}
+.smartFlowStep{height:5px;border-radius:99px;background:#dfe3e7}
+.smartFlowStep.done{background:#e15a18}
+.smartNextAction{width:100%;min-height:54px;border:0;border-radius:13px;background:linear-gradient(135deg,#ec6a25,#ca4710);color:#fff;font-size:14px;font-weight:950;letter-spacing:.01em;box-shadow:0 7px 18px rgba(207,76,18,.22)}
+.smartNextAction[data-next="pronto"]{background:linear-gradient(135deg,#746bc7,#51489e);box-shadow:0 7px 18px rgba(81,72,158,.2)}
+.smartNextAction[data-next="em_rota"]{background:linear-gradient(135deg,#2781bd,#155d90);box-shadow:0 7px 18px rgba(21,93,144,.2)}
+.smartNextAction[data-next="entregue"]{background:linear-gradient(135deg,#2b9b5d,#197542);box-shadow:0 7px 18px rgba(25,117,66,.2)}
+.smartNextAction:disabled{opacity:.65}
+.statusAdvancedOptions{margin-top:8px;border:0}
+.statusAdvancedOptions>summary{list-style:none;text-align:center;padding:8px;color:#6d747d;font-size:10px;font-weight:900;cursor:pointer}
+.statusAdvancedOptions>summary::-webkit-details-marker{display:none}
+.statusAdvancedOptions>summary:after{content:'  ▾'}
+.statusAdvancedOptions[open]>summary:after{content:'  ▴'}
+.statusAdvancedOptions .statusWorkflow{margin-top:4px!important}
+@media(max-width:480px){.smartOrderFlow{padding:11px}.smartNextAction{min-height:52px;font-size:13px}}
+
+/* ===== driver-login-navigation-polish ===== */
+/* Navegação exclusiva da tela de acesso do entregador. */
+.sheet:has(#driverLoginButton) > .modalNav{
+  width:100%;display:flex;align-items:center;gap:10px;
+  margin:0 0 20px;padding:0;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-smart-back]{
+  min-height:42px;padding:8px 2px;border:0;border-radius:9px;
+  background:transparent;color:#424a54;box-shadow:none;
+  font-size:13px;font-weight:850;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-modal-home]{
+  width:42px;height:42px;min-width:42px;margin-left:auto;padding:0;
+  display:grid;place-items:center;overflow:hidden;
+  border:1px solid #dfe3e8;border-radius:12px;background:#fff;color:#303741;
+  box-shadow:0 3px 10px rgba(24,31,40,.06);font-size:0;
+}
+.sheet:has(#driverLoginButton) > .modalNav button[data-modal-home]::before{
+  content:'⌂';font-size:20px;line-height:1;
+}
+.sheet:has(#driverLoginButton) > .modalNav button:active{transform:translateY(1px)}
+.sheet:has(#driverLoginButton) > .sheeth{padding-top:0}
+.sheet:has(#driverLoginButton) > .sheeth .x{display:none!important}
+
+/* ===== driver-one-tap-delivery ===== */
+/* Operação rápida do entregador: uma única ação para concluir a entrega. */
+.driverOneTapHint{margin:8px 0 0;color:#69717a;font-size:11px;line-height:1.4}
+.driverDeliverButton{background:linear-gradient(135deg,#2b9b5d,#197542)!important;color:#fff!important;border-color:#23834d!important;box-shadow:0 8px 20px rgba(25,117,66,.2)!important}
+.driverDeliverButton:disabled{opacity:.72!important;cursor:wait!important}
+.driverOrder{padding:18px!important;border-radius:20px!important}
+.driverQuickTop h3{font-size:22px!important;line-height:1.15}.driverQuickTop .driverFee{font-size:21px!important}.driverStatus{font-size:13px!important;margin-top:5px}
+.driverQuickChip{font-size:13px!important;padding:8px 10px!important}.driverNextAction .primary{min-height:58px!important;font-size:16px!important}.driverNextAction .secondary{min-height:50px!important;font-size:13px!important}
+.driverOneTapHint{font-size:12px;line-height:1.5;text-align:center}.driverDetails>summary{font-size:14px!important;padding:12px 2px!important}
+.driverDeliveryInfo{display:grid;gap:10px}.driverInfoBlock{border:1px solid #dfe3e7;background:#f7f8f9;border-radius:14px;padding:13px;color:#24282d}.driverInfoBlock>small{display:block;margin-bottom:5px;color:#68717b;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.04em}.driverInfoBlock>strong{display:block;font-size:17px;line-height:1.4;word-break:break-word}.driverAddressBlock{background:#eef7ff;border-color:#c9dfef}.driverAddressBlock>strong{font-size:18px}.driverReference{display:block;margin-top:7px;color:#4f5963;font-size:14px;font-weight:750}.driverPhoneLink{display:flex;align-items:center;justify-content:center;min-height:50px;margin-top:9px;border-radius:12px;background:#168c4c;color:#fff;text-decoration:none;font-size:15px;font-weight:950}.driverPayGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.driverPayGrid .driverInfoBlock:last-child{background:#fff4e9;border-color:#f1d1b5}.driverItemsTitle{margin:13px 0 7px;font-size:14px;font-weight:950;color:#2b3036}.driverOrder .orderItemsBox{margin-top:0;border-color:#dfe3e7}.driverOrder .orderItemRow{padding:12px;background:#fff;border-color:#e5e8eb;color:#24282d}.driverOrder .orderItemHead b{font-size:15px}.driverOrder .orderAddonLine,.driverOrder .orderItemNote{font-size:13px;line-height:1.45}.driverOrder .notesBoxAdmin{font-size:14px!important;background:#fff8dd!important;color:#4e4017!important;border-color:#ead99b!important}.driverOrder .driverMiniMapBtn{min-height:50px!important;font-size:14px!important;background:#17689d!important;color:#fff!important;border-color:#17689d!important}.driverOrder [data-driver-gps]{min-height:48px;font-size:14px}.driverFinishedCard{opacity:.82}
+@media(max-width:420px){.driverOrder{padding:15px!important}.driverPayGrid{grid-template-columns:1fr}.driverQuickTop h3{font-size:20px!important}.driverAddressBlock>strong{font-size:17px}}
+
+/* ===== delivery-central-alert-style ===== */
+.deliveryCentralAlert{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;padding:18px;background:rgba(20,24,28,.72);backdrop-filter:blur(7px)}
+.deliveryCentralAlertCard{width:min(94vw,460px);overflow:hidden;border:2px solid #6bc58f;border-radius:22px;background:#fff;color:#20252a;box-shadow:0 24px 70px rgba(0,0,0,.36);animation:deliveryAlertIn .24s ease-out}
+.deliveryCentralAlertHead{display:flex;gap:12px;align-items:center;padding:17px 18px;background:linear-gradient(135deg,#147643,#24995c);color:#fff}
+.deliveryCentralAlertIcon{display:grid;place-items:center;width:50px;height:50px;flex:0 0 50px;border-radius:15px;background:rgba(255,255,255,.17);font-size:27px}
+.deliveryCentralAlertHead b{display:block;font-size:20px;line-height:1.15}.deliveryCentralAlertHead span{display:block;margin-top:4px;color:#dcf7e7;font-size:12px}
+.deliveryCentralAlertBody{padding:18px}.deliveryCentralAlertMessage{font-size:18px;font-weight:900;line-height:1.4}.deliveryCentralAlertTime{margin-top:7px;color:#69717a;font-size:13px}
+.deliveryCentralAlertActions{display:grid;grid-template-columns:1.3fr .7fr;gap:9px;margin-top:17px}.deliveryCentralAlertActions button{min-height:50px;border-radius:13px;font-weight:950}
+@keyframes deliveryAlertIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:420px){.deliveryCentralAlert{padding:12px}.deliveryCentralAlertHead b{font-size:18px}.deliveryCentralAlertMessage{font-size:17px}.deliveryCentralAlertActions{grid-template-columns:1fr}}
+
+/* ===== delivery-notification-center-style ===== */
+.deliveryNotificationBell{position:relative;display:grid;place-items:center;width:46px!important;height:46px!important;min-width:46px!important;padding:0!important;border:1px solid #d9dde2!important;border-radius:14px!important;background:#fff!important;color:#30363d!important;font-size:21px!important;box-shadow:0 4px 13px rgba(27,33,40,.06)}
+.deliveryNotificationBadge{position:absolute;right:-5px;top:-6px;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border:2px solid #fff;border-radius:999px;background:#d83b43;color:#fff;font-size:10px;font-weight:950;line-height:1}.deliveryNotificationBadge.hide{display:none!important}
+.deliveryNotificationLayer{position:fixed;z-index:1100;inset:0;display:flex;justify-content:flex-end;background:rgba(23,27,31,.62);backdrop-filter:blur(5px)}
+.deliveryNotificationPanel{width:min(94vw,440px);height:100%;overflow:auto;background:#f5f6f8;color:#20242a;box-shadow:-18px 0 55px rgba(0,0,0,.25);animation:deliveryPanelIn .2s ease-out}
+.deliveryNotificationPanelHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:18px;background:#fff;border-bottom:1px solid #dde1e5}.deliveryNotificationPanelHead>div{flex:1}.deliveryNotificationPanelHead h2{margin:0;font-size:21px}.deliveryNotificationPanelHead span{display:block;margin-top:3px;color:#707780;font-size:12px}.deliveryNotificationPanelHead button{width:42px;height:42px;border:1px solid #dce0e4;border-radius:12px;background:#f5f6f7;font-size:19px}
+.deliveryNotificationList{padding:13px}.deliveryNotificationItem{display:grid;grid-template-columns:43px minmax(0,1fr);gap:11px;margin-bottom:9px;padding:13px;border:1px solid #dce1e5;border-radius:15px;background:#fff;box-shadow:0 4px 14px rgba(24,30,37,.04)}.deliveryNotificationItem.unread{border-left:5px solid #1e9657;background:#f7fff9}.deliveryNotificationItemIcon{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:#e5f7ec;color:#197746;font-size:21px;font-weight:950}.deliveryNotificationItem b{display:block;font-size:14px;line-height:1.4}.deliveryNotificationItem time{display:block;margin-top:5px;color:#737b84;font-size:11px}.deliveryNotificationEmpty{padding:45px 20px;text-align:center;color:#747c85}.deliveryNotificationEmpty b{display:block;margin-bottom:5px;color:#343a40;font-size:17px}
+.deliveryNotificationFooter{padding:4px 13px 20px}.deliveryNotificationFooter button{width:100%;min-height:48px;border:1px solid #d9dde1;border-radius:13px;background:#fff;color:#545c65;font-weight:900}
+.deliveryNotificationItem{grid-template-columns:43px minmax(0,1fr) 38px;align-items:start}.deliveryNotificationDelete{display:grid;place-items:center;width:38px;height:38px;border:1px solid #edd0d2;border-radius:11px;background:#fff3f3;color:#b8373e;font-size:16px}
+@keyframes deliveryPanelIn{from{transform:translateX(35px);opacity:.6}to{transform:none;opacity:1}}
+@media(max-width:430px){.deliveryNotificationBell{width:42px!important;height:42px!important;min-width:42px!important}.deliveryNotificationPanel{width:100%}}
+
+/* ===== urgent-operation-fixes-style ===== */
+/* Totais financeiros sempre contidos nos três cartões, inclusive em celulares estreitos. */
+.deliveryNotificationBell,.deliveryNotificationLayer{display:none!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin{color:#34495a!important}
+.sheet.full:has(.adminHead) .addressBoxAdmin b{color:#29343e!important;font-weight:950!important}
+.sheet.full:has(.adminHead) .orderItemPrice{color:#20252a!important;font-size:14px!important;font-weight:950!important}
+.sheet.full:has(.adminHead) .paymentMetrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;min-width:0}
+.sheet.full:has(.adminHead) .paymentMetric{min-width:0;overflow:hidden}
+.sheet.full:has(.adminHead) .paymentMetric b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,3.7vw,19px);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
+@media(max-width:380px){.sheet.full:has(.adminHead) .paymentMetrics{gap:5px!important}.sheet.full:has(.adminHead) .paymentMetric{padding-left:7px!important;padding-right:7px!important}.sheet.full:has(.adminHead) .paymentMetric b{font-size:12px}}
+
+/* ===== caseirao-final-professional-upgrade ===== */
+/* Upgrade final: central executiva, SLA, exportação e saúde da operação. */
+.opsConnection{position:fixed;z-index:1200;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #f0b9b9;border-radius:999px;background:#fff1f1;color:#9b292d;font-size:11px;font-weight:950;box-shadow:0 8px 25px rgba(0,0,0,.16)}
+.opsSync{display:inline-flex;align-items:center;gap:6px;margin-top:6px;color:#68717a;font-size:11px;font-weight:750}.opsSync:before{content:'';width:7px;height:7px;border-radius:50%;background:#27a45d;box-shadow:0 0 0 3px #dcf5e7}.opsSync.busy:before{background:#e7862f;box-shadow:0 0 0 3px #fff0df}
+.commandHero{padding:19px;border:1px solid #dfe3e7;border-radius:20px;background:linear-gradient(135deg,#24292f,#171a1e);color:#fff;box-shadow:0 12px 28px rgba(24,29,34,.16)}.commandHeroTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.commandHero h2{margin:0;font-size:24px;letter-spacing:-.04em}.commandHero p{margin:5px 0 0;color:#b9c0c8;font-size:12px}.commandLive{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #40624d;border-radius:999px;background:#21392a;color:#91e5b2;font-size:10px;font-weight:950}.commandLive:before{content:'';width:7px;height:7px;border-radius:50%;background:#42d77c;animation:opsPulse 1.5s infinite}.commandKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}.commandKpi{padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.055)}.commandKpi span{display:block;color:#b8bec6;font-size:10px;font-weight:800}.commandKpi b{display:block;margin-top:6px;font-size:21px;letter-spacing:-.035em}.commandGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:11px;margin-top:11px}.commandPanel{padding:16px;border:1px solid #dfe3e7;border-radius:18px;background:#fff;color:#252a30;box-shadow:0 5px 18px rgba(28,34,41,.045)}.commandPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.commandPanelHead b{font-size:15px}.commandPanelHead small{color:#747c85;font-size:10px;font-weight:850}.commandQueue{display:grid;gap:7px}.commandOrder{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border:1px solid #e4e7ea;border-radius:13px;background:#fafbfc}.commandOrder.critical{border-color:#efc1c3;background:#fff6f6}.commandOrder strong{font-size:13px}.commandOrder span{display:block;margin-top:2px;color:#6e7680;font-size:10px}.commandAge{min-width:52px;padding:6px 7px;border-radius:9px;background:#edf0f2;color:#525a63;text-align:center;font-size:10px;font-weight:950}.critical .commandAge{background:#c83b43;color:#fff}.commandEmpty{padding:22px 8px;text-align:center;color:#747c85;font-size:12px}.commandBars{display:grid;gap:11px}.commandBarTop{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:11px}.commandTrack{height:7px;overflow:hidden;border-radius:99px;background:#eceff1}.commandFill{height:100%;border-radius:99px;background:linear-gradient(90deg,#e66020,#f29a54)}.commandRank{display:grid;grid-template-columns:25px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:12px}.commandRank:last-child{border:0}.commandRank i{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff0e7;color:#bd480f;font-style:normal;font-size:10px;font-weight:950}.commandActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px}.commandActions button{min-height:47px;border:1px solid #dce1e5;border-radius:13px;background:#fff;color:#343a40;font-size:11px;font-weight:950}.commandActions button:first-child{border-color:#df6a32;background:#e35b1a;color:#fff}.slaStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:9px 0 12px}.slaCard{padding:10px;border:1px solid #dfe3e7;border-radius:13px;background:#fff;color:#333a42}.slaCard span{display:block;color:#737b84;font-size:9px;font-weight:900;text-transform:uppercase}.slaCard b{display:block;margin-top:5px;font-size:16px}.slaCard.danger{border-color:#efc5c7;background:#fff7f7}.slaCard.danger b{color:#b73239}.opsTools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.opsTools button,.opsContactRow button,.opsContactRow a{min-height:43px;border:1px solid #dce1e5;border-radius:12px;background:#fff;color:#4a525b;font-size:11px;font-weight:900;text-decoration:none;display:flex;align-items:center;justify-content:center}.opsContactRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.opsContactRow a{border-color:#bfe3cc;background:#f1fbf5;color:#197343}.opsSlaBadge{display:inline-flex;align-items:center;margin:5px 0 0;padding:4px 7px;border-radius:8px;background:#edf0f2;color:#59616a;font-size:9px;font-weight:950}.opsSlaBadge.warn{background:#fff0df;color:#a65313}.opsSlaBadge.late{background:#ffe5e6;color:#ad2d34}.opsSlaBadge.ok{background:#e4f6eb;color:#197244}
+@keyframes opsPulse{50%{opacity:.35;transform:scale(.8)}}
+@media(max-width:680px){.commandKpis{grid-template-columns:1fr 1fr}.commandGrid{grid-template-columns:1fr}.commandActions{grid-template-columns:1fr}.slaStrip{grid-template-columns:1fr 1fr}.commandHero{padding:16px}.commandHero h2{font-size:21px}.commandKpi b{font-size:19px}}
+
+/* ===== loyalty-name-guarantee ===== */
+/* Regra final e isolada: nenhuma regra visual anterior pode ocultar o nome. */
+#admContent .loyaltyCustomerVisibleName{display:block!important;margin:0 0 5px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important;line-height:1.25!important}
+
+/* ===== loyalty-database-v12-style ===== */
+#admContent .loyaltyCardTop .grow>b,
+#admContent .loyaltyCustomerVisibleName{display:block!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important;visibility:visible!important;font-size:17px!important;font-weight:950!important}
+
+/* ===== loyalty-participants-v13-style ===== */
+.loyaltyParticipantsButton{width:100%;min-height:58px;margin:12px 0 16px;border:0;border-radius:15px;background:linear-gradient(135deg,#22272d,#111418);color:#fff;font-size:15px;font-weight:950;box-shadow:0 9px 22px rgba(24,29,34,.16)}
+.loyaltyParticipantsLayer{position:fixed;z-index:2200;inset:0;background:rgba(15,18,22,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px)}
+.loyaltyParticipantsPanel{width:min(100%,720px);max-height:94vh;overflow:auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#f5f6f8;color:#20242a}
+.loyaltyParticipantsHead{display:flex;align-items:center;gap:10px;margin-bottom:12px}.loyaltyParticipantsHead>div{flex:1}.loyaltyParticipantsHead h2{margin:0;font-size:23px}.loyaltyParticipantsHead p{margin:4px 0 0;color:#6d747d;font-size:12px}.loyaltyParticipantsClose{width:44px;height:44px;border:1px solid #d7dce1;border-radius:12px;background:#fff;color:#252a30;font-size:22px}
+.loyaltyParticipantsSearch{width:100%;min-height:52px;margin-bottom:12px;padding:13px 15px;border:2px solid #d8dde2;border-radius:14px;background:#fff;color:#20242a;font-size:15px;outline:none}.loyaltyParticipantsSearch:focus{border-color:#e76620}
+.loyaltyParticipant{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin:9px 0;padding:15px;border:1px solid #dfe3e7;border-radius:16px;background:#fff;box-shadow:0 4px 14px rgba(25,31,38,.045)}.loyaltyParticipant strong{display:block!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;font-size:17px;font-weight:950;line-height:1.3}.loyaltyParticipant span{display:block;margin-top:4px;color:#68717b;font-size:13px}.loyaltyParticipantCount{min-width:76px;padding:9px 10px;border-radius:12px;background:#fff0e7;color:#bd4712;text-align:center}.loyaltyParticipantCount b{display:block;font-size:20px}.loyaltyParticipantCount small{display:block;font-size:9px;font-weight:900;text-transform:uppercase}.loyaltyParticipantsEmpty{padding:30px 15px;text-align:center;color:#717981}
+
+/* ===== admin-tabs-sync-v14-style ===== */
+.sheet.full:has(.adminHead)>.admbar button.on{background:linear-gradient(135deg,#f4772e,#ca4812)!important;border-color:#ca4812!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;visibility:visible!important;box-shadow:0 6px 15px rgba(203,72,18,.22)!important}
+
+/* ===== caseirao-v18-legibilidade ===== */
+/* V18 — contraste e leitura reforçados em toda a operação. */
+.sheet,.sheet.full,.loyaltyParticipantsPanel{color:#171a1e!important}
+.sheet .mini,.sheet .adminSub,.sheet small,.sheet label,.sheet .orderMeta,
+.sheet .driverReference,.sheet .operationHint,.sheet .manualSectionTitle{
+  color:#515a64!important;-webkit-text-fill-color:#515a64!important;opacity:1!important
+}
+.sheet .orderNumber,.sheet .summaryCustomer b,.sheet .orderInfo b,
+.sheet .orderItemsBox b,.sheet .addressBoxAdmin,.sheet .notesBoxAdmin,
+.sheet .tableitem b,.sheet .employeeProductInfo>b,.sheet .packItems b,
+.sheet .kitchenItems b,.sheet .financeCard b,.sheet .reportRow b{
+  color:#171a1e!important;-webkit-text-fill-color:#171a1e!important;opacity:1!important
+}
+.sheet .orderInfo small,.sheet .summaryCustomer span,.sheet .manualProduct span,
+.sheet .employeeProductInfo>span,.sheet .packOrderTop span{
+  color:#5c6570!important;-webkit-text-fill-color:#5c6570!important;opacity:1!important
+}
+.sheet .in,.sheet .sel,.sheet .ta{font-size:16px!important;color:#171a1e!important;-webkit-text-fill-color:#171a1e!important}
+.sheet button{opacity:1}.sheet button:disabled{opacity:.58}
+.teamChoice strong{color:#fff!important;-webkit-text-fill-color:#fff!important}
+.teamChoice small{color:#c5cbd2!important;-webkit-text-fill-color:#c5cbd2!important}
+.dispatcherAccessChoice{border-color:#6d5fc7;background:linear-gradient(145deg,#24213c,#171722)}
+.dispatcherAccessChoice .teamChoiceIcon{background:#423b78}
+.dispatcherAccessChoice:hover,.dispatcherAccessChoice:focus-visible{border-color:#998fea;background:#292448}
+.manualCounterButton.on{background:#7a4ac7!important;border-color:#6938b7!important;color:#fff!important}
+.counterNotice{margin:10px 0;padding:11px 12px;border:1px solid #d7c4ef;border-radius:12px;background:#f7f0ff;color:#512a82;font-size:13px;font-weight:850}
+@media(max-width:520px){
+  .sheet .mini,.sheet small,.sheet label{font-size:max(12px,1em)}
+  .sheet .orderInfo b,.sheet .summaryCustomer b{font-size:16px!important}
+}
+
+/* ===== caseirao-v21-operation-fixes ===== */
+/* Fluxos essenciais consolidados: despacho, aviso da Central, Balcão e cronômetro. */
+#teamDriverBtn.driverAccessChoice{border-color:#34404a!important;background:linear-gradient(145deg,#1d2228,#15191e)!important;color:#fff!important;box-shadow:none!important}
+#teamDriverBtn.driverAccessChoice:hover,#teamDriverBtn.driverAccessChoice:focus-visible{border-color:#e76620!important;background:linear-gradient(145deg,#252a30,#191d22)!important}
+#teamDriverBtn.driverAccessChoice .teamChoiceIcon{background:#293039!important;color:#fff!important}
+#teamDriverBtn.driverAccessChoice strong{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}
+#teamDriverBtn.driverAccessChoice small{color:#c5cbd2!important;-webkit-text-fill-color:#c5cbd2!important;opacity:1!important}
+.manualOrderTypes{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.manualOrderTypes [data-counter-order].on{background:#6b54bb!important;border-color:#6b54bb!important;color:#fff!important}
+.counterNotice{display:block;margin:9px 0 12px;padding:11px 12px;border:1px solid #d7c4ef;border-radius:12px;background:#f7f0ff;color:#512a82;font-size:12px;font-weight:850}
+.counterNotice.hide{display:none!important}
+.orderChronometer{min-width:72px!important;padding:5px 7px!important;border-radius:9px!important;line-height:1!important}
+.orderChronometer small{margin-bottom:4px!important;font-size:7px!important;line-height:1!important;letter-spacing:.055em!important;white-space:nowrap!important}
+.orderChronometer b{font:950 14px/1 ui-monospace,SFMono-Regular,Consolas,monospace!important;color:#111!important;-webkit-text-fill-color:#111!important;opacity:1!important;white-space:nowrap!important}
+.readyCentralAlert{position:fixed;z-index:3000;inset:0;display:grid;place-items:center;padding:16px;background:rgba(17,20,24,.72);backdrop-filter:blur(6px)}
+.readyCentralAlertCard{width:min(94vw,460px);display:grid;grid-template-columns:54px minmax(0,1fr);gap:13px;align-items:center;padding:18px;border:2px solid #7166c4;border-radius:20px;background:#fff;color:#20242a;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.readyCentralAlertIcon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:#eeeaff;font-size:27px}
+.readyCentralAlertText b{display:block;color:#4d409d;font-size:20px;font-weight:1000}.readyCentralAlertText span{display:block;margin-top:5px;color:#4e5660;font-size:13px;line-height:1.45}
+.readyCentralAlertCard button{grid-column:1/-1;min-height:52px;border:0;border-radius:13px;background:#6254b5;color:#fff;font-size:15px;font-weight:950}
+.packQueue{display:grid;gap:12px;margin-top:14px}.packOrder{padding:15px;border:2px solid #dfe3e8;border-left:5px solid #6958ba;border-radius:17px;background:#fff;color:#20242a;box-shadow:0 5px 16px rgba(28,34,41,.06)}
+.packOrderTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:11px;border-bottom:1px solid #e5e8eb}.packOrderTop strong{color:#20242a!important;-webkit-text-fill-color:#20242a!important;font-size:19px!important}.packOrderTop span{padding:6px 9px;border-radius:999px;background:#eeeaff;color:#51459a!important;-webkit-text-fill-color:#51459a!important;font-size:10px!important;font-weight:950}
+.packItems{padding:7px 0}.packItem{padding:9px 1px;border-bottom:1px solid #edf0f2}.packItem b{color:#20242a!important;-webkit-text-fill-color:#20242a!important;font-size:15px!important}.packItem small{display:block;margin-top:4px;color:#606974!important;-webkit-text-fill-color:#606974!important;font-size:12px!important}.packItem .packNote,.packGeneralNote{color:#725313!important;-webkit-text-fill-color:#725313!important}
+.packGeneralNote{margin:6px 0 11px;padding:10px;border:1px solid #eadba8;border-radius:11px;background:#fff9df;font-size:12px;font-weight:850}.packReadyBtn{width:100%;min-height:58px;border:0;border-radius:13px;background:#6254b5;color:#fff;font-size:16px;font-weight:950;box-shadow:0 7px 18px rgba(98,84,181,.2)}
+.packEmpty{display:flex;flex-direction:column;gap:6px;padding:36px 16px;border:1px dashed #cfd5db;border-radius:16px;background:#fff;text-align:center;color:#66707a}.packEmpty b{color:#27804d;font-size:18px}
+@media(max-width:430px){.manualOrderTypes{grid-template-columns:repeat(2,minmax(0,1fr))!important}.orderChronometer{min-width:66px!important;padding:5px!important}.orderChronometer b{font-size:13px!important}.readyCentralAlertCard{padding:15px}}
+
+/* ===== nightly-prize-admin-style ===== */
+.prizeAdmin{display:grid;gap:13px;margin-top:12px}.prizeHero{padding:16px;border:1px solid #6f4627;border-radius:17px;background:linear-gradient(145deg,#2a190f,#151515)}.prizeHero h3{margin:0 0 6px;color:#ffbd82}.prizeStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.prizeMetric{padding:12px;border:1px solid #333841;border-radius:13px;background:#14171b}.prizeMetric span{display:block;color:#9fa7b1;font-size:11px}.prizeMetric b{display:block;margin-top:4px;color:#fff;font-size:17px}.prizeWinner{padding:15px;border:1px solid #2d7b4a;border-radius:15px;background:#10291a}.prizeWinner h3{margin:0 0 8px;color:#92efb2}.prizeChecks{display:flex;flex-wrap:wrap;gap:8px}.prizeCheck{display:flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #343941;border-radius:11px;background:#171a1f;color:#e7ebef;font-weight:800}.prizeCheck input{width:18px;height:18px;accent-color:#e76620}.prizeActions{display:grid;grid-template-columns:1fr 1fr;gap:9px}@media(max-width:520px){.prizeStatus,.prizeActions{grid-template-columns:1fr}.prizeHero{padding:14px}}
+
+\1
+.waStagePanel{margin-top:11px;padding:13px;border:1px solid #cfe1d6;border-radius:15px;background:#f4fbf6}.waStageHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}.waStageHead b{color:#175f36!important;font-size:13px}.waStageHead span{color:#668071!important;font-size:10px}.waStageGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.waStageButton{display:flex;align-items:center;justify-content:center;min-height:42px;padding:8px;border:1px solid #bcdcc8;border-radius:11px;background:#fff;color:#17663a;text-decoration:none;text-align:center;font-size:10px;font-weight:950}.waStageButton.current{background:#168c4c;color:#fff;border-color:#168c4c;box-shadow:0 5px 14px rgba(22,140,76,.2)}
+.cashbackAdminHero{padding:18px;border-radius:20px;background:linear-gradient(135deg,#25292f,#121417);color:#fff;box-shadow:0 12px 28px rgba(20,23,27,.18)}.cashbackAdminHero small{color:#efb05e;font-weight:950;letter-spacing:.1em}.cashbackAdminHero h2{margin:6px 0 4px;color:#fff!important;font-size:25px}.cashbackAdminHero p{margin:0;color:#bdc3ca}.cashbackKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.cashbackKpi{padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.06)}.cashbackKpi span{display:block;color:#bfc5cc;font-size:9px}.cashbackKpi b{display:block;margin-top:5px;color:#fff!important;font-size:18px}.cashbackConfig,.cashbackCustomers{margin-top:12px;padding:15px;border:1px solid #dde2e6;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(25,30,36,.05)}.cashbackConfigGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.cashbackCustomer{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #eceff1}.cashbackCustomer:last-child{border:0}.cashbackCustomer strong{display:block;color:#1d2024!important}.cashbackCustomer span{display:block;margin-top:3px;color:#69717a;font-size:11px}.cashbackCustomerBalance{min-width:82px;padding:8px 10px;border-radius:11px;background:#fff5e7;color:#ad4a16;text-align:center;font-weight:950}.cashbackAdjust{border:1px solid #dce1e5;border-radius:10px;background:#fff;color:#404750;padding:9px;font-size:10px;font-weight:900}.cashbackSearch{margin:11px 0}.cashbackStatusToggle{display:flex;align-items:center;gap:8px;padding:11px;border:1px solid #e1e4e7;border-radius:12px;background:#fafbfc;font-weight:900}
+@media(max-width:650px){.waStageGrid{grid-template-columns:1fr 1fr}.cashbackKpis{grid-template-columns:1fr 1fr}.cashbackConfigGrid{grid-template-columns:1fr 1fr}.cashbackCustomer{grid-template-columns:minmax(0,1fr) auto}.cashbackAdjust{grid-column:1/-1}.cashbackKpi:last-child{grid-column:1/-1}}
+
+/* ===== caseirao-adm-mobile-scroll-fix-v35 ===== */
+/* Correção definitiva da rolagem vertical da Central ADM em celular/tablet.
+   O overlay passa a ser o único contêiner de rolagem; evita travamento por
+   disputa entre .sheet/.admWorkspace/.admbar em navegadores Android/PWA. */
+@media (max-width:900px){
+  .overlay:has(.admWorkspace){
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    align-items:flex-start!important;
+  }
+  .overlay:has(.admWorkspace)>.admWorkspace,
+  .sheet.full.admWorkspace{
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  .admWorkspace>.admbar{
+    flex:none!important;
+    min-height:0!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  .admWorkspaceBody,
+  .admWorkspaceMain,
+  .admWorkspaceMain>#admContent{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+}
+
+
+/* ===== CASEIRAO ADM — ETAPA 2 / PEDIDO COMPACTO =====
+   Ajuste visual baseado no uso real em celular.
+   Não altera lógica, status, impressão, WhatsApp ou entregas. */
+
+/* Cabeçalho/resumo do pedido */
+.admWorkspaceMain .orderDetailed .orderSummary{
+  min-height:62px!important;
+  padding:10px 12px!important;
+  gap:8px!important;
+}
+.admWorkspaceMain .orderDetailed .summaryMain{gap:8px!important}
+.admWorkspaceMain .orderDetailed .orderNumber{
+  font-size:17px!important;
+  line-height:1!important;
+}
+.admWorkspaceMain .orderDetailed .summaryCustomer b{
+  font-size:14px!important;
+  line-height:1.16!important;
+}
+.admWorkspaceMain .orderDetailed .summaryCustomer span{
+  font-size:11px!important;
+  line-height:1.25!important;
+}
+.admWorkspaceMain .orderDetailed .summaryRight{
+  gap:4px!important;
+  min-width:94px;
+}
+.admWorkspaceMain .orderDetailed .summaryRight .statusBadge{
+  padding:5px 8px!important;
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .waitBadge{
+  margin-top:3px!important;
+  padding:4px 7px!important;
+  font-size:10px!important;
+}
+
+/* Corpo mais denso, sem perder leitura */
+.admWorkspaceMain .orderDetailed .orderBody{
+  padding:10px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfoGrid{
+  gap:7px!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo{
+  padding:9px 10px!important;
+  border-radius:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo span{
+  margin-bottom:3px!important;
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo b{
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.admWorkspaceMain .orderDetailed .orderInfo small{
+  font-size:11px!important;
+  line-height:1.3!important;
+}
+
+/* Ações rápidas */
+.admWorkspaceMain .orderDetailed .whatsappAction,
+.admWorkspaceMain .orderDetailed .deliveryAction{
+  min-height:44px!important;
+  margin-top:7px!important;
+  padding:9px 11px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin{
+  margin-top:7px!important;
+  padding:9px 10px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin b,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin b{
+  margin-bottom:2px!important;
+  font-size:11px!important;
+}
+
+/* Itens e totais */
+.admWorkspaceMain .orderDetailed .orderItemsBox{
+  margin-top:7px!important;
+  border-radius:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemRow{
+  padding:8px 9px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemHead b{
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .orderItemPrice{
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .orderAddonLine,
+.admWorkspaceMain .orderDetailed .orderItemNote{
+  margin-top:3px!important;
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalsBox{
+  margin-top:7px!important;
+  padding-top:6px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalLine{
+  padding:2px 0!important;
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .orderTotalLine.grand{
+  margin-top:2px!important;
+  font-size:16px!important;
+}
+
+/* Impressão */
+.admWorkspaceMain .orderDetailed .printActions{
+  gap:6px!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .printActions button{
+  min-height:42px!important;
+  padding:8px!important;
+  border-radius:10px!important;
+  font-size:10px!important;
+}
+
+/* Fluxo principal: continua destacado, mas ocupa menos altura */
+.admWorkspaceMain .orderDetailed .smartOrderFlow{
+  margin-top:9px!important;
+  padding:10px!important;
+  border-radius:13px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop{
+  margin-bottom:7px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop b{
+  font-size:10px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowTop span{
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowSteps{
+  gap:4px!important;
+  margin-bottom:8px!important;
+}
+.admWorkspaceMain .orderDetailed .smartFlowStep{
+  height:4px!important;
+}
+.admWorkspaceMain .orderDetailed .smartNextAction{
+  min-height:45px!important;
+  border-radius:11px!important;
+  font-size:12px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions{
+  margin-top:5px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions>summary{
+  padding:6px!important;
+  font-size:9px!important;
+}
+
+/* Mensagens de WhatsApp */
+.admWorkspaceMain .orderDetailed .waStagePanel{
+  margin-top:9px!important;
+  padding:10px!important;
+  border-radius:13px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead{
+  margin-bottom:7px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead b{
+  font-size:11px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageHead span{
+  font-size:9px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageGrid{
+  gap:5px!important;
+}
+.admWorkspaceMain .orderDetailed .waStageButton{
+  min-height:36px!important;
+  padding:6px!important;
+  border-radius:9px!important;
+  font-size:9px!important;
+}
+
+/* Controle operacional: contraste corrigido */
+.admWorkspaceMain .orderDetailed .opsOrder{
+  margin-top:9px!important;
+  padding-top:9px!important;
+  border-top:1px solid #d9dde2!important;
+}
+.admWorkspaceMain .orderDetailed .opsOrder .sectionTitle,
+.admWorkspaceMain .orderDetailed .manualSectionTitle,
+.admWorkspaceMain .orderDetailed h3,
+.admWorkspaceMain .orderDetailed h4{
+  color:#30363d!important;
+  -webkit-text-fill-color:#30363d!important;
+  opacity:1!important;
+}
+.admWorkspaceMain .orderDetailed .opsTools,
+.admWorkspaceMain .orderDetailed .opsContactRow{
+  gap:6px!important;
+  margin-top:7px!important;
+}
+.admWorkspaceMain .orderDetailed .opsTools button,
+.admWorkspaceMain .orderDetailed .opsContactRow button,
+.admWorkspaceMain .orderDetailed .opsContactRow a{
+  min-height:40px!important;
+  padding:8px!important;
+  border-radius:10px!important;
+  font-size:9px!important;
+}
+
+/* Celular: ganhar espaço vertical sem sacrificar toque */
+@media(max-width:520px){
+  .admWorkspaceMain .orderDetailed .orderSummary{
+    padding:9px 10px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderBody{
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo{
+    padding:8px 9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .summaryCustomer b{
+    font-size:13px!important;
+  }
+  .admWorkspaceMain .orderDetailed .summaryRight{
+    min-width:86px!important;
+    max-width:34%!important;
+  }
+  .admWorkspaceMain .orderDetailed .waStageGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+/* Celular muito estreito: evita aperto excessivo */
+@media(max-width:360px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+
+/* ===== CASEIRAO ADM — ETAPA 3 / MOBILE OPERACIONAL =====
+   Foco: ganhar altura útil no celular sem alterar nenhuma função. */
+@media(max-width:520px){
+
+  /* Navegação principal mais compacta */
+  .admWorkspace .admWorkspaceNav{
+    gap:7px!important;
+    padding:8px 10px!important;
+  }
+  .admWorkspace .admWorkspaceNav button,
+  .admWorkspace .admWorkspaceNav .admNavButton{
+    min-height:54px!important;
+    padding:8px 6px!important;
+    border-radius:13px!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+  }
+
+  /* Aviso, busca e pedido manual */
+  .admWorkspaceMain .operationHint{
+    margin-bottom:8px!important;
+    padding:8px 10px!important;
+    border-radius:10px!important;
+    font-size:10px!important;
+    line-height:1.3!important;
+  }
+  .admWorkspaceMain .proToolbar{
+    gap:7px!important;
+    margin-bottom:8px!important;
+  }
+  .admWorkspaceMain .proToolbar .in{
+    min-height:43px!important;
+    padding:9px 12px!important;
+    font-size:13px!important;
+  }
+  .admWorkspaceMain .proToolbar .primary{
+    min-height:42px!important;
+    padding:8px 12px!important;
+    font-size:10px!important;
+  }
+
+  /* Filtros horizontais menores */
+  .admWorkspaceMain .proFilters{
+    gap:5px!important;
+    padding:0 0 7px!important;
+  }
+  .admWorkspaceMain .proFilters button{
+    min-height:34px!important;
+    padding:6px 10px!important;
+    font-size:9px!important;
+    white-space:nowrap!important;
+  }
+
+  /* Cliente e pagamento lado a lado no pedido */
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr)!important;
+    gap:6px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo{
+    min-width:0!important;
+    padding:8px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo b{
+    font-size:11px!important;
+    line-height:1.2!important;
+    overflow-wrap:anywhere!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo small{
+    font-size:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .orderInfo span{
+    font-size:8px!important;
+  }
+
+  /* Ações do cliente/entrega */
+  .admWorkspaceMain .orderDetailed .whatsappAction,
+  .admWorkspaceMain .orderDetailed .deliveryAction{
+    min-height:40px!important;
+    margin-top:6px!important;
+    padding:7px 9px!important;
+    font-size:9px!important;
+  }
+
+  /* Endereço, observações e itens */
+  .admWorkspaceMain .orderDetailed .addressBoxAdmin,
+  .admWorkspaceMain .orderDetailed .notesBoxAdmin{
+    margin-top:6px!important;
+    padding:8px 9px!important;
+    font-size:10px!important;
+    line-height:1.3!important;
+  }
+  .admWorkspaceMain .orderDetailed .addressBoxAdmin b,
+  .admWorkspaceMain .orderDetailed .notesBoxAdmin b{
+    font-size:10px!important;
+  }
+
+  /* Impressão e controles */
+  .admWorkspaceMain .orderDetailed .printActions button{
+    min-height:39px!important;
+    font-size:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .smartOrderFlow{
+    margin-top:7px!important;
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .smartNextAction{
+    min-height:42px!important;
+    font-size:10px!important;
+  }
+
+  /* Mensagens */
+  .admWorkspaceMain .orderDetailed .waStagePanel{
+    margin-top:7px!important;
+    padding:9px!important;
+  }
+  .admWorkspaceMain .orderDetailed .waStageButton{
+    min-height:34px!important;
+    font-size:8px!important;
+  }
+
+  /* Controle operacional */
+  .admWorkspaceMain .orderDetailed .opsTools button,
+  .admWorkspaceMain .orderDetailed .opsContactRow button,
+  .admWorkspaceMain .orderDetailed .opsContactRow a{
+    min-height:38px!important;
+    font-size:8px!important;
+  }
+}
+
+/* Em aparelhos muito estreitos, só então empilha cliente/pagamento. */
+@media(max-width:350px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+
+/* ===== CENTRAL LIMPA v2 =====
+   Controle operacional recolhido + uma única interface de mensagens/status. */
+.admWorkspaceMain .opsOrder.opsOrderCollapsed{
+  margin-top:10px!important;
+  padding:0!important;
+  border:1px solid #d9dde2!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  overflow:hidden!important;
+}
+.admWorkspaceMain .opsOrder.opsOrderCollapsed>summary{
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-height:48px!important;
+  padding:11px 13px!important;
+  cursor:pointer!important;
+  color:#343a40!important;
+}
+.admWorkspaceMain .opsOrder.opsOrderCollapsed>summary::-webkit-details-marker{display:none!important}
+.admWorkspaceMain .opsOrder.opsOrderCollapsed>summary span{
+  display:flex!important;align-items:center!important;gap:7px!important;
+  font-size:12px!important;
+}
+.admWorkspaceMain .opsOrder.opsOrderCollapsed>summary strong{
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  background:#f2f4f6!important;
+  color:#626971!important;
+  font-size:9px!important;
+  font-weight:900!important;
+}
+.admWorkspaceMain .opsOrder.opsOrderCollapsed[open]>summary{
+  border-bottom:1px solid #e3e6e9!important;
+}
+.admWorkspaceMain .opsOrderContent{padding:10px!important}
+.admWorkspaceMain .opsOrderContent .row{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:7px!important;
+  margin:0!important;
+}
+.admWorkspaceMain .opsOrderContent button{
+  min-height:42px!important;
+  padding:8px!important;
+  font-size:9px!important;
+  border-radius:11px!important;
+}
+
+/* admin-ui antigo não deve voltar a mostrar um segundo painel de mensagens */
+.admWorkspaceMain .waStagePanel{display:none!important}
+
+@media(max-width:520px){
+  .admWorkspaceMain .opsOrder.opsOrderCollapsed{margin-top:8px!important}
+  .admWorkspaceMain .opsOrder.opsOrderCollapsed>summary{min-height:44px!important;padding:9px 11px!important}
+  .admWorkspaceMain .opsOrderContent{padding:8px!important}
+}
+
+/* ===== CASEIRAO ADM CLEAN v39 — operacao primeiro ===== */
+/* Camada final deliberadamente pequena: preserva contratos/IDs do app e reduz poluicao visual. */
+.admWorkspace>.compactMetrics,.admWorkspace>.paymentMetrics{display:none!important}
+.admWorkspaceMain{background:#f6f7f8!important}
+.admWorkspaceMain>#admContent{max-width:1040px!important}
+.caseiraoPrinterPanel{margin:0 0 9px!important;padding:9px 11px!important;border-radius:14px!important;box-shadow:none!important}
+.caseiraoPrinterPanel .printerBarTop{gap:7px!important;align-items:center!important}
+.caseiraoPrinterPanel .printerBarTop b{font-size:12px!important}
+.caseiraoPrinterPanel .printerState{font-size:10px!important;margin-top:2px!important}
+.caseiraoPrinterPanel .printerConnect,.caseiraoPrinterPanel .printerConfigToggle{min-height:36px!important;padding:7px 9px!important;font-size:9px!important;border-radius:10px!important}
+.caseiraoPrinterPanel .printerConfigGrid.printerConfigCollapsed{display:none!important}
+.caseiraoPrinterPanel .printerConfigGrid.printerConfigCollapsed.printerConfigOpen{display:grid!important}
+.operationHint{display:none!important}
+.alertControl{margin:0 0 8px!important;padding:9px 11px!important;border-radius:13px!important}
+.alertControlTop span{display:none!important}
+.proToolbar{margin:0 0 8px!important;gap:7px!important}
+.proToolbar .in{min-height:43px!important}
+.proToolbar .primary{min-height:43px!important;white-space:nowrap!important}
+.proFilters{position:sticky!important;top:0!important;z-index:8!important;margin:0 -2px 9px!important;padding:5px 2px!important;background:#f6f7f8!important;overflow-x:auto!important;display:flex!important;gap:5px!important;scrollbar-width:none}
+.proFilters::-webkit-scrollbar{display:none}
+.proFilters button{flex:0 0 auto!important;min-height:37px!important;padding:7px 10px!important;font-size:10px!important;border-radius:10px!important}
+.orderDetailed{margin:8px 0!important;border-radius:15px!important}
+.orderDetailed>summary{padding:11px!important}
+.admManagementToggle{font-weight:900!important}
+@media(max-width:900px){
+ .admWorkspace>.adminHead{min-height:58px!important;padding:calc(8px + env(safe-area-inset-top)) 11px 8px!important}
+ .admWorkspace>.adminHead .adminSub{display:none!important}
+ .admWorkspace>.adminHead h2{font-size:17px!important}
+ .admWorkspace>.admbar{display:flex!important;flex-direction:column!important}
+ .admPrimaryNav{order:3!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:80!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;padding:6px 6px calc(6px + env(safe-area-inset-bottom))!important;border-top:1px solid #dfe3e7!important;background:rgba(255,255,255,.98)!important;box-shadow:0 -5px 18px rgba(25,30,36,.08)!important}
+ .admPrimaryNav button{display:none!important}
+ .admPrimaryNav button[data-tab="pedidos"],.admPrimaryNav button[data-tab="mesas"],.admPrimaryNav button[data-tab="producao"],.admPrimaryNav button[data-tab="entregas"]{display:block!important;min-height:43px!important;padding:5px 2px!important;font-size:9px!important}
+ .admManagementToggle{position:fixed!important;right:7px!important;bottom:calc(6px + env(safe-area-inset-bottom))!important;z-index:81!important;width:calc(20% - 8px)!important;min-height:43px!important;margin:0!important;padding:5px 2px!important;font-size:0!important;border-radius:10px!important}
+ .admManagementToggle:after{content:'☰ MAIS';font-size:9px!important;font-weight:950}
+ .admWorkspaceBody{order:1!important;padding-bottom:62px!important}
+ .admManagement{position:fixed!important;left:8px!important;right:8px!important;bottom:calc(61px + env(safe-area-inset-bottom))!important;z-index:79!important;max-height:58vh!important;overflow:auto!important;border:1px solid #d9dde2!important;border-radius:16px!important;box-shadow:0 14px 38px rgba(20,25,30,.18)!important;background:#f1f3f5!important}
+ .admManagement:not(.open){display:none!important}
+ .admManagement.open{display:block!important}
+ .admManagementNav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .admWorkspaceMain{padding:7px 7px calc(78px + env(safe-area-inset-bottom))!important}
+ .caseiraoPrinterPanel{margin-top:0!important}
+ .alertControl{display:none!important}
+ .proToolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
+ .orderDetailed .opsOrder{margin-top:7px!important}
+}
+
+
+/* ===== CASEIRAO ADM MOBILE HOTFIX v40 =====
+   Corrige a navegacao mobile sem tocar em Pix, pedidos, banco ou impressao. */
+@media(max-width:900px){
+  .admWorkspace>.admbar{
+    display:block!important;
+    position:relative!important;
+    overflow:visible!important;
+    min-height:0!important;
+  }
+  .admWorkspaceBody{
+    display:block!important;
+    width:100%!important;
+    min-height:0!important;
+    padding-bottom:72px!important;
+  }
+  .admWorkspaceMain{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:8px 8px calc(78px + env(safe-area-inset-bottom))!important;
+  }
+  .admWorkspaceMain>#admContent{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    min-height:1px!important;
+  }
+  .admPrimaryNav{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    top:auto!important;
+    z-index:100!important;
+    width:100%!important;
+    height:calc(60px + env(safe-area-inset-bottom))!important;
+    min-height:60px!important;
+    max-height:calc(60px + env(safe-area-inset-bottom))!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:48px!important;
+    align-items:start!important;
+    gap:4px!important;
+    padding:6px 5px calc(6px + env(safe-area-inset-bottom))!important;
+    margin:0!important;
+    overflow:visible!important;
+    border:0!important;
+    border-top:1px solid #dfe3e7!important;
+    background:#fff!important;
+    box-shadow:0 -5px 18px rgba(25,30,36,.10)!important;
+  }
+  .admPrimaryNav button,
+  .admPrimaryNav button[data-tab="pedidos"],
+  .admPrimaryNav button[data-tab="mesas"],
+  .admPrimaryNav button[data-tab="producao"],
+  .admPrimaryNav button[data-tab="entregas"]{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    font-size:9px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+  .admManagementToggle{
+    display:flex!important;
+    position:fixed!important;
+    left:auto!important;
+    right:5px!important;
+    bottom:calc(6px + env(safe-area-inset-bottom))!important;
+    z-index:101!important;
+    width:calc(20% - 6px)!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    font-size:0!important;
+    line-height:1!important;
+  }
+  .admManagementToggle:after{
+    content:'☰ MAIS'!important;
+    display:block!important;
+    font-size:9px!important;
+    font-weight:950!important;
+  }
+  .admManagement{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(68px + env(safe-area-inset-bottom))!important;
+    z-index:99!important;
+    width:auto!important;
+    height:auto!important;
+    max-height:62vh!important;
+    margin:0!important;
+    padding:9px!important;
+    overflow:auto!important;
+    border:1px solid #d9dde2!important;
+    border-radius:16px!important;
+    background:#f1f3f5!important;
+    box-shadow:0 14px 38px rgba(20,25,30,.20)!important;
+  }
+  .admManagement:not(.open){display:none!important}
+  .admManagement.open{display:block!important}
+  .admManagementNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .admManagementNav button{min-height:44px!important;height:auto!important;font-size:10px!important}
+}
+
+/* ===== CASEIRAO ADM MOBILE CLEAN v41 =====
+   Tela operacional: pedidos primeiro. Nao altera Pix, Bluetooth ou regras de negocio. */
+@media(max-width:900px){
+  .admWorkspace>.adminHead{position:sticky!important;top:0!important;z-index:70!important}
+  .admWorkspaceMain{padding:8px 8px calc(70px + env(safe-area-inset-bottom))!important}
+
+  /* Impressora vira uma faixa compacta. Configuracoes so aparecem ao tocar CONFIGURAR. */
+  #caseiraoPrinterPanel.caseiraoPrinterPanel{padding:7px 9px!important;margin:0 0 7px!important}
+  #caseiraoPrinterPanel .printerBarTop{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:5px!important;align-items:center!important}
+  #caseiraoPrinterPanel .printerBarTop>.grow{min-width:0!important}
+  #caseiraoPrinterPanel .printerBarTop b{font-size:11px!important}
+  #caseiraoPrinterPanel .printerState{font-size:9px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #caseiraoPrinterPanel .printerConnect,#caseiraoPrinterPanel .printerConfigToggle{width:auto!important;min-width:0!important;min-height:32px!important;height:32px!important;margin:0!important;padding:5px 7px!important;font-size:8px!important}
+  #caseiraoPrinterPanel .printerConfigGrid{display:none!important;margin-top:7px!important}
+  #caseiraoPrinterPanel .printerConfigGrid.printerConfigOpen{display:grid!important}
+
+  /* Indicadores e ferramentas administrativas saem da frente dos pedidos. */
+  #admContent>.slaStrip,#admContent>.opsTools{display:none!important}
+  #admContent>.operationHint{display:none!important}
+
+  /* Busca, pedido manual e filtros ficam imediatamente antes da lista. */
+  #admContent .proToolbar{margin:0 0 6px!important}
+  #admContent .proFilters{margin-bottom:7px!important}
+
+  /* Barra inferior realmente fixa em cinco espacos. */
+  .admPrimaryNav{grid-template-columns:repeat(5,1fr)!important;height:58px!important;min-height:58px!important;max-height:58px!important;gap:3px!important;padding:5px 4px calc(5px + env(safe-area-inset-bottom))!important;overflow:hidden!important}
+  .admPrimaryNav button[data-tab="pedidos"],.admPrimaryNav button[data-tab="mesas"],.admPrimaryNav button[data-tab="producao"],.admPrimaryNav button[data-tab="entregas"]{height:46px!important;min-height:46px!important;max-height:46px!important;padding:3px 1px!important;font-size:9px!important;overflow:hidden!important}
+  .admManagementToggle{right:4px!important;bottom:calc(5px + env(safe-area-inset-bottom))!important;width:calc(20% - 5px)!important;height:46px!important;min-height:46px!important;max-height:46px!important;padding:0!important;margin:0!important;font-size:0!important;color:transparent!important;white-space:nowrap!important;overflow:hidden!important}
+  .admManagementToggle::after{content:'☰ MAIS'!important;display:block!important;font-size:9px!important;line-height:46px!important;font-weight:950!important;color:#505861!important;text-align:center!important}
+  .admManagementToggle[aria-expanded="true"]::after{content:'× FECHAR'!important}
+  .admManagement{bottom:calc(62px + env(safe-area-inset-bottom))!important}
+}
+\n/* ===== CASEIRAO ADM v43 — ajuste cirurgico do botao Mais ===== */
+@media(max-width:900px){
+  .admManagementToggle{
+    font-size:9px!important;
+    font-weight:950!important;
+    line-height:1.1!important;
+    color:#505861!important;
+    text-indent:0!important;
+    opacity:1!important;
+    visibility:visible!important;
+  }
+  .admManagementToggle::before,.admManagementToggle::after{content:none!important;display:none!important}
+  .admManagement.open{display:block!important}
+  .admWorkspaceBody{min-height:0!important}
+  .admWorkspaceMain{min-height:0!important}
+}
+
+/* ===== CASEIRAO ADM v45 — pedido expandido essencial =====
+   Mantém operação/status e um único contato por WhatsApp.
+   Remove controles auxiliares que alongavam o cartão. */
+.admWorkspaceMain .orderDetailed .printActions,
+.admWorkspaceMain .orderDetailed .orderMeta,
+.admWorkspaceMain .orderDetailed .waStagePanel,
+.admWorkspaceMain .orderDetailed .opsTools,
+.admWorkspaceMain .orderDetailed .whatsappAction,
+.admWorkspaceMain .orderDetailed .deliveryAction{
+  display:none!important;
+}
+
+/* Um único contato: WhatsApp do cliente. */
+.admWorkspaceMain .orderDetailed .opsContactRow{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:0!important;
+  margin-top:8px!important;
+}
+.admWorkspaceMain .orderDetailed .opsContactRow button{
+  display:none!important;
+}
+.admWorkspaceMain .orderDetailed .opsContactRow a{
+  display:flex!important;
+  width:100%!important;
+  min-height:42px!important;
+  margin:0!important;
+}
+
+/* Status continua sendo o controle operacional principal. */
+.admWorkspaceMain .orderDetailed .smartOrderFlow{
+  margin-top:8px!important;
+  padding:9px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions .statusWorkflow{
+  gap:5px!important;
+}
+.admWorkspaceMain .orderDetailed .statusAdvancedOptions .statusWorkflow button{
+  min-height:38px!important;
+  padding:7px 8px!important;
+  font-size:9px!important;
+}
+
+/* Informação essencial mais densa. */
+.admWorkspaceMain .orderDetailed .orderInfoGrid{margin-top:6px!important;gap:6px!important}
+.admWorkspaceMain .orderDetailed .addressBoxAdmin,
+.admWorkspaceMain .orderDetailed .notesBoxAdmin{margin-top:6px!important;padding:8px 9px!important}
+.admWorkspaceMain .orderDetailed .sectionTitle{margin-top:8px!important;margin-bottom:3px!important}
+.admWorkspaceMain .orderDetailed .orderItemsBox{margin-top:4px!important}
+.admWorkspaceMain .orderDetailed .orderTotalsBox{margin-top:5px!important}
+
+@media(max-width:520px){
+  .admWorkspaceMain .orderDetailed .orderInfoGrid{grid-template-columns:1fr 1fr!important}
+  .admWorkspaceMain .orderDetailed .orderInfo{padding:7px 8px!important}
+  .admWorkspaceMain .orderDetailed .orderBody{padding:8px!important}
+}
+
+/* ===== CASEIRAO ADM v46 — segunda via no pedido =====
+   Mantém o cartão compacto e devolve somente a impressão Bluetooth manual. */
+.admWorkspaceMain .orderDetailed .printActions{
+  display:flex!important;
+  margin-top:8px!important;
+  gap:0!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-webprint]{
+  display:none!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-btprint]{
+  display:flex!important;
+  width:100%!important;
+  min-height:42px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+}
+.admWorkspaceMain .orderDetailed .printActions [data-btprint]::after{
+  content:' 2ª VIA';
+}
+
+/* CASEIRÃO EQUIPE — SIGNATURE PREMIUM 3.0 */
+:root{--sig-bg:#08090b;--sig-panel:#131418;--sig-panel2:#191a1f;--sig-line:rgba(255,255,255,.10);--sig-text:#fffaf0;--sig-muted:#a6a7ac;--sig-gold:#f6b91e;--sig-gold2:#ffd35c;--sig-green:#56dc7a;--sig-red:#ff747c;--sig-shadow:0 18px 50px rgba(0,0,0,.38)}
+body.teamApp{background:radial-gradient(circle at 50% -120px,rgba(246,185,30,.12),transparent 410px),var(--sig-bg)!important}
+.teamLauncher{background:radial-gradient(circle at 14% 8%,rgba(246,185,30,.12),transparent 36%),radial-gradient(circle at 88% 90%,rgba(246,185,30,.055),transparent 32%),var(--sig-bg)!important}
+.teamLauncherCard{border-color:rgba(246,185,30,.15)!important;background:linear-gradient(145deg,#17181c,#0d0e11)!important;box-shadow:0 34px 100px #000a!important}
+.teamLogo,.admLoginBrand{background:linear-gradient(145deg,var(--sig-gold2),#d89200)!important;color:#111!important;box-shadow:0 14px 34px rgba(246,185,30,.2)!important}
+.teamLauncherKicker{color:var(--sig-gold)!important}.teamLauncherLive{border-color:#315c42!important;background:#14271c!important;color:#85e1a7!important}
+.teamAccessGrid .teamChoice{border-color:var(--sig-line)!important;background:linear-gradient(145deg,#1b1c21,#121317)!important}
+.teamAccessGrid .teamChoice:hover,.teamAccessGrid .teamChoice:focus-visible{border-color:rgba(246,185,30,.5)!important;background:#1e1d19!important;box-shadow:0 15px 36px #0007!important}
+.teamAccessGrid #teamAdminBtn{border-color:rgba(246,185,30,.25)!important;background:linear-gradient(135deg,#272311,#15161a 64%)!important}.teamAccessGrid #teamAdminBtn:after{background:linear-gradient(135deg,var(--sig-gold),var(--sig-gold2))!important;color:#111!important}.teamAccessGrid .teamChoiceIcon{background:#28282b!important}.teamInstall{color:var(--sig-gold)!important}
+.admWorkspace{background:var(--sig-bg)!important;border:1px solid rgba(246,185,30,.13)!important;box-shadow:0 36px 110px #000c!important}
+.admWorkspace>.adminHead{background:linear-gradient(135deg,#18191d,#0c0d10)!important;border-bottom-color:rgba(246,185,30,.16)!important}.admWorkspace>.adminHead h2{color:var(--sig-text)!important}.admWorkspace>.adminHead .adminSub{color:var(--sig-muted)!important}.admWorkspace>.adminHead .x,.admWorkspace>.adminHead .adminLogout{background:#202126!important;border-color:var(--sig-line)!important;color:#fff!important}
+.admWorkspace>.compactMetrics{background:#0e0f12!important;border-bottom-color:var(--sig-line)!important}.admWorkspace>.compactMetrics .metric{background:linear-gradient(145deg,#17181c,#111216)!important;border-right-color:var(--sig-line)!important;color:#fff!important}.admWorkspace>.compactMetrics .metric b{color:var(--sig-gold)!important}.admWorkspace>.compactMetrics .metric span{color:var(--sig-muted)!important}
+.admWorkspace>.admbar{background:var(--sig-bg)!important}.admPrimaryNav{border-bottom-color:var(--sig-line)!important;background:rgba(10,11,13,.95)!important}.admPrimaryNav button{border-color:var(--sig-line)!important;background:#17181c!important;color:#bfc0c5!important}.admPrimaryNav button.on,.admPrimaryNav [data-tab="mesas"].on,.admPrimaryNav [data-tab="cashback"].on{border-color:transparent!important;background:linear-gradient(135deg,var(--sig-gold),var(--sig-gold2))!important;color:#111!important;box-shadow:0 9px 24px rgba(246,185,30,.17)!important}.admPrimaryNav [data-tab="mesas"],.admPrimaryNav [data-tab="cashback"]{border-color:var(--sig-line)!important;background:#17181c!important;color:#bfc0c5!important}
+.admManagement{border-right-color:var(--sig-line)!important;background:#0f1013!important}.admManagementTitle{color:#73747a!important}.admManagementNav button{color:#aeb0b6!important}.admManagementNav button:hover{background:#191a1f!important;color:#fff!important}.admManagementNav button.on{border-color:rgba(246,185,30,.2)!important;background:#1c1b16!important;color:var(--sig-gold)!important;box-shadow:none!important}.admManagementToggle{border-color:var(--sig-line)!important;background:#17181c!important;color:#ddd!important}
+.admWorkspaceMain{background:radial-gradient(circle at 50% 0,rgba(246,185,30,.035),transparent 380px),var(--sig-bg)!important;color:var(--sig-text)!important}.admLoginPremium{background:var(--sig-bg)!important}.admLoginPremium .loginbox{border-color:var(--sig-line)!important;background:#141519!important;color:#fff!important;box-shadow:var(--sig-shadow)!important}
+.admWorkspaceMain .operationHint{border:1px solid rgba(246,185,30,.18)!important;background:linear-gradient(135deg,rgba(246,185,30,.10),rgba(246,185,30,.03))!important;color:#e8d8ae!important}.admWorkspaceMain .sectionTitle{color:#fff!important}.admWorkspaceMain .mini,.admWorkspaceMain small{color:var(--sig-muted)}
+.admWorkspaceMain .metric,.admWorkspaceMain .financeCard,.admWorkspaceMain .orderDetailed,.admWorkspaceMain .order,.admWorkspaceMain .tableitem,.admWorkspaceMain .kitchenCard,.admWorkspaceMain .reportBreak,.admWorkspaceMain .loyaltyCard,.admWorkspaceMain .storeControl,.admWorkspaceMain .cashbackConfig,.admWorkspaceMain .cashbackCustomers,.admWorkspaceMain .deliveryPanel,.admWorkspaceMain .deliveryCard,.admWorkspaceMain .driverClosingCard,.admWorkspaceMain .rateRow,.admWorkspaceMain .newHoodCard,.admWorkspaceMain .gasCard,.admWorkspaceMain .promotionAdminRow,.admWorkspaceMain .bannerEditorCard{border-color:var(--sig-line)!important;background:linear-gradient(145deg,#18191d,#111216)!important;color:var(--sig-text)!important;box-shadow:0 10px 30px rgba(0,0,0,.22)!important}
+.admWorkspaceMain .orderBody,.admWorkspaceMain .orderInfo,.admWorkspaceMain .orderItemsBox,.admWorkspaceMain .orderTotalsBox,.admWorkspaceMain .notesBoxAdmin,.admWorkspaceMain .addressBoxAdmin,.admWorkspaceMain .deliveryAddressLine,.admWorkspaceMain .deliveryMeta>div,.admWorkspaceMain .driverClosingSummary,.admWorkspaceMain .deliveryOrderDetailsBody,.admWorkspaceMain .driverCompactMeta>div,.admWorkspaceMain .driverHoodList,.admWorkspaceMain .neighborhoodBreakdown{border-color:var(--sig-line)!important;background:#101114!important;color:#eee!important}
+.admWorkspaceMain .deliveryCardTop h3,.admWorkspaceMain .driverClosingHead h3,.admWorkspaceMain .tableitem b,.admWorkspaceMain .orderSummary b,.admWorkspaceMain .kitchenCard b{color:#fff!important}.admWorkspaceMain .deliveryDriverLine,.admWorkspaceMain .deliveryAddressLine{color:#c5c6ca!important}.admWorkspaceMain .deliveryMeta b,.admWorkspaceMain .driverClosingHead>strong,.admWorkspaceMain .driverClosingSummary strong,.admWorkspaceMain .neighborhoodPayRow>b{color:var(--sig-gold)!important}.admWorkspaceMain .deliveryMeta small,.admWorkspaceMain .driverClosingSummary span,.admWorkspaceMain .neighborhoodPayRow small{color:#8f9096!important}
+.admWorkspaceMain .deliveryOrderDetails>summary,.admWorkspaceMain .deliveryManageFold>summary,.admWorkspaceMain .deliveryClosingFold>summary{color:#e7e7e8!important;border-color:var(--sig-line)!important}.admWorkspaceMain .deliveryProHero,.driverPremiumHero{background:linear-gradient(135deg,#24200f,#121317 68%,#5f4609)!important;border:1px solid rgba(246,185,30,.2)!important;box-shadow:var(--sig-shadow)!important}.deliveryLiveTag{color:var(--sig-green)!important;border-color:#315c42!important;background:#14271c!important}
+.admWorkspaceMain .driverAvatar,.driverPremiumIcon{background:rgba(246,185,30,.13)!important}.admWorkspaceMain .driverFee,.driverDaySummaryHead>strong{color:var(--sig-gold)!important}.driverOrder,.driverDaySummary{background:linear-gradient(145deg,#18191d,#111216)!important;border-color:var(--sig-line)!important;color:#fff!important;box-shadow:0 10px 30px #0005!important}.driverSectionHead h3,.driverQuickTop h3{color:#fff!important}.driverSectionHead span{background:rgba(246,185,30,.1)!important;border-color:rgba(246,185,30,.22)!important;color:var(--sig-gold)!important}.driverQuickChip,.deliveryTimes span{background:#202126!important;border-color:var(--sig-line)!important;color:#ddd!important}.driverDetails{border-color:var(--sig-line)!important}.driverDetails>summary{color:#b7b8bd!important}.driverDetails>summary:after{color:var(--sig-gold)!important}.driverOrder .addressBoxAdmin,.driverCompactMeta>div,.driverHoodList,.driverHoodRow,.driverClosingSummary{background:#101114!important;border-color:var(--sig-line)!important;color:#eee!important}.driverHoodRow>strong{color:var(--sig-gold)!important}.driverMoney{border-color:#315c42!important;background:#14271c!important;color:#98e4b3!important}
+.admWorkspaceMain .in,.admWorkspaceMain .sel,.admWorkspaceMain .ta,.deliveryLogin .in,.driverOrder .in{background:#101114!important;border-color:var(--sig-line)!important;color:#fff!important}.admWorkspaceMain .in::placeholder,.admWorkspaceMain .ta::placeholder{color:#696a70!important}.admWorkspaceMain .field>label{color:#b4b5ba!important}
+.admWorkspaceMain .primary,.driverScreenNew .primary,.deliveryLogin .primary{background:linear-gradient(135deg,var(--sig-gold),var(--sig-gold2))!important;color:#111!important;border:0!important;box-shadow:0 10px 25px rgba(246,185,30,.15)!important}.admWorkspaceMain .secondary,.driverScreenNew .secondary{background:#202126!important;border-color:var(--sig-line)!important;color:#eee!important}.admWorkspaceMain .secondary.danger,.driverScreenNew .secondary.danger{background:#29171a!important;border-color:#633036!important;color:#ff9298!important}
+.admWorkspaceMain .st-entregue{background:#14271c!important;color:#81dfa4!important}.admWorkspaceMain .st-em_rota{background:#172438!important;color:#8ec5ff!important}.admWorkspaceMain .st-preparando{background:#2c2412!important;color:#f5cd69!important}.admWorkspaceMain .notice{background:#121b27!important;border-color:#273a54!important;color:#dbe8f7!important}.admWorkspaceMain .err{background:#2b171a!important;border-color:#673139!important;color:#ffabb0!important}
+.admWorkspaceMain .deliveryActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admWorkspaceMain .deliveryActions button{min-height:46px!important;border-radius:12px!important}.admWorkspaceMain .deliveryAvailablePanel .deliveryCard{border-left:3px solid var(--sig-gold)!important}.admWorkspaceMain .deliveryAvailablePanel>h3,.admWorkspaceMain .ratesGrid .rateRow label,.admWorkspaceMain .newHoodCard h3{color:#fff!important}.admWorkspaceMain .rateCompare{color:#94959b!important}.admWorkspaceMain .refreshDeliveriesBtn,.admWorkspaceMain .resetDeliveriesBtn{background:#202126!important;color:#eee!important;border-color:var(--sig-line)!important}
+@media(max-width:900px){.admWorkspace{background:var(--sig-bg)!important}.admManagement{border-bottom-color:var(--sig-line)!important;background:#0f1013!important}.admManagementNav button{background:#17181c!important;border-color:var(--sig-line)!important;color:#bbb!important}.admWorkspaceMain{min-height:calc(100dvh - 220px)!important;padding:13px 11px 100px!important}.admPrimaryNav{grid-template-columns:repeat(5,minmax(0,1fr))!important}.admPrimaryNav button{font-size:9px!important}.admPrimaryNav button[data-tab="entregas"]{display:block!important;visibility:visible!important;opacity:1!important}.admManagementToggle::before,.admManagementToggle::after{content:none!important;display:none!important}.teamLauncherCard{border-radius:23px!important}}
+@media(max-width:520px){.teamLauncher{padding:16px!important}.teamLauncherCard{padding:20px 15px!important}.teamLauncherIntro{grid-template-columns:56px minmax(0,1fr)!important;gap:12px!important}.teamLauncherIntro .teamLogo{width:56px!important;height:56px!important;border-radius:17px!important}.teamLauncherIntro h1{font-size:23px!important}.teamLauncherLive{display:none!important}.teamAccessGrid .teamChoice{min-height:88px!important;padding:14px!important}.teamAccessGrid #teamAdminBtn{min-height:96px!important}.admWorkspace>.compactMetrics .metric{padding:9px 8px!important}.admWorkspace>.compactMetrics .metric b{font-size:15px!important}.admWorkspace>.compactMetrics .metric span{font-size:8px!important}.admWorkspaceMain .deliveryMeta{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admWorkspaceMain .deliveryActions{grid-template-columns:1fr 1fr!important}.driverPremiumStats{grid-template-columns:repeat(3,minmax(0,1fr))}.driverPremiumStat{padding:8px!important}.driverPremiumStat b{font-size:13px!important}}
+
+/* CASEIRÃO EQUIPE — LIGHT PREMIUM 3.2
+   Fundo claro e leitura forte para a operação diária. */
+:root{--light-bg:#f3f4f6;--light-panel:#ffffff;--light-soft:#f8f9fa;--light-line:#dfe2e6;--light-text:#202328;--light-muted:#69717a;--light-gold:#d99400;--light-gold2:#f6b91e}
+body.teamApp{background:var(--light-bg)!important;color:var(--light-text)!important}
+.teamLauncher{background:linear-gradient(180deg,#f8f9fa,#eef0f3)!important;color:var(--light-text)!important}
+.teamLauncherCard{border-color:var(--light-line)!important;background:#fff!important;color:var(--light-text)!important;box-shadow:0 22px 60px rgba(25,30,36,.13)!important}
+.teamLauncherIntro{border-bottom-color:var(--light-line)!important}.teamLauncherIntro h1{color:#202328!important}.teamLauncherIntro p{color:var(--light-muted)!important}.teamLauncherKicker{color:#a86d00!important}
+.teamAccessGrid .teamChoice,.teamAccessGrid #teamAdminBtn{border-color:var(--light-line)!important;background:#f8f9fa!important;color:var(--light-text)!important;box-shadow:none!important}.teamAccessGrid .teamChoice:hover,.teamAccessGrid .teamChoice:focus-visible{border-color:#d6a42e!important;background:#fffaf0!important;box-shadow:0 10px 25px rgba(28,34,40,.08)!important}.teamAccessGrid .teamChoiceIcon{background:#fff3d2!important}.teamAccessGrid .teamChoice small{color:var(--light-muted)!important}.teamInstall{color:#8d6200!important}.teamVersion{color:#858b92!important}
+.admWorkspace{background:var(--light-bg)!important;border-color:var(--light-line)!important;box-shadow:0 28px 80px rgba(20,25,30,.2)!important}
+.admWorkspace>.adminHead{background:#fff!important;border-bottom-color:var(--light-line)!important;color:var(--light-text)!important}.admWorkspace>.adminHead h2{color:var(--light-text)!important}.admWorkspace>.adminHead .adminSub{color:var(--light-muted)!important}.admWorkspace>.adminHead .x,.admWorkspace>.adminHead .adminLogout{background:#f1f2f4!important;border-color:var(--light-line)!important;color:#34383e!important}
+.admWorkspace>.compactMetrics{background:#fff!important;border-bottom-color:var(--light-line)!important}.admWorkspace>.compactMetrics .metric{background:#fff!important;border-right-color:var(--light-line)!important;color:var(--light-text)!important}.admWorkspace>.compactMetrics .metric b{color:#8d6200!important}.admWorkspace>.compactMetrics .metric span{color:var(--light-muted)!important}
+.admWorkspace>.admbar{background:var(--light-bg)!important}.admPrimaryNav{background:rgba(255,255,255,.97)!important;border-color:var(--light-line)!important}.admPrimaryNav button,.admPrimaryNav [data-tab="mesas"],.admPrimaryNav [data-tab="cashback"]{background:#f7f8f9!important;border-color:var(--light-line)!important;color:#555d66!important}.admPrimaryNav button.on,.admPrimaryNav [data-tab="mesas"].on,.admPrimaryNav [data-tab="cashback"].on{background:linear-gradient(135deg,var(--light-gold2),#ffd45e)!important;color:#171717!important;border-color:#e4ad18!important}
+.admManagement{background:#eceef1!important;border-color:var(--light-line)!important}.admManagementTitle{color:#737a83!important}.admManagementNav button{color:#555d66!important}.admManagementNav button:hover{background:#fff!important;color:#202328!important}.admManagementNav button.on{background:#fff!important;border-color:#ddc17b!important;color:#8a5e00!important;box-shadow:0 5px 14px rgba(25,30,36,.06)!important}.admManagementToggle{background:#fff!important;border-color:var(--light-line)!important;color:#454b52!important}
+.admWorkspaceMain{background:var(--light-bg)!important;color:var(--light-text)!important}.admWorkspaceMain .sectionTitle{color:#202328!important}.admWorkspaceMain .mini,.admWorkspaceMain small{color:var(--light-muted)!important}
+.admWorkspaceMain .metric,.admWorkspaceMain .financeCard,.admWorkspaceMain .orderDetailed,.admWorkspaceMain .order,.admWorkspaceMain .tableitem,.admWorkspaceMain .kitchenCard,.admWorkspaceMain .reportBreak,.admWorkspaceMain .loyaltyCard,.admWorkspaceMain .storeControl,.admWorkspaceMain .cashbackConfig,.admWorkspaceMain .cashbackCustomers,.admWorkspaceMain .deliveryPanel,.admWorkspaceMain .deliveryCard,.admWorkspaceMain .driverClosingCard,.admWorkspaceMain .rateRow,.admWorkspaceMain .newHoodCard,.admWorkspaceMain .gasCard,.admWorkspaceMain .promotionAdminRow,.admWorkspaceMain .bannerEditorCard{background:#fff!important;border-color:var(--light-line)!important;color:var(--light-text)!important;box-shadow:0 6px 20px rgba(25,30,36,.055)!important}
+.admWorkspaceMain .orderBody,.admWorkspaceMain .orderInfo,.admWorkspaceMain .orderItemsBox,.admWorkspaceMain .orderTotalsBox,.admWorkspaceMain .notesBoxAdmin,.admWorkspaceMain .addressBoxAdmin,.admWorkspaceMain .deliveryAddressLine,.admWorkspaceMain .deliveryMeta>div,.admWorkspaceMain .driverClosingSummary,.admWorkspaceMain .deliveryOrderDetailsBody,.admWorkspaceMain .driverCompactMeta>div,.admWorkspaceMain .driverHoodList,.admWorkspaceMain .neighborhoodBreakdown{background:var(--light-soft)!important;border-color:var(--light-line)!important;color:var(--light-text)!important}
+.admWorkspaceMain .deliveryCardTop h3,.admWorkspaceMain .driverClosingHead h3,.admWorkspaceMain .tableitem b,.admWorkspaceMain .orderSummary b,.admWorkspaceMain .kitchenCard b,.admWorkspaceMain .deliveryAvailablePanel>h3,.admWorkspaceMain .ratesGrid .rateRow label,.admWorkspaceMain .newHoodCard h3{color:var(--light-text)!important}.admWorkspaceMain .deliveryDriverLine,.admWorkspaceMain .deliveryAddressLine{color:#555d66!important}.admWorkspaceMain .deliveryMeta b,.admWorkspaceMain .driverClosingHead>strong,.admWorkspaceMain .driverClosingSummary strong,.admWorkspaceMain .neighborhoodPayRow>b{color:#9a6900!important}
+.admWorkspaceMain .deliveryOrderDetails>summary,.admWorkspaceMain .deliveryManageFold>summary,.admWorkspaceMain .deliveryClosingFold>summary{color:#33383e!important;border-color:var(--light-line)!important}
+.admWorkspaceMain .deliveryProHero,.driverPremiumHero{background:linear-gradient(135deg,#fff8e6,#fff 70%,#f5dfaa)!important;border-color:#e5c875!important;color:var(--light-text)!important;box-shadow:0 8px 25px rgba(25,30,36,.08)!important}.deliveryProHero p,.driverPremiumHead small{color:var(--light-muted)!important}.deliveryHeroMetric,.driverPremiumStat{background:rgba(255,255,255,.75)!important;border-color:#e6d29a!important;color:var(--light-text)!important}.deliveryHeroMetric small,.driverPremiumStat small{color:#777063!important}.deliveryLiveTag{background:#eaf8ef!important;border-color:#acd8bb!important;color:#247242!important}
+.driverOrder,.driverDaySummary{background:#fff!important;border-color:var(--light-line)!important;color:var(--light-text)!important;box-shadow:0 6px 20px rgba(25,30,36,.06)!important}.driverSectionHead h3,.driverQuickTop h3{color:var(--light-text)!important}.driverSectionHead span{background:#fff5d9!important;border-color:#e6cb82!important;color:#8c6100!important}.driverQuickChip,.deliveryTimes span{background:#f4f5f7!important;border-color:var(--light-line)!important;color:#454b52!important}.driverDetails{border-color:var(--light-line)!important}.driverDetails>summary{color:#5e6670!important}.driverOrder .addressBoxAdmin,.driverCompactMeta>div,.driverHoodList,.driverHoodRow,.driverClosingSummary{background:var(--light-soft)!important;border-color:var(--light-line)!important;color:var(--light-text)!important}
+.admWorkspaceMain .in,.admWorkspaceMain .sel,.admWorkspaceMain .ta,.deliveryLogin .in,.driverOrder .in{background:#fff!important;border-color:#cfd3d8!important;color:var(--light-text)!important}.admWorkspaceMain .field>label{color:#555d66!important}.admWorkspaceMain .secondary,.driverScreenNew .secondary{background:#f2f3f5!important;border-color:#d5d8dc!important;color:#33383e!important}.admWorkspaceMain .secondary.danger,.driverScreenNew .secondary.danger{background:#fff2f3!important;border-color:#edc0c4!important;color:#a32e36!important}.admWorkspaceMain .notice{background:#eef6ff!important;border-color:#c9dcef!important;color:#315b80!important}.admWorkspaceMain .err{background:#fff0f1!important;border-color:#edc0c4!important;color:#a32e36!important}
+.admLoginPremium{background:var(--light-bg)!important}.admLoginPremium .loginbox{background:#fff!important;border-color:var(--light-line)!important;color:var(--light-text)!important;box-shadow:0 18px 45px rgba(25,30,36,.12)!important}
+@media(max-width:900px){.admWorkspace,.admWorkspace>.admbar{background:var(--light-bg)!important}.admManagement{background:#f1f2f4!important;border-color:var(--light-line)!important}.admManagementNav button{background:#fff!important;border-color:var(--light-line)!important;color:#555d66!important}.admPrimaryNav{background:#fff!important;border-top-color:var(--light-line)!important;box-shadow:0 -5px 18px rgba(25,30,36,.09)!important}}
+
+/* CASEIRÃO EQUIPE — LAUNCHER CONTRASTE v3.4
+   Isola a tela de acessos do restante do tema e elimina regras antigas que
+   deixavam os textos brancos sobre cartões claros. */
+body.teamApp #teamHome.teamLauncher{
+  background:
+    radial-gradient(circle at 18% 8%,rgba(246,185,30,.14),transparent 34%),
+    radial-gradient(circle at 88% 92%,rgba(246,185,30,.07),transparent 30%),
+    #090a0c!important;
+  color:#fff!important;
+}
+body.teamApp #teamHome .teamLauncherCard{
+  border:1px solid rgba(246,185,30,.20)!important;
+  background:linear-gradient(145deg,#191a1e,#0e0f12)!important;
+  color:#fff!important;
+  box-shadow:0 30px 85px rgba(0,0,0,.52)!important;
+}
+body.teamApp #teamHome .teamLauncherIntro{border-bottom-color:rgba(255,255,255,.10)!important}
+body.teamApp #teamHome .teamLauncherIntro h1{color:#fff!important;-webkit-text-fill-color:#fff!important}
+body.teamApp #teamHome .teamLauncherIntro p{color:#b9bec5!important;-webkit-text-fill-color:#b9bec5!important}
+body.teamApp #teamHome .teamLauncherKicker{color:#f6b91e!important}
+body.teamApp #teamHome .teamAccessGrid .teamChoice,
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn,
+body.teamApp #teamHome .teamAccessGrid #teamDriverBtn{
+  border-color:rgba(255,255,255,.13)!important;
+  background:linear-gradient(145deg,#202126,#15161a)!important;
+  color:#fff!important;
+  opacity:1!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.22)!important;
+}
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn{
+  border-color:rgba(246,185,30,.38)!important;
+  background:linear-gradient(135deg,#2b2615,#18191d 66%)!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice:hover,
+body.teamApp #teamHome .teamAccessGrid .teamChoice:focus-visible{
+  border-color:#f6b91e!important;
+  background:linear-gradient(145deg,#29291f,#1a1b1f)!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoiceIcon{
+  background:#2b2c31!important;
+  color:#f6b91e!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice strong{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamAccessGrid .teamChoice small{
+  color:#c4c8ce!important;
+  -webkit-text-fill-color:#c4c8ce!important;
+  opacity:1!important;
+}
+body.teamApp #teamHome .teamInstall{color:#f6b91e!important;-webkit-text-fill-color:#f6b91e!important}
+body.teamApp #teamHome .teamVersion{color:#858b93!important;-webkit-text-fill-color:#858b93!important}
