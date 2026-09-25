@@ -118,7 +118,7 @@
           <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
           <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
           <div class="driverInfoBlock"><small>👤 Cliente</small><strong>${esc(o.customer_name||'Não informado')}</strong>${phoneHref?`<a class="driverPhoneLink" href="${esc(phoneHref)}">📞 LIGAR PARA ${esc(o.customer_phone)}</a>`:`<span class="driverReference">Telefone não informado</span>`}</div>
-          <div class="driverPayGrid"><div class="driverInfoBlock"><small>💳 Pagamento</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span></div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
+          <div class="driverPayGrid"><div class="driverInfoBlock driverPaymentBlock"><small>💳 Pagamento atual</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span>${!finished?`<button type="button" class="driverChangePaymentBtn" data-driver-payment="${a.id}">ALTERAR PAGAMENTO</button>`:''}</div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
         </div>
         <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
         ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
@@ -166,8 +166,36 @@
     document.querySelectorAll('[data-driver-deliver]').forEach(button=>{
       button.onclick=()=>deliverInOneTap(button.dataset.driverDeliver,button);
     });
+    document.querySelectorAll('[data-driver-payment]').forEach(button=>{
+      button.onclick=()=>openDriverPaymentChange(button.dataset.driverPayment);
+    });
     return result;
   };
+
+  function openDriverPaymentChange(id){
+    const assignment=(driverSnapshot?.assignments||[]).find(x=>String(x.id)===String(id));
+    const order=driverFullOrder(assignment||{});
+    if(!assignment||!order?.id)return alert('Não foi possível localizar este pedido.');
+    const current=String(order.payment||'');
+    modal(`<div class="sheeth"><div><h2>Alterar pagamento</h2><div class="adminSub">Pedido #${esc(order.order_number||'—')} • ${fmt(order.total)}</div></div><button class="x" id="backDriverPayment">←</button></div><div class="driverPaymentChooser"><div class="operationHint">Selecione a forma que o cliente realmente usou na entrega. A mudança será salva no pedido e aparecerá no caixa/ADM.</div>${['Dinheiro','Pix','Cartão'].map(method=>`<button type="button" class="driverPaymentOption ${current===method?'selected':''}" data-payment-method="${method}"><span>${method==='Dinheiro'?'💵':method==='Pix'?'◆':'💳'}</span><b>${method}</b>${current===method?'<small>ATUAL</small>':''}</button>`).join('')}</div>`,true);
+    $('#backDriverPayment').onclick=()=>renderDriverArea();
+    document.querySelectorAll('[data-payment-method]').forEach(choice=>choice.onclick=async()=>{
+      const payment=choice.dataset.paymentMethod;
+      let changeFor='';
+      if(payment==='Dinheiro'){
+        const answer=prompt('Se precisar de troco, informe "troco para quanto?". Se não precisar, deixe vazio.',String(order.change_for||''));
+        if(answer===null)return;
+        changeFor=answer.trim();
+      }
+      try{
+        document.querySelectorAll('[data-payment-method]').forEach(x=>x.disabled=true);
+        choice.innerHTML='<b>SALVANDO...</b>';
+        await driverAppApi('payment',{assignment_id:id,payment,change_for:changeFor});
+        showAppToast(`Pagamento alterado para ${payment}.`,'ok');
+        await renderDriverArea();
+      }catch(e){alert(e.message||'Não foi possível alterar o pagamento.');await renderDriverArea()}
+    });
+  }
 
   /* O painel pode ter sido restaurado antes deste aprimoramento carregar. */
   if(document.querySelector('.driverScreenNew')&&localStorage.getItem(driverTokenKey)){
@@ -554,3 +582,9 @@ document.addEventListener('input',event=>{
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)centerActiveAdminTab(false)});
 })();
 
+
+
+/* Central do entregador — contraste e troca rápida de pagamento */
+(()=>{const style=document.createElement('style');style.textContent=`
+.driverScreenNew{color:#15191e!important}.driverScreenNew .driverDaySummary{background:#fff!important;border:1px solid #d7dce1!important;box-shadow:0 5px 18px rgba(20,24,28,.07)!important}.driverScreenNew .driverDaySummary h3,.driverScreenNew .driverDaySummary strong{color:#1b2026!important}.driverScreenNew .mini{color:#59616a!important}.driverOrder{border-color:#cfd5db!important;box-shadow:0 7px 22px rgba(25,30,36,.09)!important}.driverOrder h3{color:#171b20!important}.driverQuickChip{background:#eef1f4!important;border-color:#d3d8de!important;color:#242a31!important}.driverStatus{color:#9a3d13!important}.driverInfoBlock{background:#f4f6f8!important;border:1px solid #d7dce1!important}.driverInfoBlock small{color:#5d6670!important}.driverInfoBlock strong{color:#151a20!important}.driverReference{color:#4e5862!important}.driverPaymentBlock{border:2px solid #d8a07d!important;background:#fff8f3!important}.driverChangePaymentBtn{width:100%;margin-top:10px;min-height:42px;border:1px solid #b94d19;border-radius:11px;background:#fff;color:#a13d10;font-weight:900}.driverPaymentChooser{display:grid;gap:10px;margin-top:10px}.driverPaymentOption{display:grid;grid-template-columns:42px 1fr auto;align-items:center;text-align:left;gap:10px;min-height:64px;padding:11px 13px;border:1px solid #d5dbe1;border-radius:14px;background:#fff;color:#1b2026}.driverPaymentOption>span{font-size:23px}.driverPaymentOption>b{font-size:16px}.driverPaymentOption small{font-size:9px;font-weight:900;color:#a13d10}.driverPaymentOption.selected{border:2px solid #b94d19;background:#fff5ee}
+`;document.head.appendChild(style)})();
