@@ -17,7 +17,7 @@ receiptPlain=function(o){
   if(o.type==='delivery'){L.push(hr,'ENDERECO:',...wr(orderAddress(o)))}
   L.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)L.push(`TROCO PARA: ${o.change_for}`);L.push(hr,'ITENS:');
   (o.order_items||[]).forEach(it=>{L.push(...wr(`${it.quantity||1}x ${it.product_name||'Item'}  ${fmt(it.line_total||0)}`));(it.order_item_addons||[]).forEach(a=>L.push(...wr(`  + ${a.addon_name}${Number(a.price||0)>0?' '+fmt(a.price):''}`)));if(it.note)L.push(...wr(`  OBS: ${it.note}`))});
-  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,`CODIGO: ${o.tracking_code||''}`,'','','');return stripAccents(L.join('\n'));
+  if(o.notes)L.push(hr,'OBSERVACOES:',...wr(o.notes));L.push(hr,`SUBTOTAL: ${fmt(o.subtotal)}`);if(Number(o.delivery_fee||0))L.push(`ENTREGA: ${fmt(o.delivery_fee)}`);if(Number(o.delivery_discount||0))L.push(`DESC. ENTREGA: -${fmt(o.delivery_discount)}`);if(Number(o.discount||0))L.push(`DESCONTO: -${fmt(o.discount)}`);if(Number(o.cashback_used||0))L.push(`CASHBACK: -${fmt(o.cashback_used)}`);L.push(`TOTAL: ${fmt(o.total)}`,hr,`CODIGO: ${o.tracking_code||''}`,'','','');return stripAccents(L.join('\n'));
 };
 const receiptBrowserPaperBase=receiptBrowserHtml;
 receiptBrowserHtml=function(o){return receiptBrowserPaperBase(o)
@@ -305,6 +305,7 @@ escposBytes=async function(o){
   if(Number(o.delivery_fee||0))totals.push(pair('ENTREGA',fmt(o.delivery_fee)));
   if(Number(o.delivery_discount||0))totals.push(pair('DESC. ENTREGA',`-${fmt(o.delivery_discount)}`));
   if(Number(o.discount||0))totals.push(pair('DESCONTO',`-${fmt(o.discount)}`));
+  if(Number(o.cashback_used||0))totals.push(pair('CASHBACK',`-${fmt(o.cashback_used)}`));
   return joinReceiptBytes(
     new Uint8Array([0x1b,0x40]),center,boldOn,doubleSize,txt('O CASEIRAO BURGER'),
     normal,txt('DESDE 2022','CAMPO MAIOR - PI',''),doubleSize,txt(`PEDIDO #${o.order_number}`),
