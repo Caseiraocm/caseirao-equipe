@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-print-80mm-v35';
+const CACHE = 'caseirao-equipe-adm-clean-v36';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './js/config.js', './js/foundation.js',
