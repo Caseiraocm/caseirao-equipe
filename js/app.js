@@ -2568,3 +2568,42 @@ flushPendingAutoPrint=async function(){
 };
 try{caseiraoPrintV3CleanQueue()}catch(e){}
 /* ===== FIM CASEIRAO PRINTER ENGINE V3 ===== */
+
+/* ===== CASEIRAO: ADICIONAR ITENS NO MESMO PEDIDO DA MESA ===== */
+const caseiraoAppendStyle=document.createElement('style');caseiraoAppendStyle.textContent=`
+.caseiraoAppendItems{width:100%;min-height:48px;margin:10px 0 2px;border:0;border-radius:12px;background:#e85b17;color:#fff;font-size:13px;font-weight:950;box-shadow:0 5px 14px rgba(205,78,17,.18)}
+.caseiraoAppendNotice{margin:9px 0 12px;padding:11px 12px;border:1px solid #f0c8aa;border-radius:12px;background:#fff8f2;color:#704125;font-size:12px;line-height:1.45}
+`;document.head.appendChild(caseiraoAppendStyle);
+
+function caseiraoExistingTableItemsPayload(order){
+  return (order?.order_items||[]).map(item=>({
+    product_id:item.product_id,
+    qty:Math.max(1,Number(item.quantity)||1),
+    addon_ids:(item.order_item_addons||[]).map(a=>a.addon_id).filter(Boolean),
+    note:String(item.note||'').trim()
+  })).filter(item=>item.product_id);
+}
+
+async function openAppendItemsToTableOrder(order){
+  if(!order?.table_session_id)return alert('Este pedido não pertence a uma mesa aberta.');
+  if(['entregue','cancelado'].includes(String(order.status||'')))return alert('Pedido finalizado não pode receber novos itens.');
+  const hasExistingAddons=(order.order_items||[]).some(item=>(item.order_item_addons||[]).length);
+  if(hasExistingAddons)return alert('Este pedido possui adicionais. Para não alterar os adicionais já registrados, use “Corrigir pedido” na tela de Mesas.');
+  const products=(admin?.products||data.products||[]).filter(p=>p.active!==false&&!p.sold_out),q=new Map(),unitNotes=new Map(),addedTotal=()=>products.reduce((sum,p)=>sum+(q.get(String(p.id))||0)*priceOf(p),0);
+  modal(`<div class="sheeth"><div><h2>Adicionar itens • #${esc(order.order_number)}</h2><div class="adminSub">Mesa ${String(order.table_number||'').padStart(2,'0')} • mesmo pedido</div></div><button class="x" id="backAppendItems">←</button></div><div class="caseiraoAppendNotice"><b>Sem novo pedido:</b> os itens escolhidos serão acrescentados ao pedido #${esc(order.order_number)} e o total será recalculado.</div><div class="employeeProductSearch"><span>⌕</span><input id="appendProductSearch" class="in" placeholder="Buscar lanche, bebida, batata..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="manualFooter"><div><span>Valor a acrescentar</span><b id="appendItemsTotal">${fmt(0)}</b></div><button id="saveAppendItems" class="primary">ADICIONAR AO PEDIDO</button></div>`,true);
+  $('#backAppendItems').onclick=()=>{closeModal();renderAdmin()};
+  $('#appendProductSearch').oninput=e=>filterOperationalCatalog(e.target.value);
+  document.querySelectorAll('[data-rproduct]').forEach(b=>b.onclick=()=>{const id=String(b.dataset.rproduct),n=Math.max(0,(q.get(id)||0)+Number(b.dataset.d)),product=products.find(p=>String(p.id)===id);q.set(id,n);const counter=$(`[data-rqty="${CSS.escape(id)}"]`);if(counter){counter.textContent=n;counter.closest('.employeeProductCard')?.classList.toggle('selected',n>0)}renderUnitNotes(id,product?.name||'Item',n,unitNotes);$('#appendItemsTotal').textContent=fmt(addedTotal())});
+  $('#saveAppendItems').onclick=async()=>{const button=$('#saveAppendItems'),newItems=tableOrderItemsPayload(products,q,unitNotes);if(!newItems.length)return alert('Adicione pelo menos um item.');const existing=caseiraoExistingTableItemsPayload(order);if(!existing.length)return alert('Não consegui carregar os itens atuais desse pedido. Atualize a central e tente novamente.');try{button.disabled=true;button.textContent='SALVANDO...';await employeeApi('update_table_order',{table_session_id:order.table_session_id,order_id:order.id,items:[...existing,...newItems],notes:order.notes||''},true);admin=await adminCall('snapshot');closeModal();renderAdmin();showAppToast(`Itens adicionados ao pedido #${order.order_number}.`,'ok')}catch(error){alert(error.message||String(error));button.disabled=false;button.textContent='ADICIONAR AO PEDIDO'}};
+}
+
+const caseiraoRenderOrdersAppendBase=renderOrders;renderOrders=function(box){
+  const result=caseiraoRenderOrdersAppendBase(box);
+  (admin?.orders||[]).filter(o=>o.table_session_id&&!['entregue','cancelado'].includes(String(o.status||''))).forEach(o=>{
+    const statusButton=box.querySelector(`[data-oid="${CSS.escape(String(o.id))}"]`),body=statusButton?.closest('.orderBody');if(!body||body.querySelector(`[data-append-table-items="${CSS.escape(String(o.id))}"]`))return;
+    const button=document.createElement('button');button.className='caseiraoAppendItems';button.dataset.appendTableItems=String(o.id);button.textContent='+ ADICIONAR ITENS AO MESMO PEDIDO';button.onclick=()=>openAppendItemsToTableOrder(o);
+    const ops=body.querySelector('.opsOrder');if(ops)body.insertBefore(button,ops);else body.appendChild(button);
+  });
+  return result;
+};
+/* ===== FIM: ADICIONAR ITENS NO MESMO PEDIDO DA MESA ===== */
