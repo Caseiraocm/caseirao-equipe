@@ -73,7 +73,7 @@ const renderAdminTabTablesBase=renderAdminTab;renderAdminTab=function(){if(admin
 
 /* ===== CASEIRAO 2026-09-28 • ADICIONAR ITEM DIRETO NO CARTAO DO PEDIDO ===== */
 const appendOrderStyle=document.createElement('style');appendOrderStyle.textContent=`
-.caseiraoAddToOrder{width:100%;min-height:48px;margin:10px 0;border:0;border-radius:13px;background:#ef681c;color:#fff;font-weight:950;font-size:13px;box-shadow:0 5px 14px rgba(239,104,28,.2)}
+.caseiraoAddToOrder{width:calc(100% - 26px);min-height:44px;margin:0 13px 11px;border:0;border-radius:12px;background:#ef681c;color:#fff;font-weight:950;font-size:12px;box-shadow:0 5px 14px rgba(239,104,28,.2)}
 .caseiraoAddHint{margin:8px 0 12px;padding:10px 12px;border:1px solid #f1c8a9;border-radius:12px;background:#fff8f2;color:#744222;font-size:12px;line-height:1.4}
 `;document.head.appendChild(appendOrderStyle);
 
@@ -94,14 +94,14 @@ async function openAddItemsFromOrderCard(order){
   $('#backAddOrder').onclick=()=>{closeModal();renderAdmin()};
   $('#addOrderSearch').oninput=e=>filterOperationalCatalog(e.target.value);
   document.querySelectorAll('[data-rproduct]').forEach(button=>button.onclick=()=>{const id=String(button.dataset.rproduct),qty=Math.max(0,(quantities.get(id)||0)+Number(button.dataset.d)),p=products.find(x=>String(x.id)===id);quantities.set(id,qty);const counter=$(`[data-rqty="${CSS.escape(id)}"]`);if(counter){counter.textContent=qty;counter.closest('.employeeProductCard')?.classList.toggle('selected',qty>0)}renderUnitNotes(id,p?.name||'Item',qty,notes);$('#addOrderTotal').textContent=fmt(total())});
-  $('#confirmAddOrder').onclick=async()=>{const button=$('#confirmAddOrder'),added=selectedTableOrderPayload(products,quantities,notes);if(!added.length)return alert('Escolha pelo menos um item.');try{button.disabled=true;button.textContent='SALVANDO...';await employeeApi('update_table_order',{table_session_id:order.table_session_id,order_id:order.id,items:[...current,...added],notes:order.notes||''},true);admin=await adminCall('snapshot');closeModal();renderAdmin();showAppToast(`Pedido #${order.order_number} atualizado com sucesso.`,'ok')}catch(e){alert(e.message||String(e));button.disabled=false;button.textContent='ADICIONAR AO PEDIDO'}};
+  $('#confirmAddOrder').onclick=async()=>{const button=$('#confirmAddOrder'),added=selectedTableOrderPayload(products,quantities,notes);if(!added.length)return alert('Escolha pelo menos um item.');try{button.disabled=true;button.textContent='SALVANDO...';const useAdminPin=!!sessionStorage.getItem('caseirao_admin_pin');await employeeApi('update_table_order',{table_session_id:order.table_session_id,order_id:order.id,items:[...current,...added],notes:order.notes||''},useAdminPin);admin=await adminCall('snapshot');closeModal();renderAdmin();showAppToast(`Pedido #${order.order_number} atualizado com sucesso.`,'ok')}catch(e){alert(e.message||String(e));button.disabled=false;button.textContent='ADICIONAR AO PEDIDO'}};
 }
 const renderOrdersAddItemCardBase=renderOrders;renderOrders=function(box){
   const result=renderOrdersAddItemCardBase(box);
   (admin?.orders||[]).filter(o=>o.table_session_id&&!['entregue','cancelado'].includes(String(o.status||''))).forEach(order=>{
-    const marker=box.querySelector(`[data-oid="${CSS.escape(String(order.id))}"]`),body=marker?.closest('.orderBody');if(!body||body.querySelector(`[data-add-same-order="${CSS.escape(String(order.id))}"]`))return;
-    const itemsBox=body.querySelector('.orderItemsBox');if(!itemsBox)return;
-    const button=document.createElement('button');button.type='button';button.className='caseiraoAddToOrder';button.dataset.addSameOrder=String(order.id);button.textContent='+ ADICIONAR ITEM AO PEDIDO';button.onclick=()=>openAddItemsFromOrderCard(order);itemsBox.insertAdjacentElement('afterend',button);
+    const marker=box.querySelector(`[data-oid="${CSS.escape(String(order.id))}"]`),body=marker?.closest('.orderBody'),card=body?.closest('.orderDetailed');if(!body||!card||card.querySelector(`[data-add-same-order="${CSS.escape(String(order.id))}"]`))return;
+    const button=document.createElement('button');button.type='button';button.className='caseiraoAddToOrder';button.dataset.addSameOrder=String(order.id);button.textContent='+ ADICIONAR ITEM AO PEDIDO';button.onclick=()=>openAddItemsFromOrderCard(order);
+    card.querySelector('.orderSummary')?.insertAdjacentElement('afterend',button);
   });
   return result;
 };
