@@ -95,6 +95,7 @@
   }
 
   driverOrderCard=function(a){
+    if(isDriverAssignmentFinished(a))return '';
     const o=driverFullOrder(a),hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
     const finished=['delivered','returned','settled'].includes(a.status);
     const rawPhone=String(o.customer_phone||'').replace(/\D/g,'');
@@ -153,6 +154,7 @@
       }
       stopDriverAreaGps();
       showAppToast('Entrega confirmada e contabilizada.','ok');
+      button.closest('.driverOrder')?.remove();
       await renderDriverArea();
     }catch(e){
       button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';

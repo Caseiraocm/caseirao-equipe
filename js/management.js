@@ -106,6 +106,7 @@
       }
       stopDriverAreaGps();
       showAppToast('Entrega e dinheiro registrados.','ok');
+      button.closest('.driverOrder')?.remove();
       await renderDriverArea();
     }catch(error){button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';alert(error.message||'Não foi possível confirmar a entrega.')}
   }
