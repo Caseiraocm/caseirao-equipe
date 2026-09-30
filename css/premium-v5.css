@@ -330,4 +330,103 @@ body.teamApp #teamHome .teamVersion{margin-top:18px!important;color:#6f747c!impo
   .admPrimaryNav button{font-size:7px!important}
 }
 
+/* 5.1 — correção cirúrgica do ADM no celular.
+   A barra passa a ter quatro áreas operacionais + Mais, sem sobreposição. */
+@media(max-width:900px){
+  body.teamApp .sheet.full.admWorkspace,
+  body.teamApp .sheet.full.admWorkspace>.admbar,
+  body.teamApp .sheet.full.admWorkspace .admWorkspaceBody,
+  body.teamApp .sheet.full.admWorkspace .admWorkspaceMain{
+    min-height:0!important;
+    height:auto!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admWorkspaceBody{
+    padding-bottom:0!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admWorkspaceMain{
+    padding:9px 9px calc(68px + env(safe-area-inset-bottom))!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav{
+    left:0!important;
+    right:20%!important;
+    bottom:0!important;
+    width:80%!important;
+    height:calc(60px + env(safe-area-inset-bottom))!important;
+    min-height:60px!important;
+    max-height:none!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-rows:48px!important;
+    gap:4px!important;
+    padding:6px 2px calc(6px + env(safe-area-inset-bottom)) 5px!important;
+    overflow:hidden!important;
+    border-radius:0!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav button[data-tab="pedidos"],
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav button[data-tab="mesas"],
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav button[data-tab="producao"],
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav button[data-tab="entregas"]{
+    display:block!important;
+    width:100%!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 1px!important;
+    border-radius:11px!important;
+    font-size:8px!important;
+    line-height:1.15!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admPrimaryNav button.on{
+    border-color:#dfa70d!important;
+    background:linear-gradient(135deg,#ffd75f,#f5b91f)!important;
+    color:#18130a!important;
+    box-shadow:none!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admbar>.admManagementToggle{
+    position:fixed!important;
+    z-index:102!important;
+    right:4px!important;
+    bottom:calc(6px + env(safe-area-inset-bottom))!important;
+    left:auto!important;
+    width:calc(20% - 6px)!important;
+    height:48px!important;
+    min-height:48px!important;
+    max-height:48px!important;
+    margin:0!important;
+    padding:4px 1px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border:1px solid #e1e3e6!important;
+    border-radius:11px!important;
+    background:#f7f8f9!important;
+    color:#555d66!important;
+    font-size:8px!important;
+    line-height:1.15!important;
+    box-shadow:none!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admbar>.admManagementToggle::before,
+  body.teamApp .sheet.full.admWorkspace .admbar>.admManagementToggle::after{
+    content:none!important;
+    display:none!important;
+  }
+  body.teamApp .sheet.full.admWorkspace .admManagement{
+    bottom:calc(66px + env(safe-area-inset-bottom))!important;
+  }
+  body.teamApp .sheet.full.admWorkspace #caseiraoPrinterPanel{
+    margin-top:0!important;
+    scroll-margin-top:70px!important;
+  }
+  body.teamApp .sheet.full.admWorkspace #admContent>.cleanEmpty{
+    min-height:160px!important;
+    margin-bottom:10px!important;
+    padding:24px 18px!important;
+  }
+  body.teamApp .sheet.full.admWorkspace #admContent>.internalCopyright{
+    margin:24px auto 8px!important;
+    padding:20px 8px 0!important;
+  }
+}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
