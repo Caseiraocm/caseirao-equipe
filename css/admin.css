@@ -1320,3 +1320,14 @@ body.teamApp #teamHome .teamAccessGrid .teamChoice small{
 }
 body.teamApp #teamHome .teamInstall{color:#f6b91e!important;-webkit-text-fill-color:#f6b91e!important}
 body.teamApp #teamHome .teamVersion{color:#858b93!important;-webkit-text-fill-color:#858b93!important}
+
+/* Pedido manual: adicionais disponíveis por produto. */
+.manualAddonBox{display:none;grid-column:1/-1;margin-top:2px;padding:10px;border:1px solid #e2d4ad;border-radius:12px;background:#fffaf0}
+.manualAddonBox.visible{display:block}
+.manualAddonBox>b{display:block;margin-bottom:7px;color:#8a6200;font-size:10px;letter-spacing:.08em}
+.manualAddonBox>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.manualAddonBox label{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;padding:8px;border:1px solid #e1e3e6;border-radius:9px;background:#fff;color:#30343a;font-size:11px;font-weight:750}
+.manualAddonBox input{width:18px;height:18px;accent-color:#d99400}
+.manualAddonBox strong{color:#9a6900;font-size:10px;white-space:nowrap}
+.manualAddonBox small{display:block;margin-top:7px;color:#747b83;font-size:9px}
+@media(max-width:520px){.manualAddonBox>div{grid-template-columns:1fr}}
