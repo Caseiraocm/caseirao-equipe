@@ -11,6 +11,28 @@
  document.addEventListener('click',event=>{const button=event.target.closest?.('.admManagementNav button[data-tab]');if(!button||!matchMedia('(max-width:900px)').matches)return;setTimeout(()=>document.querySelector('.admManagement')?.classList.remove('open'),80)},true);
 })();
 
+/* ===== drawer mobile estavel v5.2 ===== */
+(()=>{
+ function bindManagementDrawer(){
+  const sheet=document.querySelector('.sheet.full.admWorkspace');
+  const bar=sheet?.querySelector(':scope>.admbar');
+  const toggle=bar?.querySelector(':scope>.admManagementToggle');
+  const aside=bar?.querySelector('.admManagement');
+  if(!sheet||!bar||!toggle||!aside||bar.querySelector(':scope>.admManagementBackdrop'))return;
+  const backdrop=document.createElement('button');
+  backdrop.type='button';
+  backdrop.className='admManagementBackdrop';
+  backdrop.setAttribute('aria-label','Fechar menu de gestão');
+  const sync=()=>backdrop.classList.toggle('show',aside.classList.contains('open'));
+  backdrop.onclick=()=>{aside.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.textContent='☰ Mais';sync()};
+  toggle.addEventListener('click',()=>requestAnimationFrame(sync));
+  bar.appendChild(backdrop);
+ }
+ const drawerObserver=new MutationObserver(bindManagementDrawer);
+ drawerObserver.observe(document.body,{subtree:true,childList:true});
+ bindManagementDrawer();
+})();
+
 /* ===== caseirao-admin-premium-v30-script ===== */
 (()=>{
  const cashCall=(action,payload={})=>api('cashback-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:sessionStorage.getItem('caseirao_admin_pin')||'',action,payload})});
