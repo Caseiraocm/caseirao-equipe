@@ -2,13 +2,14 @@
 
 Aplicativo interno da equipe, Central ADM, mesas, produção, caixa e entregas do O Caseirão Burger.
 
-Versão visual: **Signature Premium 3.0**, padronizada com o Delivery.
+Versão visual: **Signature Premium 5.0**, com portal, login e Central ADM responsivos.
 
 ## Estrutura ativa
 
 - `index.html`: entrada única do aplicativo.
 - `css/base.css`: estrutura visual compartilhada.
 - `css/admin.css`: interface operacional e administrativa.
+- `css/premium-v5.css`: acabamento visual premium, responsividade e compactação da operação.
 - `js/config.js`: endereço das funções do sistema.
 - `js/foundation.js`: inicialização, API e utilidades compartilhadas.
 - `js/admin.js`: autenticação, pedidos e cadastros administrativos.

@@ -1,7 +1,7 @@
-const CACHE = 'caseirao-equipe-mesa-addons-v43';
+const CACHE = 'caseirao-equipe-signature-premium-v5';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './css/base.css', './css/admin.css', './js/config.js', './js/foundation.js',
+  './css/base.css', './css/admin.css', './css/premium-v5.css', './js/config.js', './js/foundation.js',
   './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
   './js/operations.js', './js/management.js', './js/runtime-bridge.js',
   './js/printing.js', './js/admin-ui.js'
