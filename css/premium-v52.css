@@ -589,3 +589,12 @@ body.teamApp #teamHome .teamVersion{margin-top:18px!important;color:#6f747c!impo
     padding:18px 8px 0!important;
   }
 }
+.storeOpeningControl{border:2px solid #d9a62e!important;background:linear-gradient(145deg,#fffdf6,#fff8e8)!important;box-shadow:0 12px 30px rgba(169,117,0,.12)!important}
+.storeOpeningControl .storeState{margin-bottom:14px}
+.storeOpeningControl .storeState b{font-size:25px}
+.storeOpeningControl .storeNowBtn{min-height:54px;font-size:15px}
+.storeOpeningControl .storeOpeningHelp{margin-top:11px;line-height:1.45}
+.storeEtaControl{margin-top:14px!important}
+.storeEtaControl .sectionTitle{margin-top:0!important}
+@media(max-width:600px){.storeOpeningControl,.storeEtaControl{padding:15px!important}.storeEtaControl .row{grid-template-columns:1fr 1fr!important}.storeEtaControl .field label{font-size:11px}.storeEtaControl .in{padding:12px 10px}.storeOpeningControl .storeState b{font-size:22px}}
+@media(max-width:390px){.storeEtaControl .row{grid-template-columns:1fr!important}}
