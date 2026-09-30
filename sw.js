@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-signature-premium-v5';
+const CACHE = 'caseirao-equipe-signature-premium-v5.1-mobile';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v5.css', './js/config.js', './js/foundation.js',

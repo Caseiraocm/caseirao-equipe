@@ -2,7 +2,7 @@
 
 Aplicativo interno da equipe, Central ADM, mesas, produção, caixa e entregas do O Caseirão Burger.
 
-Versão visual: **Signature Premium 5.0**, com portal, login e Central ADM responsivos.
+Versão visual: **Signature Premium 5.1**, com portal, login e Central ADM responsivos.
 
 ## Estrutura ativa
 
