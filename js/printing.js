@@ -83,8 +83,25 @@ sendOrder=async function(){
   }
 };
 
-function caseiraoOrderHasItems(o){return Array.isArray(o?.order_items)&&o.order_items.length>0}
-async function caseiraoRefreshUntilItems(orderId,attempts=4,delayMs=550){
+function caseiraoOrderHasItems(o){
+  if(!Array.isArray(o?.order_items)||!o.order_items.length)return false;
+  let itemTotal=0;
+  for(const item of o.order_items){
+    if(!String(item?.product_name||'').trim())return false;
+    const quantity=Math.max(1,Number(item.quantity||1));
+    const unitPrice=Number(item.unit_price||0);
+    const lineTotal=Number(item.line_total||0);
+    const loadedAddonTotal=(item.order_item_addons||[]).reduce((sum,addon)=>sum+Number(addon.price||0),0)*quantity;
+    /* A API grava o total do item antes de a relação aninhada dos adicionais
+       aparecer no snapshot. Se o preço conhecido não fecha com line_total,
+       a impressão precisa aguardar para não sair só o nome do lanche. */
+    if(lineTotal>unitPrice*quantity+loadedAddonTotal+0.02)return false;
+    itemTotal+=lineTotal;
+  }
+  const subtotal=Number(o.subtotal||0);
+  return subtotal<=0||Math.abs(itemTotal-subtotal)<=0.02;
+}
+async function caseiraoRefreshUntilItems(orderId,attempts=8,delayMs=500){
   let latest=admin;
   for(let i=0;i<attempts;i++){
     const found=(latest?.orders||[]).find(x=>String(x.id)===String(orderId));
@@ -95,7 +112,10 @@ async function caseiraoRefreshUntilItems(orderId,attempts=4,delayMs=550){
   return (admin?.orders||[]).find(x=>String(x.id)===String(orderId))||null;
 }
 function eligibleForAutoPrint(o){
-  if(!o||o.source==='manual'||['cancelado','entregue'].includes(String(o.status||'')))return false;
+  if(!o||['cancelado','entregue'].includes(String(o.status||'')))return false;
+  /* Pedido de mesa também é gravado como manual, mas deve entrar na fila
+     automática. Manual de balcão/telefone continua fora para não duplicar. */
+  if(o.source==='manual'&&!o.table_session_id)return false;
   const pay=String(o.payment||'').toLowerCase();
   if(pay==='pix')return String(o.payment_status||'').toLowerCase()==='confirmed';
   return true;
@@ -317,7 +337,7 @@ escposBytes=async function(o){
 printOrderBluetoothAuto=async function(id,sourceOrders=null,silent=false){
   let o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));
   if(!o||['cancelado','entregue'].includes(String(o.status||''))){unqueueAutoPrint(id);return false}
-  if(!caseiraoOrderHasItems(o))o=await caseiraoRefreshUntilItems(id,4,600);
+  if(!caseiraoOrderHasItems(o))o=await caseiraoRefreshUntilItems(id,8,500);
   if(!caseiraoOrderHasItems(o)){queueAutoPrint(id);setPrinterState('Pedido recebido; aguardando os itens sincronizarem.','error');return false}
   try{if(!printerConnected())await caseiraoPrintV3Ensure();setPrinterState(`Imprimindo pedido #${o.order_number}...`,'connected');await btWrite(await escposBytes(o));markAutoPrinted(id);unqueueAutoPrint(id);setPrinterState(`🟢 CONECTADA • Pedido #${o.order_number} impresso`,'connected');return true}catch(e){setPrinterState(`Erro ao imprimir: ${e.message||e}`,'error');if(!silent)alert(e.message||String(e));return false}
 };
@@ -327,6 +347,15 @@ async function flushPendingAutoPrint(){
   const pending=caseiraoPrintV3CleanQueue();if(!pending.size||!printerConnected())return;
   caseiraoPrintV3Busy=true;
   try{for(const id of [...pending]){const ok=await printOrderBluetoothAuto(id,admin?.orders||[],true);if(!ok)break}}finally{caseiraoPrintV3Busy=false;refreshPendingPrintStatus()}
+};
+/* A impressão pelo navegador usa a mesma barreira de sincronização. */
+printOrderBrowser=async function(id,sourceOrders=null){
+  let order=(sourceOrders||admin?.orders||[]).find(item=>String(item.id)===String(id));
+  if(!order)return alert('Pedido não encontrado.');
+  if(!caseiraoOrderHasItems(order))order=await caseiraoRefreshUntilItems(id,8,500);
+  if(!caseiraoOrderHasItems(order))return alert('Os itens e adicionais ainda estão sincronizando. Aguarde alguns segundos e tente novamente.');
+  document.querySelector('#caseiraoPrintFrame')?.remove();
+  const frame=document.createElement('iframe');frame.id='caseiraoPrintFrame';frame.title='Impressão do pedido';frame.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:.01;pointer-events:none';frame.srcdoc=receiptBrowserHtml(order);document.body.appendChild(frame);setTimeout(()=>frame.remove(),60000);
 };
 try{caseiraoPrintV3CleanQueue()}catch(e){}
 /* ===== FIM CASEIRAO PRINTER ENGINE V3 ===== */

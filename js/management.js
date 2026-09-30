@@ -216,85 +216,81 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
   showAppToast(`${edited.length===1?'Pedido':'Pedidos'} ${numbers}${extra} ${edited.length===1?'foi corrigido':'foram corrigidos'}. Confira os itens.`,'ok');
 };
 
-/*
- * Pedido de balcão é presencial: exige apenas o nome do cliente.
- * A tela, a validação e o payload enviado à API seguem a mesma regra.
- * Os demais tipos de pedido continuam exigindo telefone normalmente.
- */
+/* Pedido de balcão com adicionais vinculados ao produto. */
 (() => {
-  const adminCallWithRequiredPhone = adminCall;
-
-  adminCall = async function(action = 'snapshot', payload = {}, allowRetry = true) {
-    if (action === 'create_manual_order' && payload?.type === 'counter') {
-      payload = {
-        ...payload,
-        customer: {
-          ...(payload.customer || {}),
-          phone: ''
-        }
-      };
-    }
-
-    try {
-      return await adminCallWithRequiredPhone(action, payload, allowRetry);
-    } finally {
-      if (action === 'create_manual_order' && payload?.type === 'counter') {
-        const field = document.querySelector('#mPhone');
-        if (field) {
-          field.value = '';
-          field.disabled = true;
-        }
-      }
-    }
+  const adminCallBase=adminCall;
+  adminCall=async function(action='snapshot',payload={},allowRetry=true){
+    if(action==='create_manual_order'&&payload?.type==='counter')payload={...payload,customer:{...(payload.customer||{}),phone:''}};
+    return adminCallBase(action,payload,allowRetry);
   };
 
-  const openManualOrderWithRequiredPhone = openManualOrder;
+  function allowedManualAddons(productId){
+    const links=admin?.product_addons||data.product_addons||[];
+    const allowed=new Set(links.filter(link=>String(link.product_id)===String(productId)).map(link=>String(link.addon_id)));
+    return (admin?.addons||data.addons||[]).filter(addon=>allowed.has(String(addon.id))&&addon.active!==false&&!addon.sold_out);
+  }
+  function manualItems(products,quantities,unitNotes,addonSelections){
+    return products.flatMap(product=>{
+      const id=String(product.id),quantity=quantities.get(id)||0,notes=unitNotes.get(id)||[],addonIds=[...(addonSelections.get(id)||new Set())];
+      return Array.from({length:quantity},(_,index)=>({product_id:product.id,qty:1,addon_ids:addonIds,note:String(notes[index]||'').trim()}));
+    });
+  }
 
-  openManualOrder = function() {
-    openManualOrderWithRequiredPhone();
+  openManualOrder=function(){
+    let manualType='pickup';
+    const products=(admin?.products||data.products||[]).filter(product=>product.active!==false&&!product.sold_out);
+    const quantities=new Map(),unitNotes=new Map(),addonSelections=new Map();
+    const addonsFor=id=>allowedManualAddons(id);
+    const estimatedTotal=()=>products.reduce((sum,product)=>{
+      const id=String(product.id),quantity=quantities.get(id)||0,selected=addonSelections.get(id)||new Set();
+      const addonPrice=addonsFor(id).filter(addon=>selected.has(String(addon.id))).reduce((value,addon)=>value+Number(addon.price||0),0);
+      return sum+quantity*(priceOf(product)+addonPrice);
+    },0);
+    const drawTotal=()=>{const output=$('#manualTotal');if(output)output.textContent=fmt(estimatedTotal())};
+    const drawAddress=()=>{const box=$('#manualAddress');if(!box)return;box.innerHTML=manualType==='delivery'?`<div class="manualSectionTitle">ENDEREÇO DA ENTREGA</div><div class="row"><div class="field"><label>Rua / Avenida</label><input id="mStreet" class="in"></div><div class="field"><label>Número</label><input id="mNumber" class="in"></div></div><div class="field"><label>Bairro</label><select id="mNeighborhood" class="sel"><option value="">Selecione</option>${(admin.neighborhoods||[]).filter(n=>n.active!==false).map(n=>`<option value="${n.id}">${esc(n.name)} • ${fmt(n.fee)}</option>`).join('')}</select></div><div class="row"><div class="field"><label>Complemento</label><input id="mComplement" class="in"></div><div class="field"><label>Referência</label><input id="mReference" class="in"></div></div>`:''};
 
-    const phoneInput = document.querySelector('#mPhone');
-    const phoneField = phoneInput?.closest('.field');
-    const nameField = document.querySelector('#mName')?.closest('.field');
-    const saveButton = document.querySelector('#saveManual');
-    const typeButtons = [...document.querySelectorAll('.manualOrderTypes button')];
+    modal(`<div class="sheeth"><div><h2>Novo pedido manual</h2><div class="adminSub">Balcão, telefone ou consumo no local</div></div><button class="x" id="backToAdmin">←</button></div><div class="seg manualOrderTypes"><button data-mtype="delivery">Entrega</button><button data-counter-order>Balcão</button><button data-mtype="pickup" class="on">Retirada</button><button data-mtype="local">No local</button></div><div id="counterNotice" class="counterNotice hide">Pedido presencial no balcão — telefone opcional.</div><div class="manualSectionTitle">DADOS DO CLIENTE</div><div class="row"><div class="field" id="manualNameField"><label>Nome do cliente</label><input id="mName" class="in"></div><div class="field" id="manualPhoneField"><label>Telefone</label><input id="mPhone" class="in" inputmode="tel" placeholder="(86) 99999-9999"></div></div><div id="manualAddress"></div><div class="row"><div class="field"><label>Pagamento</label><select id="mPayment" class="sel"><option>Pix</option><option>Dinheiro</option><option>Cartão</option></select></div><div class="field"><label>Troco para</label><input id="mChange" class="in" inputmode="decimal"></div></div><div class="manualSectionTitle">ESCOLHA OS PRODUTOS E ADICIONAIS</div><div class="employeeProductSearch manualProductSearch"><span>⌕</span><input id="manualProductSearch" class="in" placeholder="Buscar lanche, combo, bebida..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="field"><label>Observação geral do pedido</label><textarea id="mNotes" class="ta" placeholder="Opcional: recado que vale para o pedido inteiro"></textarea></div><div class="manualFooter"><div><span>Total estimado</span><b id="manualTotal">${fmt(0)}</b></div><button id="saveManual" class="primary">CRIAR PEDIDO</button></div>`,true);
 
-    if (!phoneInput || !phoneField || !saveButton) return;
-
-    const syncCounterPhoneRule = () => {
-      const isCounter = document.querySelector('[data-counter-order]')?.classList.contains('on');
-
-      phoneField.hidden = Boolean(isCounter);
-      phoneField.setAttribute('aria-hidden', String(Boolean(isCounter)));
-      if (nameField) nameField.style.gridColumn = isCounter ? '1 / -1' : '';
-
-      if (isCounter) {
-        phoneInput.value = '';
-        phoneInput.required = false;
-        phoneInput.disabled = true;
-      } else {
-        phoneInput.disabled = false;
-        phoneInput.required = true;
-      }
-    };
-
-    typeButtons.forEach(button => {
-      button.addEventListener('click', () => queueMicrotask(syncCounterPhoneRule));
+    products.forEach(product=>{
+      const id=String(product.id),card=$(`[data-rqty="${CSS.escape(id)}"]`)?.closest('.employeeProductCard'),addons=addonsFor(id);
+      if(!card||!addons.length)return;
+      card.insertAdjacentHTML('beforeend',`<div class="manualAddonBox" data-manual-addons="${esc(id)}"><b>ADICIONAIS</b><div>${addons.map(addon=>`<label><input type="checkbox" data-manual-addon="${esc(id)}" value="${esc(addon.id)}"><span>${esc(addon.name)}</span><strong>+ ${fmt(addon.price)}</strong></label>`).join('')}</div><small>Os adicionais selecionados valem para todas as unidades deste item.</small></div>`);
     });
 
-    /*
-     * O manipulador original valida o telefone antes de montar o payload.
-     * Um valor técnico existe somente durante essa validação; o interceptor
-     * acima sempre remove esse valor antes da chamada à API e ao banco.
-     */
-    saveButton.addEventListener('click', () => {
-      if (document.querySelector('[data-counter-order]')?.classList.contains('on')) {
-        phoneInput.disabled = false;
-        phoneInput.value = '86900000000';
-      }
-    }, true);
+    const syncType=()=>{
+      const counter=manualType==='counter',phone=$('#mPhone'),phoneField=$('#manualPhoneField'),nameField=$('#manualNameField');
+      if(phoneField)phoneField.hidden=counter;if(nameField)nameField.style.gridColumn=counter?'1 / -1':'';
+      if(phone){if(counter)phone.value='';phone.disabled=counter;phone.required=!counter}
+      $('#counterNotice')?.classList.toggle('hide',!counter);drawAddress();
+    };
+    const selectType=(type,button)=>{manualType=type;document.querySelectorAll('.manualOrderTypes button').forEach(node=>node.classList.toggle('on',node===button));syncType()};
+    $('#backToAdmin').onclick=renderAdmin;
+    document.querySelectorAll('[data-mtype]').forEach(button=>button.onclick=()=>selectType(button.dataset.mtype,button));
+    const counterButton=document.querySelector('[data-counter-order]');if(counterButton)counterButton.onclick=()=>selectType('counter',counterButton);
+    $('#mPhone').oninput=event=>event.target.value=phoneMask(event.target.value);
+    $('#manualProductSearch').oninput=event=>filterOperationalCatalog(event.target.value);
+    document.querySelectorAll('[data-rproduct]').forEach(button=>button.onclick=()=>{
+      const id=String(button.dataset.rproduct),quantity=Math.max(0,(quantities.get(id)||0)+Number(button.dataset.d)),product=products.find(item=>String(item.id)===id);
+      quantities.set(id,quantity);const counter=$(`[data-rqty="${CSS.escape(id)}"]`),card=counter?.closest('.employeeProductCard');
+      if(counter)counter.textContent=quantity;card?.classList.toggle('selected',quantity>0);card?.querySelector('.manualAddonBox')?.classList.toggle('visible',quantity>0);
+      renderUnitNotes(id,product?.name||'Item',quantity,unitNotes);drawTotal();
+    });
+    document.querySelectorAll('[data-manual-addon]').forEach(input=>input.onchange=()=>{
+      const id=String(input.dataset.manualAddon),selected=addonSelections.get(id)||new Set(),addonId=String(input.value);
+      if(input.checked){if(selected.size>=10){input.checked=false;return alert('Escolha no máximo 10 adicionais por item.')}selected.add(addonId)}else selected.delete(addonId);
+      addonSelections.set(id,selected);drawTotal();
+    });
+    syncType();
 
-    syncCounterPhoneRule();
+    $('#saveManual').onclick=async()=>{const button=$('#saveManual');try{
+      const name=$('#mName').value.trim(),phone=$('#mPhone').value.trim(),items=manualItems(products,quantities,unitNotes,addonSelections);
+      if(name.length<2)throw new Error('Informe o nome do cliente.');
+      if(manualType!=='counter'&&!validPhone(phone))throw new Error('Informe um telefone válido com DDD.');
+      if(!items.length)throw new Error('Adicione pelo menos um item.');
+      const payload={customer:{name,phone:manualType==='counter'?'':phone},type:manualType,payment:$('#mPayment').value,change_for:$('#mChange').value.trim(),coupon_code:'',notes:$('#mNotes').value.trim(),items,source:'manual'};
+      if(manualType==='delivery'){const neighborhood=$('#mNeighborhood').value;if(!$('#mStreet').value.trim()||!$('#mNumber').value.trim()||!neighborhood)throw new Error('Preencha rua, número e bairro.');payload.address={street:$('#mStreet').value.trim(),number:$('#mNumber').value.trim(),neighborhood_id:neighborhood,complement:$('#mComplement').value.trim(),reference:$('#mReference').value.trim()}}
+      button.disabled=true;button.textContent='CRIANDO...';const made=await adminCall('create_manual_order',payload);admin=await adminCall('snapshot');knownOrderIds=new Set((admin.orders||[]).map(order=>order.id));knownOrderStatuses=new Map((admin.orders||[]).map(order=>[String(order.id),String(order.status||'')]));adminTab='pedidos';renderAdmin();showAppToast(`Pedido #${made.order_number} criado com sucesso.`,'ok');
+    }catch(error){alert(error.message||String(error));button.disabled=false;button.textContent='CRIAR PEDIDO'}};
   };
 })();
 
