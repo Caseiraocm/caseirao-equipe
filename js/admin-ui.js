@@ -58,3 +58,27 @@
  const renderAdminCashBase=renderAdmin;renderAdmin=function(){const out=renderAdminCashBase();const bar=document.querySelector('.admbar');if(bar&&!bar.querySelector('[data-tab="cashback"]')){const button=document.createElement('button');button.dataset.tab='cashback';button.className=adminTab==='cashback'?'on':'';button.textContent='Cashback';button.onclick=()=>{adminTab='cashback';renderAdmin()};const loyalty=bar.querySelector('[data-tab="fidelidade"]');loyalty?loyalty.after(button):bar.appendChild(button)}return out};
  const renderAdminTabCashBase=renderAdminTab;renderAdminTab=function(){if(adminTab==='cashback'){const box=$('#admContent');if(box)renderCashbackAdmin(box);return}return renderAdminTabCashBase()};
 })();
+
+
+/* CASEIRÃO — PRESERVAÇÃO DE TELA/ROLAGEM NO ADM
+   Mantém a seção e a posição atual após salvar, ativar, desativar ou atualizar. */
+(()=>{
+  const key=tab=>`caseirao_admin_scroll_${String(tab||'pedidos')}`;
+  const host=()=>document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
+  const save=()=>{try{const h=host();if(h&&typeof adminTab!=='undefined')sessionStorage.setItem(key(adminTab),String(h.scrollTop||0))}catch{}};
+  const restore=()=>{try{const h=host();if(!h||typeof adminTab==='undefined')return;const y=Number(sessionStorage.getItem(key(adminTab))||0);requestAnimationFrame(()=>{const current=host();if(current)current.scrollTop=y})}catch{}};
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest('.sheet.full button,.sheet.full a,.sheet.full input[type="checkbox"]'))save();
+  },true);
+
+  if(typeof renderAdmin==='function'){
+    const base=renderAdmin;
+    renderAdmin=function(...args){save();const result=base.apply(this,args);restore();setTimeout(restore,40);return result};
+  }
+
+  if(typeof renderAdminTab==='function'){
+    const baseTab=renderAdminTab;
+    renderAdminTab=function(...args){save();const result=baseTab.apply(this,args);restore();return result};
+  }
+})();
