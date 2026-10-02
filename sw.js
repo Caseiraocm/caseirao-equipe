@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-final-production-v6';
+const CACHE = 'caseirao-equipe-cupom-navigation-clean-v7';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v52.css', './js/config.js', './js/foundation.js',
