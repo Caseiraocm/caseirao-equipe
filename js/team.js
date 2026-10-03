@@ -241,7 +241,7 @@ const historyReadabilityStyle=document.createElement('style');historyReadability
 @media(max-width:430px){#reportBody .orderDetailed .orderSummary{min-height:84px;padding:12px 11px}#reportBody .orderDetailed .orderNumber{font-size:17px!important;min-width:43px}#reportBody .orderDetailed .summaryCustomer>b{font-size:14px}#reportBody .orderDetailed .summaryCustomer>span{font-size:11px}#reportBody .orderDetailed .summaryRight{min-width:98px}#reportBody .orderDetailed .summaryRight>b{font-size:15px!important}#reportBody .orderDetailed .statusBadge{font-size:10px;padding:5px 8px}}
 `;document.head.appendChild(historyReadabilityStyle);
 
-/* Identificação do proprietário e copyright nas áreas internas. */
+/* Identidade institucional e copyright nas áreas internas. */
 const internalIdentityStyle=document.createElement('style');internalIdentityStyle.textContent=`
 .adminIdentityField{position:relative}.adminIdentityField .in{padding-left:46px;background:#eef1f4!important;color:#30353b!important;font-weight:850}.adminIdentityField:before{content:'👤';position:absolute;left:15px;bottom:14px;z-index:1;font-size:18px}.internalCopyright{margin:26px 0 5px;padding:18px 10px 4px;border-top:1px solid #dde1e5;color:#757c84;text-align:center;font-size:11px;font-weight:700;line-height:1.5}.loginCopyright{margin-top:24px;padding-top:16px}.adminOwnerBadge{display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:6px 10px;border:1px solid #e7d3c5;border-radius:999px;background:#fff7f1;color:#9b4217;font-size:11px;font-weight:850}
 `;document.head.appendChild(internalIdentityStyle);
@@ -249,9 +249,8 @@ const openAdminIdentityBase=openAdmin;openAdmin=function(){
   openAdminIdentityBase();
   const sheet=modalRoot.querySelector('.sheet'),login=sheet?.querySelector('.loginbox'),pinField=$('#adminPin')?.closest('.field');
   if(sheet)sheet.classList.add('admLoginPremium');
-  if(login&&pinField&&!$('#adminIdentity')){
-    login.insertAdjacentHTML('afterbegin',`<div class="admLoginBrand" aria-hidden="true">CB</div><div class="admLoginIntro"><b>Central Administrativa</b><span>Acesso protegido do Caseirão</span></div>`);
-    pinField.insertAdjacentHTML('beforebegin',`<div class="field adminIdentityField"><label>Identificação do administrador</label><input id="adminIdentity" class="in" value="Romário Caseirão ADM" readonly aria-readonly="true"></div>`);
+  if(login&&pinField&&!login.querySelector('.admLoginIntro')){
+    login.insertAdjacentHTML('afterbegin',`<div class="admLoginBrand" aria-hidden="true">OC</div><div class="admLoginIntro"><small>O CASEIRÃO BURGER</small><b>Central Administrativa</b><span>Acesso exclusivo da gestão</span></div>`);
     login.insertAdjacentHTML('beforeend','<div class="internalCopyright loginCopyright">© 2026 O Caseirão Burger<br>Todos os direitos reservados.</div>');
     const head=sheet.querySelector('.sheeth');if(head)head.remove();
   }
@@ -261,7 +260,7 @@ function addInternalCopyright(area){
   if(!box||box.querySelector('.internalCopyright'))return;
   box.insertAdjacentHTML('beforeend',`<div class="internalCopyright"><span class="adminOwnerBadge">👤 ${esc(area)}</span><br><br>© 2026 O Caseirão Burger • Todos os direitos reservados.</div>`);
 }
-const renderAdminCopyrightBase=renderAdmin;renderAdmin=function(){const result=renderAdminCopyrightBase();addInternalCopyright('Romário Caseirão ADM');return result};
+const renderAdminCopyrightBase=renderAdmin;renderAdmin=function(){const result=renderAdminCopyrightBase();addInternalCopyright('Central Administrativa');return result};
 const renderEmployeeCopyrightBase=renderEmployeePanel;renderEmployeePanel=function(){const result=renderEmployeeCopyrightBase();addInternalCopyright('Equipe Caseirão');return result};
 
 /* Retorno visual global para ações administrativas assíncronas. */
