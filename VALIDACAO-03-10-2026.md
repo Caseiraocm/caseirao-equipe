@@ -10,6 +10,9 @@
 - Tela inicial e login reorganizados.
 - Cache do PWA atualizado e padronizado para evitar código antigo após publicação.
 - Regras de negócio, endpoints, impressão, Pix, mesas, entregas e histórico preservados.
+- Pedidos, busca e filtros reposicionados no topo da área de trabalho.
+- Impressora, resumo da fila, exportação, sincronização e indicadores movidos para baixo.
+- Contraste reforçado em nomes, textos secundários, filtros, campos e cartões.
 
 ## Validações executadas
 
