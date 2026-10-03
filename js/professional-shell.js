@@ -9,7 +9,7 @@
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const paymentKey=value=>{const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(key.includes('pix'))return'pix';if(key.includes('dinheiro'))return'dinheiro';if(key.includes('cartao')||key.includes('credito')||key.includes('debito'))return'cartao';return''};
   const navHtml=()=>sections.map(section=>`<section class="proNavGroup"><div class="proNavLabel">${section.group}</div>${section.items.map(([key,icon,label])=>`<button type="button" data-pro-tab="${key}" class="proNavButton ${adminTab===key?'active':''}"><span>${icon}</span><b>${label}</b></button>`).join('')}</section>`).join('');
-  function enhanceHome(){const card=document.querySelector('.teamLauncherCard');if(!card)return;const kicker=card.querySelector('.teamLauncherKicker');if(kicker)kicker.textContent='CENTRAL OFICIAL DO CASEIRÃO';const live=card.querySelector('.teamLauncherLive');if(live)live.textContent='● SISTEMA ONLINE'}
+  function enhanceHome(){const card=document.querySelector('.teamLauncherCard');if(!card)return;const kicker=card.querySelector('.teamLauncherKicker');if(kicker&&kicker.textContent!=='CENTRAL OFICIAL DO CASEIRÃO')kicker.textContent='CENTRAL OFICIAL DO CASEIRÃO';const live=card.querySelector('.teamLauncherLive');if(live&&live.textContent!=='● SISTEMA ONLINE')live.textContent='● SISTEMA ONLINE'}
   window.renderAdmin=function(){
     if(!admin)return;
     const orders=typeof shiftOrders==='function'?shiftOrders():(admin.orders||[]);
