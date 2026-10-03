@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-professional-v2';
+const CACHE = 'caseirao-equipe-professional-v2.2-login';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './js/config.js', './js/foundation.js',
