@@ -305,5 +305,4 @@ $('#teamInstallBtn').onclick=installApp;
 catalog();
 /* ADM distribuido como arquivo unico: remove workers/caches antigos para impedir
    que o navegador continue exibindo uma versao anterior depois do deploy. */
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20260925-profissional-v1').catch(()=>{}));}
-
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261003-professional-v1').catch(()=>{}));}
