@@ -4,11 +4,33 @@
  const managementOrder=['visao','caixa','cashback','premiado','fidelidade','gestao','relatorios','promocoes','produtos','adicionais','bairros','cupons','banner','funcionarios','loja'];
  const labels={visao:'⌂ Visão geral',pedidos:'⚡ Pedidos',mesas:'▦ Mesas',producao:'🍔 Produção',entregas:'🛵 Entregas',caixa:'$ Caixa',cashback:'◈ Cashback',premiado:'🎁 Pedido premiado',fidelidade:'★ Fidelidade',gestao:'▥ Indicadores',relatorios:'↻ Histórico',promocoes:'🔥 Promoções',produtos:'🍔 Produtos',adicionais:'+ Adicionais',bairros:'⌖ Bairros e taxas',cupons:'% Cupons',banner:'▣ Banners',funcionarios:'♟ Funcionários',loja:'⚙ Configurações'};
  function enhanceLauncher(){const card=document.querySelector('.teamLauncherCard');if(!card||card.dataset.rebuilt)return;card.dataset.rebuilt='1';const logo=card.querySelector('.teamLogo'),h1=card.querySelector('h1'),p=card.querySelector('p'),choices=[...card.querySelectorAll('.teamChoice')];const intro=document.createElement('div');intro.className='teamLauncherIntro';const copy=document.createElement('div');copy.innerHTML='<span class="teamLauncherKicker">CENTRAL DE OPERAÇÃO</span>';copy.append(h1,p);const live=document.createElement('span');live.className='teamLauncherLive';live.textContent='SISTEMA CONECTADO';intro.append(logo,copy,live);const grid=document.createElement('div');grid.className='teamAccessGrid';choices.forEach(choice=>grid.appendChild(choice));card.prepend(intro);intro.after(grid)}
- function enhanceLogin(){const sheet=document.querySelector('.sheet.full');const login=sheet?.querySelector('.loginbox');if(!sheet||!login||sheet.classList.contains('admWorkspace'))return;sheet.classList.add('admLoginPremium');if(!login.querySelector('.admLoginBrand'))login.insertAdjacentHTML('afterbegin','<div class="admLoginBrand">CB</div><div style="text-align:center;margin-bottom:18px"><b style="font-size:20px">Central Administrativa</b><div class="mini" style="margin-top:5px">Acesso protegido do Caseirão</div></div>')}
- function buildWorkspace(){const sheet=document.querySelector('.sheet.full'),head=sheet?.querySelector(':scope>.adminHead'),bar=sheet?.querySelector(':scope>.admbar'),content=sheet?.querySelector('#admContent');if(!sheet||!head||!bar||!content||bar.dataset.rebuilt)return;bar.dataset.rebuilt='1';sheet.classList.add('admWorkspace');const buttons=[...bar.querySelectorAll('button[data-tab]')];buttons.forEach(button=>{if(labels[button.dataset.tab])button.textContent=labels[button.dataset.tab]});const byTab=tab=>buttons.find(button=>button.dataset.tab===tab);const primary=document.createElement('nav');primary.className='admPrimaryNav';primary.setAttribute('aria-label','Operação principal');primaryOrder.forEach(tab=>{const button=byTab(tab);if(button)primary.appendChild(button)});const manageNav=document.createElement('nav');manageNav.className='admManagementNav';managementOrder.forEach(tab=>{const button=byTab(tab);if(button)manageNav.appendChild(button)});buttons.filter(button=>!primary.contains(button)&&!manageNav.contains(button)).forEach(button=>manageNav.appendChild(button));const aside=document.createElement('aside');aside.className='admManagement';aside.innerHTML='<div class="admManagementTitle">GESTÃO E CONFIGURAÇÕES</div>';aside.appendChild(manageNav);const main=document.createElement('main');main.className='admWorkspaceMain';main.appendChild(content);const body=document.createElement('div');body.className='admWorkspaceBody';body.append(aside,main);const toggle=document.createElement('button');toggle.type='button';toggle.className='admManagementToggle';toggle.innerHTML='☰ Mais';toggle.setAttribute('aria-expanded','false');toggle.onclick=()=>{aside.classList.toggle('open');const opened=aside.classList.contains('open');toggle.setAttribute('aria-expanded',opened?'true':'false');toggle.innerHTML=opened?'× Fechar':'☰ Mais'};bar.replaceChildren(primary,toggle,body);const active=bar.querySelector('button.on');if(active&&manageNav.contains(active)&&matchMedia('(max-width:900px)').matches)aside.classList.add('open')}
+ function enhanceLogin(){const sheet=document.querySelector('.sheet.full');const login=sheet?.querySelector('.loginbox');if(!sheet||!login||sheet.classList.contains('admWorkspace'))return;sheet.classList.add('admLoginPremium');if(!login.querySelector('.admLoginBrand'))login.insertAdjacentHTML('afterbegin','<div class="admLoginBrand">OC</div><div class="admLoginIntro"><small>O CASEIRÃO BURGER</small><b>Central Administrativa</b><span>Acesso exclusivo da gestão</span></div>')}
+ function buildWorkspace(){const sheet=document.querySelector('.sheet.full'),head=sheet?.querySelector(':scope>.adminHead'),bar=sheet?.querySelector(':scope>.admbar'),content=sheet?.querySelector('#admContent');if(!sheet||!head||!bar||!content)return;if(bar.dataset.rebuilt){[...bar.querySelectorAll('.admManagementToggle')].slice(1).forEach(node=>node.remove());return}bar.dataset.rebuilt='1';sheet.classList.add('admWorkspace');if(!bar.querySelector('button[data-tab="entregas"]')){const delivery=document.createElement('button');delivery.dataset.tab='entregas';delivery.className=adminTab==='entregas'?'on':'';delivery.textContent=labels.entregas;delivery.onclick=()=>{adminTab='entregas';renderAdmin()};bar.appendChild(delivery)}const buttons=[...bar.querySelectorAll('button[data-tab]')];buttons.forEach(button=>{if(labels[button.dataset.tab])button.textContent=labels[button.dataset.tab]});const byTab=tab=>buttons.find(button=>button.dataset.tab===tab);const primary=document.createElement('nav');primary.className='admPrimaryNav';primary.setAttribute('aria-label','Operação principal');primaryOrder.forEach(tab=>{const button=byTab(tab);if(button)primary.appendChild(button)});const manageNav=document.createElement('nav');manageNav.className='admManagementNav';managementOrder.forEach(tab=>{const button=byTab(tab);if(button)manageNav.appendChild(button)});buttons.filter(button=>!primary.contains(button)&&!manageNav.contains(button)).forEach(button=>manageNav.appendChild(button));const aside=document.createElement('aside');aside.className='admManagement';aside.innerHTML='<div class="admManagementTitle">GESTÃO E CONFIGURAÇÕES</div>';aside.appendChild(manageNav);const main=document.createElement('main');main.className='admWorkspaceMain';main.appendChild(content);const body=document.createElement('div');body.className='admWorkspaceBody';body.append(aside,main);const toggle=document.createElement('button');toggle.type='button';toggle.className='admManagementToggle';toggle.textContent='☰ Mais';toggle.setAttribute('aria-expanded','false');toggle.onclick=()=>{aside.classList.toggle('open');const opened=aside.classList.contains('open');toggle.setAttribute('aria-expanded',opened?'true':'false');toggle.textContent=opened?'× Fechar':'☰ Mais'};bar.replaceChildren(primary,toggle,body);const active=bar.querySelector('button.on');if(active&&manageNav.contains(active)&&matchMedia('(max-width:900px)').matches)aside.classList.add('open');requestAnimationFrame(()=>{const overlay=sheet.closest('.overlay');if(overlay)overlay.scrollTop=0;sheet.scrollTop=0;window.scrollTo(0,0)})}
  const finalRenderAdminBase=renderAdmin;renderAdmin=function(){const result=finalRenderAdminBase();queueMicrotask(buildWorkspace);return result};
  const observer=new MutationObserver(()=>{enhanceLauncher();enhanceLogin();buildWorkspace()});observer.observe(document.body,{subtree:true,childList:true});enhanceLauncher();
  document.addEventListener('click',event=>{const button=event.target.closest?.('.admManagementNav button[data-tab]');if(!button||!matchMedia('(max-width:900px)').matches)return;setTimeout(()=>document.querySelector('.admManagement')?.classList.remove('open'),80)},true);
+})();
+
+/* ===== drawer mobile estavel v5.2 ===== */
+(()=>{
+ function bindManagementDrawer(){
+  const sheet=document.querySelector('.sheet.full.admWorkspace');
+  const bar=sheet?.querySelector(':scope>.admbar');
+  const toggle=bar?.querySelector(':scope>.admManagementToggle');
+  const aside=bar?.querySelector('.admManagement');
+  if(!sheet||!bar||!toggle||!aside||bar.querySelector(':scope>.admManagementBackdrop'))return;
+  const backdrop=document.createElement('button');
+  backdrop.type='button';
+  backdrop.className='admManagementBackdrop';
+  backdrop.setAttribute('aria-label','Fechar menu de gestão');
+  const sync=()=>backdrop.classList.toggle('show',aside.classList.contains('open'));
+  backdrop.onclick=()=>{aside.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.textContent='☰ Mais';sync()};
+  toggle.addEventListener('click',()=>requestAnimationFrame(sync));
+  bar.appendChild(backdrop);
+ }
+ const drawerObserver=new MutationObserver(bindManagementDrawer);
+ drawerObserver.observe(document.body,{subtree:true,childList:true});
+ bindManagementDrawer();
 })();
 
 /* ===== caseirao-admin-premium-v30-script ===== */
@@ -35,4 +57,28 @@
  }
  const renderAdminCashBase=renderAdmin;renderAdmin=function(){const out=renderAdminCashBase();const bar=document.querySelector('.admbar');if(bar&&!bar.querySelector('[data-tab="cashback"]')){const button=document.createElement('button');button.dataset.tab='cashback';button.className=adminTab==='cashback'?'on':'';button.textContent='Cashback';button.onclick=()=>{adminTab='cashback';renderAdmin()};const loyalty=bar.querySelector('[data-tab="fidelidade"]');loyalty?loyalty.after(button):bar.appendChild(button)}return out};
  const renderAdminTabCashBase=renderAdminTab;renderAdminTab=function(){if(adminTab==='cashback'){const box=$('#admContent');if(box)renderCashbackAdmin(box);return}return renderAdminTabCashBase()};
+})();
+
+
+/* CASEIRÃO — PRESERVAÇÃO DE TELA/ROLAGEM NO ADM
+   Mantém a seção e a posição atual após salvar, ativar, desativar ou atualizar. */
+(()=>{
+  const key=tab=>`caseirao_admin_scroll_${String(tab||'pedidos')}`;
+  const host=()=>document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
+  const save=()=>{try{const h=host();if(h&&typeof adminTab!=='undefined')sessionStorage.setItem(key(adminTab),String(h.scrollTop||0))}catch{}};
+  const restore=()=>{try{const h=host();if(!h||typeof adminTab==='undefined')return;const y=Number(sessionStorage.getItem(key(adminTab))||0);requestAnimationFrame(()=>{const current=host();if(current)current.scrollTop=y})}catch{}};
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest('.sheet.full button,.sheet.full a,.sheet.full input[type="checkbox"]'))save();
+  },true);
+
+  if(typeof renderAdmin==='function'){
+    const base=renderAdmin;
+    renderAdmin=function(...args){save();const result=base.apply(this,args);restore();setTimeout(restore,40);return result};
+  }
+
+  if(typeof renderAdminTab==='function'){
+    const baseTab=renderAdminTab;
+    renderAdminTab=function(...args){save();const result=baseTab.apply(this,args);restore();return result};
+  }
 })();
