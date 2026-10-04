@@ -1,0 +1,5 @@
+
+.brandMetaRow{grid-column:2!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;min-width:0!important;white-space:nowrap}
+.brandMetaRow .status{grid-column:auto!important;margin:2px 0 0!important;flex:0 1 auto!important}
+.liveClock{display:inline-flex!important;align-items:center!important;margin:2px 0 0 1px!important;color:#8b9097!important;font-size:9px!important;line-height:1!important;font-weight:700!important;letter-spacing:.02em!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+.liveClock:before{content:'•';margin-right:6px;color:#b0b4b9;font-size:8px}

@@ -1,0 +1,16 @@
+
+/* Mantém o banner promocional visível abaixo do cabeçalho durante a rolagem. */
+#banner:not(.hide){
+  position:sticky;
+  top:calc(var(--caseirao-header-height,76px) + 8px);
+  z-index:24;
+  box-shadow:0 12px 28px rgba(0,0,0,.34);
+  transform:translateZ(0);
+}
+#banner:not(.hide) + .systemBenefits{position:relative;z-index:1}
+@media(max-width:640px){
+  #banner:not(.hide){
+    top:calc(var(--caseirao-header-height,70px) + 6px);
+    box-shadow:0 9px 22px rgba(0,0,0,.38);
+  }
+}

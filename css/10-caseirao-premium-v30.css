@@ -1,0 +1,171 @@
+:root{--premium-ink:#121316;--premium-soft:#f6f4f0;--premium-card:#fff;--premium-accent:#e85f1d;--premium-gold:#f1b75d;--premium-line:#e7e2db}
+body{background:radial-gradient(circle at 50% -80px,#fff 0,#f4f1ec 360px,#efede9 100%)!important;color:var(--premium-ink)}
+.top{background:#fff!important;border-bottom:1px solid rgba(20,20,20,.08)!important;box-shadow:0 4px 16px rgba(20,20,20,.06)!important}.topin{max-width:1180px!important}
+.brand h1{font-weight:1000!important;letter-spacing:-.045em!important;color:#17181b!important}.brandMetaRow{align-items:center}.liveClock{color:#a34a20!important}
+.wrap{max-width:1180px!important;padding-bottom:110px!important}.banner{box-shadow:0 20px 50px rgba(24,20,17,.16)!important}
+.premiumWelcome{display:none!important}
+
+.featuredSection{margin:2px 0 14px}.featuredHead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:8px}.featuredHead h3{margin:0;font-size:19px;letter-spacing:-.035em}.featuredHead span{color:#74777c;font-size:11px;text-align:right}
+.featuredRail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(235px,31%);gap:11px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none}.featuredRail::-webkit-scrollbar{display:none}
+.featuredItem{position:relative;min-height:190px;overflow:hidden;border-radius:19px;background:#1a1b1e;scroll-snap-align:start;box-shadow:0 9px 25px rgba(20,21,24,.15);cursor:pointer}.featuredItem img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.featuredItem:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(7,7,8,.96),rgba(7,7,8,.04) 72%)}
+.featuredItemInfo{position:absolute;z-index:1;left:13px;right:13px;bottom:12px;color:#fff}.featuredItemInfo b{display:block;font-size:16px}.featuredItemInfo>span{display:block;margin-top:3px;color:#ffb487;font-size:15px;font-weight:950}.featuredOld{color:#ddd!important;text-decoration:line-through;margin-right:6px;font-size:11px}.featuredSales,.featuredCashback{display:block;margin-top:4px;font-size:10px;font-weight:850}.featuredSales{color:#f1f1f1}.featuredCashback{color:#ffc46c}
+.featuredTag{position:absolute;z-index:2;top:10px;left:10px;padding:6px 8px;border-radius:999px;background:#f2eee7;color:#242529;font-size:9px;font-weight:1000}
+
+.cashbackClub{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 0 14px;padding:10px 11px;border:1px solid #ead6b4;border-radius:15px;background:#fffaf0;box-shadow:0 6px 16px rgba(90,61,19,.06)}
+.cashbackIcon{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#1b1c20;color:#ffc46c;font-size:19px}.cashbackClubCopy{min-width:0}.cashbackClub b{display:block;font-size:13px;line-height:1.15}.cashbackClub span{display:block;margin-top:2px;color:#77716a;font-size:10px;line-height:1.2}.cashbackClub button{border:0;border-radius:10px;background:#1b1c20;color:#fff;padding:9px 10px;font-size:10px;font-weight:950;white-space:nowrap}
+
+@media(max-width:759px){
+ #products.grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;margin-top:12px!important}
+ #products .card{display:grid!important;grid-template-columns:118px minmax(0,1fr)!important;min-height:118px!important;border-radius:16px!important;overflow:hidden!important;background:#fff!important}
+ #products .card .pic{width:118px!important;height:100%!important;min-height:118px!important;aspect-ratio:auto!important;position:relative!important;align-self:stretch!important;background:#eceae6!important;overflow:hidden!important}
+ #products .card .pic>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+ #products .card .pc{min-width:0!important;padding:11px 12px!important;display:flex!important;flex-direction:column!important;gap:5px!important}
+ #products .card .name{font-size:15px!important;line-height:1.15!important}
+ #products .card .desc{font-size:11px!important;line-height:1.3!important;min-height:0!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ #products .card .price{font-size:16px!important}
+ #products .card .add{margin-top:auto!important;padding:9px 10px!important;min-height:36px!important}
+ #products .productCashbackBadge{position:absolute!important;left:7px!important;bottom:7px!important;z-index:25!important;display:inline-flex!important;align-items:center!important;gap:3px!important;width:auto!important;max-width:calc(100% - 14px)!important;padding:5px 6px!important;border:0!important;border-radius:8px!important;background:rgba(17,17,19,.9)!important;color:#fff!important;font-size:8px!important;font-weight:850!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 3px 10px rgba(0,0,0,.25)!important}
+ #products .productCashbackBadge b{color:#ff9a62!important;font-size:9px!important}
+ .featuredRail{grid-auto-columns:82%!important}.featuredItem{min-height:195px!important}
+ .cashbackClub{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;padding:9px 10px!important}.cashbackIcon{width:36px!important;height:36px!important;font-size:17px!important}.cashbackClub button{grid-column:auto!important;width:auto!important;padding:8px 9px!important}
+}
+@media(max-width:390px){
+ #products .card{grid-template-columns:104px minmax(0,1fr)!important}
+ #products .card .pic{width:104px!important;min-height:112px!important}
+ .cashbackClub span{display:none!important}.cashbackClub b{font-size:12px!important}
+}
+.cashbackResult{padding:15px;border:1px solid #ead7b4;border-radius:17px;background:#fff9ed}.cashbackBalance{margin:7px 0;color:#b94b14;font-size:32px;font-weight:1000;letter-spacing:-.05em}.cashbackStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.cashbackStat{padding:10px;border-radius:12px;background:#fff}.cashbackStat span{display:block;color:#77716a;font-size:10px}.cashbackStat b{display:block;margin-top:4px}
+.cashbackCheckout{margin:11px 0;padding:13px;border:1px solid #ead6b4;border-radius:15px;background:#fffaf0}.cashbackCheckoutTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.cashbackCheckout button{border:0;border-radius:10px;background:#202126;color:#fff;padding:9px 11px;font-size:10px;font-weight:950}.cashbackCheckoutState{margin-top:7px;color:#706b63;font-size:11px}.cashbackUseRow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}.cashbackUseRow input{min-width:0;padding:11px;border:1px solid #d9d2c6;border-radius:11px;background:#fff;font-size:16px}.cashbackUseRow label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:900}
+.grid .card{transition:transform .18s ease,box-shadow .18s ease}.grid .card:active{transform:scale(.985)}
+
+
+/* v34 — organização definitiva dos cards de produto no celular */
+@media(max-width:759px){
+  #products.grid{
+    gap:12px!important;
+    padding-bottom:105px!important;
+  }
+  #products .card{
+    position:relative!important;
+    grid-template-columns:132px minmax(0,1fr)!important;
+    min-height:154px!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+  #products .card .pic{
+    width:132px!important;
+    min-height:154px!important;
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  #products .card .pc{
+    padding:14px 14px 12px!important;
+    gap:6px!important;
+    overflow:hidden!important;
+  }
+  #products .card .name{
+    margin:0!important;
+    font-size:16px!important;
+    line-height:1.12!important;
+    font-weight:950!important;
+    padding:0!important;
+  }
+  #products .card .desc{
+    margin:0!important;
+    font-size:11.5px!important;
+    line-height:1.32!important;
+    -webkit-line-clamp:2!important;
+  }
+  #products .card .price{
+    margin:1px 0 0!important;
+    font-size:17px!important;
+    line-height:1.1!important;
+    min-height:19px!important;
+  }
+  #products .card .add{
+    width:100%!important;
+    min-height:38px!important;
+    padding:8px 10px!important;
+    margin-top:auto!important;
+    border-radius:12px!important;
+    font-size:15px!important;
+    line-height:1!important;
+  }
+
+  /* Promoção fica somente dentro da área da foto, sem cobrir o nome. */
+  #products .card .systemOfferBadge{
+    position:absolute!important;
+    top:9px!important;
+    left:8px!important;
+    right:auto!important;
+    z-index:30!important;
+    display:block!important;
+    width:116px!important;
+    max-width:calc(132px - 16px)!important;
+    box-sizing:border-box!important;
+    padding:6px 5px!important;
+    border-radius:8px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+    text-align:center!important;
+    font-size:7.8px!important;
+    line-height:1!important;
+    letter-spacing:0!important;
+  }
+
+  /* Cashback permanece no rodapé da foto. */
+  #products .productCashbackBadge{
+    left:7px!important;
+    bottom:7px!important;
+    max-width:118px!important;
+    padding:5px 6px!important;
+    font-size:8px!important;
+  }
+}
+@media(max-width:390px){
+  #products .card{
+    grid-template-columns:118px minmax(0,1fr)!important;
+    min-height:150px!important;
+  }
+  #products .card .pic{
+    width:118px!important;
+    min-height:150px!important;
+  }
+  #products .card .pc{padding:12px 11px 11px!important}
+  #products .card .name{font-size:15px!important}
+  #products .card .desc{font-size:10.8px!important}
+  #products .card .price{font-size:16px!important}
+  #products .card .systemOfferBadge{
+    width:102px!important;
+    max-width:102px!important;
+    font-size:7.2px!important;
+  }
+  #products .productCashbackBadge{max-width:104px!important}
+}
+
+/* v37 — aplicação de cashback no checkout */
+.cashbackCheckoutTop>div{min-width:0}.cashbackCheckoutTop>div small{display:block;margin-top:3px;color:#7b756d;font-size:10px;font-weight:600}
+.cashbackCheckoutState b{color:#16171a}.cashbackCheckoutState.cashbackOk{color:#5d625f}.cashbackCheckoutState.cashbackApplied{padding:9px 10px;border-radius:10px;background:#eaf8ef;color:#22613a;font-weight:800}.cashbackCheckoutState.cashbackError{color:#a33b2b}
+.cashbackUseRow{grid-template-columns:minmax(0,130px) 1fr!important;align-items:stretch}
+.cashbackAmountWrap{display:flex;align-items:center;border:1px solid #d9d2c6;border-radius:11px;background:#fff;overflow:hidden}.cashbackAmountWrap span{padding-left:10px;font-size:12px;font-weight:900}.cashbackAmountWrap input{border:0!important;border-radius:0!important;box-shadow:none!important;padding-left:5px!important}
+.cashbackApply{background:#d94f0d!important;color:#fff!important;font-size:11px!important}.cashbackRemove{width:100%;margin-top:8px!important;background:transparent!important;color:#8a4c2c!important;border:1px solid #e6cbb9!important}
+.cashbackDiscountLine{color:#247044!important}.cashbackDiscountLine b{color:#247044!important}
+@media(max-width:390px){.cashbackUseRow{grid-template-columns:1fr!important}.cashbackApply{min-height:42px}}
+
+/* v39 — Clube Cashback com mais destaque no celular */
+@media(max-width:759px){
+  .cashbackClub{grid-template-columns:46px minmax(0,1fr) auto!important;gap:11px!important;margin-bottom:15px!important;padding:13px 12px!important;border-radius:17px!important}
+  .cashbackIcon{width:46px!important;height:46px!important;border-radius:13px!important;font-size:22px!important}
+  .cashbackClub b{font-size:14px!important;line-height:1.18!important}
+  .cashbackClub span{display:block!important;margin-top:3px!important;font-size:10.5px!important;line-height:1.22!important}
+  .cashbackClub button{width:auto!important;padding:11px 12px!important;border-radius:11px!important;font-size:10.5px!important;min-height:40px!important}
+}
+@media(max-width:390px){
+  .cashbackClub{grid-template-columns:43px minmax(0,1fr) auto!important;gap:8px!important;padding:12px 10px!important}
+  .cashbackIcon{width:43px!important;height:43px!important;font-size:20px!important}
+  .cashbackClub b{font-size:13px!important}
+  .cashbackClub span{display:block!important;font-size:9.5px!important}
+  .cashbackClub button{padding:10px 9px!important;font-size:9.5px!important}
+}

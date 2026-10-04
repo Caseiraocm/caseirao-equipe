@@ -1,0 +1,40 @@
+/* v36 — foto dos produtos um pouco mais larga, sem apertar o conteúdo */
+@media (min-width:391px) and (max-width:759px){
+  #products .card{
+    grid-template-columns:148px minmax(0,1fr)!important;
+  }
+  #products .card .pic{
+    width:148px!important;
+  }
+  #products .card .pc{
+    padding:13px 12px 11px!important;
+  }
+  #products .card .name{
+    font-size:15.5px!important;
+  }
+  #products .card .desc{
+    font-size:11px!important;
+  }
+  #products .card .systemOfferBadge{
+    width:132px!important;
+    max-width:132px!important;
+  }
+  #products .productCashbackBadge{
+    max-width:134px!important;
+  }
+}
+@media(max-width:390px){
+  #products .card{
+    grid-template-columns:128px minmax(0,1fr)!important;
+  }
+  #products .card .pic{
+    width:128px!important;
+  }
+  #products .card .systemOfferBadge{
+    width:112px!important;
+    max-width:112px!important;
+  }
+  #products .productCashbackBadge{
+    max-width:114px!important;
+  }
+}

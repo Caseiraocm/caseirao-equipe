@@ -1,0 +1,2 @@
+
+.networkStatus{position:fixed;z-index:500;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:max-content;max-width:92vw;padding:9px 13px;border:1px solid #f0b9b9;border-radius:999px;background:#fff1f1;color:#8f2429;font-size:12px;font-weight:900;box-shadow:0 8px 25px rgba(0,0,0,.2)}

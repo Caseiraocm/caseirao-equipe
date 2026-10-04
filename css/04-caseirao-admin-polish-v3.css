@@ -1,0 +1,151 @@
+
+/* Central ADM 10/10 — acabamento visual, responsivo e sem alterar a operação. */
+.sheet.full:has(.adminHead){
+  --adm-orange:#e55b18;
+  --adm-orange-dark:#bf3f0d;
+  --adm-ink:#171a1e;
+  --adm-soft:#f5f6f8;
+  --adm-border:#e1e4e8;
+  width:min(100%,1040px);
+  padding:22px clamp(18px,3vw,32px) calc(28px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 100% 0,rgba(229,91,24,.08),transparent 260px),
+    #f6f7f9;
+}
+.sheet.full:has(.adminHead)>.adminHead{
+  top:-22px;
+  margin:0 calc(clamp(18px,3vw,32px) * -1) 18px;
+  padding:18px clamp(18px,3vw,32px) 15px!important;
+  min-height:78px;
+  border-bottom:1px solid var(--adm-border);
+  background:rgba(255,255,255,.94)!important;
+  backdrop-filter:blur(18px);
+}
+.sheet.full:has(.adminHead) .adminHead h2{font-size:clamp(25px,4vw,32px);line-height:1;letter-spacing:-.045em;color:var(--adm-ink)}
+.sheet.full:has(.adminHead) .adminSub{margin-top:7px;font-size:13px;font-weight:650;color:#747b84}
+.sheet.full:has(.adminHead) .adminLogout{
+  min-width:64px!important;
+  padding:9px 14px!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:#a63d12!important;
+  border:1px solid #edc8b6!important;
+  box-shadow:0 2px 8px rgba(35,39,44,.05)!important;
+}
+.sheet.full:has(.adminHead) .compactMetrics{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 10px;
+}
+.sheet.full:has(.adminHead) .compactMetrics .metric{
+  min-height:112px;
+  padding:17px 17px 15px;
+  border:1px solid var(--adm-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 5px 18px rgba(28,34,41,.045);
+}
+.sheet.full:has(.adminHead) .compactMetrics .metric:before{width:4px;background:linear-gradient(180deg,#f0752c,var(--adm-orange-dark))}
+.sheet.full:has(.adminHead) .compactMetrics .metric b{font-size:clamp(23px,3vw,31px);line-height:1.05;letter-spacing:-.045em;color:var(--adm-ink)}
+.sheet.full:has(.adminHead) .compactMetrics .metric span{margin-top:9px;font-size:12px;font-weight:700;color:#767d86}
+.sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:auto}
+.sheet.full:has(.adminHead) .compactMetrics .storeMetric b{font-size:clamp(19px,2.5vw,27px)}
+.sheet.full:has(.adminHead) .paymentMetrics{gap:10px;margin:0 0 16px}
+.sheet.full:has(.adminHead) .paymentMetric{
+  position:relative;
+  min-height:82px;
+  padding:14px 15px 13px 48px;
+  border:1px solid var(--adm-border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(28,34,41,.035);
+}
+.sheet.full:has(.adminHead) .paymentMetric:before{
+  content:'';
+  position:absolute;left:14px;top:15px;
+  width:24px;height:24px;border-radius:8px;
+  display:grid;place-items:center;
+  background:#f1f3f5;color:#4d555e;
+  font-size:13px;font-weight:950;
+}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(1):before{content:'▰';background:#fff0e7;color:#c94b12}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(2):before{content:'◆';background:#eaf6f2;color:#16795a}
+.sheet.full:has(.adminHead) .paymentMetric:nth-child(3):before{content:'$';background:#eaf5ec;color:#267a3c}
+.sheet.full:has(.adminHead) .paymentMetric span{font-size:11px;font-weight:800;color:#707780}
+.sheet.full:has(.adminHead) .paymentMetric b{margin-top:7px;font-size:19px;letter-spacing:-.025em}
+.sheet.full:has(.adminHead)>.admbar{
+  position:sticky;top:72px;z-index:8;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  overflow:visible;
+  gap:7px!important;
+  margin:0 -2px 16px!important;
+  padding:7px 2px 10px!important;
+  border:0;
+  background:rgba(246,247,249,.96)!important;
+  backdrop-filter:blur(16px);
+}
+.sheet.full:has(.adminHead)>.admbar button{
+  min-width:0;min-height:46px;
+  padding:8px 6px!important;
+  border:1px solid #dfe2e6!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  color:#555c65!important;
+  font-size:11px!important;
+}
+.sheet.full:has(.adminHead)>.admbar button.on{
+  border-color:#292d32!important;
+  background:#292d32!important;
+  color:#fff!important;
+  box-shadow:0 7px 16px rgba(31,35,40,.15)!important;
+}
+.sheet.full:has(.adminHead) #admContent>.alertControl.alertEnabled{margin:2px 0 12px}
+.sheet.full:has(.adminHead) .alertEnabled .enableAlertsBtn{padding:7px 10px;border-radius:10px;font-size:11px;letter-spacing:.015em}
+.sheet.full:has(.adminHead) .operationHint,.sheet.full:has(.adminHead) .notice{border-radius:14px;line-height:1.45}
+.sheet.full:has(.adminHead) #admContent>.operationHint{margin:8px 0 14px;padding:12px 14px;font-size:12px}
+.sheet.full:has(.adminHead) .search,.sheet.full:has(.adminHead) .in,.sheet.full:has(.adminHead) .sel{min-height:50px;border-radius:14px}
+.sheet.full:has(.adminHead) .primary{min-height:50px;border-radius:14px;letter-spacing:-.01em}
+.sheet.full:has(.adminHead) .proFilters{gap:7px;padding:3px 0 8px;scrollbar-width:none}
+.sheet.full:has(.adminHead) .proFilters::-webkit-scrollbar{display:none}
+.sheet.full:has(.adminHead) .proFilters button{min-height:42px;padding:9px 14px;border-radius:12px;background:#fff;color:#626a73;border-color:#dfe3e7}
+.sheet.full:has(.adminHead) .proFilters button.on{background:var(--adm-orange);border-color:var(--adm-orange);color:#fff}
+.sheet.full:has(.adminHead) .empty.cleanEmpty{min-height:150px;justify-content:center;border:1px dashed #ccd1d7;border-radius:18px;background:rgba(255,255,255,.62)}
+.sheet.full:has(.adminHead) .orderDetailed,.sheet.full:has(.adminHead) .kitchenCard,.sheet.full:has(.adminHead) .tableitem{border-radius:17px;box-shadow:0 5px 18px rgba(28,34,41,.045)}
+@media(max-width:760px){
+  .sheet.full:has(.adminHead){padding:18px 14px calc(24px + env(safe-area-inset-bottom))}
+  .sheet.full:has(.adminHead)>.adminHead{top:-18px;margin:0 -14px 14px;padding:16px 18px 14px!important;min-height:72px}
+  .sheet.full:has(.adminHead) .adminHead h2{font-size:27px}
+  .sheet.full:has(.adminHead) .compactMetrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .sheet.full:has(.adminHead) .compactMetrics .metric{min-height:96px;padding:15px}
+  .sheet.full:has(.adminHead) .compactMetrics .storeMetric{grid-column:1/-1;min-height:88px}
+  .sheet.full:has(.adminHead)>.admbar{top:68px;display:flex;overflow-x:auto;gap:7px!important;margin:0 -14px 14px!important;padding:8px 14px 11px!important;scroll-padding:14px;scroll-snap-type:x proximity}
+  .sheet.full:has(.adminHead)>.admbar::-webkit-scrollbar{display:none}
+  .sheet.full:has(.adminHead)>.admbar button{flex:0 0 auto;min-width:88px;padding:8px 13px!important;scroll-snap-align:start;font-size:11px!important}
+}
+@media(max-width:430px){
+  .sheet.full:has(.adminHead) .adminHead h2{font-size:25px}
+  .sheet.full:has(.adminHead) .adminSub{font-size:12px}
+  .sheet.full:has(.adminHead) .adminLogout{min-width:58px!important;padding:8px 12px!important}
+  .sheet.full:has(.adminHead) .paymentMetrics{gap:7px}
+  .sheet.full:has(.adminHead) .paymentMetric{min-height:78px;padding:42px 8px 11px}
+  .sheet.full:has(.adminHead) .paymentMetric:before{left:10px;top:10px;width:24px;height:24px}
+  .sheet.full:has(.adminHead) .paymentMetric span{font-size:10px;white-space:normal}
+  .sheet.full:has(.adminHead) .paymentMetric b{font-size:15px;margin-top:5px}
+}
+
+/* Contraste reforçado nas informações de Cliente e Pagamento dos pedidos. */
+.sheet.full:has(.adminHead) .orderInfo{
+  background:#ffffff;
+  border-color:#d7dce1;
+}
+.sheet.full:has(.adminHead) .orderInfo span{
+  color:#5f6872;
+}
+.sheet.full:has(.adminHead) .orderInfo b{
+  color:#171a1f;
+}
+.sheet.full:has(.adminHead) .orderInfo small{
+  color:#48515b;
+  font-weight:650;
+}
