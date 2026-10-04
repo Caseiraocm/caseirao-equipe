@@ -1,17 +1,1 @@
-{
-  "name": "Caseirão Equipe",
-  "short_name": "Caseirão ADM",
-  "description": "Operação interna e Central ADM do O Caseirão Burger",
-  "id": "./",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "any",
-  "background_color": "#0b0c0e",
-  "theme_color": "#0b0c0e",
-  "categories": ["business", "productivity"],
-  "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
-  ]
-}
+{"name":"O Caseirão Burger","short_name":"Caseirão","start_url":"./","display":"standalone","background_color":"#08090b","theme_color":"#08090b","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

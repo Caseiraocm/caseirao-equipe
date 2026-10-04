@@ -1,36 +1,14 @@
-# Caseirão Equipe
+# Caseirão Delivery
 
-Aplicativo interno da equipe, Central ADM, mesas, produção, caixa e entregas do O Caseirão Burger.
+Cardápio público e acompanhamento de pedidos do O Caseirão Burger.
 
-Versão visual: **Signature Premium 5.2**, com portal, login e Central ADM em tela cheia.
+Versão visual: **Premium 3.0**.
 
 ## Estrutura ativa
 
-- `index.html`: entrada única do aplicativo.
-- `css/base.css`: estrutura visual compartilhada.
-- `css/admin.css`: interface operacional e administrativa.
-- `css/premium-v5.css`: acabamento visual premium, responsividade e compactação da operação.
-- `js/config.js`: endereço das funções do sistema.
-- `js/foundation.js`: inicialização, API e utilidades compartilhadas.
-- `js/admin.js`: autenticação, pedidos e cadastros administrativos.
-- `js/tables.js`: mesas, comandas e pagamentos locais.
-- `js/team.js`: acesso e rotinas dos funcionários.
-- `js/delivery.js`: Central de Entregas e entregadores.
-- `js/operations.js`: pedidos, produção, mesas e entregas.
-- `js/management.js`: caixa, relatórios, fidelidade e configurações.
-- `js/runtime-bridge.js`: ligação controlada com a interface administrativa.
-- `js/printing.js`: conexão, fila e impressão Bluetooth.
-- `js/admin-ui.js`: composição visual da Central ADM.
+- `index.html`: entrada do cardápio.
+- `css/app.css`: interface do cliente.
+- `js/app.js`: catálogo, carrinho, checkout, Pix e acompanhamento.
 - `sw.js`: instalação e atualização do PWA.
 
-Arquivos antigos, cópias repetidas e versões que não eram carregadas pelo `index.html` foram retirados deste pacote.
-
-## Central de entregas
-
-- Cadastro, bloqueio e exclusão de entregadores.
-- Atribuição do pedido com registro do troco levado.
-- Acompanhamento de rota, GPS, horários e problemas.
-- Remoção da entrega da rota antes da conclusão.
-- Impressão ou reimpressão dentro da própria Central de Entregas.
-- Registro do dinheiro recebido, troco devolvido, retorno e acerto.
-- Fechamento por entregador, bairro e ajuda de gasolina.
+O envio usa um identificador único persistente. Se a internet cair ou a geração do Pix falhar depois da gravação, o mesmo pedido é recuperado sem criar outro.

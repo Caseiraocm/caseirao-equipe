@@ -1,60 +1,36 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#0b0c0e"/>
-<meta name="caseirao-build" content="2026-10-03-professional-v2.3"/>
-<meta name="description" content="Aplicativo interno da equipe e Central ADM do O Caseirão Burger."/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Caseirão"/>
-<link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png"/>
-<link rel="manifest" href="./manifest.webmanifest?v=20261003-professional-v2.1"/>
-<title>Caseirão Equipe</title>
-<link rel="stylesheet" href="./css/base.css?v=20261003-professional-v2.1"/>
-<link rel="stylesheet" href="./css/admin.css?v=20261003-professional-v2.1"/>
-<link rel="stylesheet" href="./css/premium-v52.css?v=20261003-professional-v2.1"/>
-<link rel="stylesheet" href="./css/professional.css?v=20261003-professional-v2.3"/>
-</head>
-<body class="teamApp">
-<section aria-label="Acesso interno do Caseirão" class="teamLauncher" id="teamHome">
-<div class="teamLauncherCard">
-<div aria-hidden="true" class="teamLogo">CB</div>
-<h1>Caseirão Equipe</h1>
-<p>Escolha sua área para iniciar o expediente.</p>
-<button class="teamChoice" id="teamAdminBtn" type="button"><span class="teamChoiceIcon">⚙️</span><span><strong>Central ADM</strong><small>Gestão completa, relatórios, cardápio e configurações.</small></span></button>
-<button class="teamChoice" id="teamEmployeeBtn" type="button"><span class="teamChoiceIcon">👥</span><span><strong>Acesso da equipe</strong><small>Produção, caixa, entregas e operação do dia.</small></span></button>
-<button class="teamChoice dispatcherAccessChoice" id="teamDispatcherBtn" type="button"><span class="teamChoiceIcon">📦</span><span><strong>Área da despachante</strong><small>Veja os pedidos e avise à central quando estiverem no ponto.</small></span></button>
-<button class="teamInstall" id="teamInstallBtn" type="button">↓ Instalar este aplicativo</button>
-<div class="teamVersion">CENTRAL PROFISSIONAL • 03/10/2026 • © O Caseirão Burger</div>
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0c"><meta name="description" content="O Caseirão Burger - pedidos online">
+<title>O Caseirão Burger</title><link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./css/app.css?v=4.4.3-codigo-pedido"><script defer src="./js/app.js?v=4.4.3-codigo-pedido"></script>
+</head><body>
+<header class="top"><div class="brandLockup"><div class="brandMark" aria-hidden="true"><span>OC</span></div><div><small class="brandEyebrow">HAMBURGUERIA ARTESANAL</small><h1 id="storeName">O Caseirão Burger</h1><span id="storeStatus">Carregando cardápio…</span></div></div><button id="trackBtn" class="ghost"><span aria-hidden="true">⌖</span> Acompanhar</button></header>
+<div class="storeTicker" role="region" aria-label="Localização e contato do Caseirão">
+  <div class="storeTickerViewport">
+    <div class="storeTickerTrack">
+      <span>📍 Av. Monsenhor Matheus, 340 – Flores</span><i aria-hidden="true">•</i><span>📞 (86) 99565-3888</span><i aria-hidden="true">•</i><span>O Caseirão Burger</span><i aria-hidden="true">•</i>
+      <span aria-hidden="true">📍 Av. Monsenhor Matheus, 340 – Flores</span><i aria-hidden="true">•</i><span aria-hidden="true">📞 (86) 99565-3888</span><i aria-hidden="true">•</i><span aria-hidden="true">O Caseirão Burger</span><i aria-hidden="true">•</i>
+    </div>
+  </div>
 </div>
+<section id="automaticStoreNotice" class="automaticStoreNotice hidden" role="status" aria-live="polite"></section>
+<main>
+<section class="premiumWelcome" aria-label="Boas-vindas ao Caseirão">
+  <div class="premiumGlow" aria-hidden="true"></div>
+  <div class="premiumWelcomeContent">
+    <span class="premiumKicker">SEU PEDIDO COMEÇA AQUI</span>
+    <h2 id="premiumOfferLine" aria-live="polite"><span>Bateu a fome?</span><em>Vem de Caseirão.</em></h2>
+    <p id="premiumOfferSupport" class="premiumLead">Escolha seu favorito e peça em poucos cliques.</p>
+    <button id="premiumMenuCta" class="premiumMenuCta" type="button"><span>Escolher meu lanche</span><b>↓</b></button>
+  </div>
+  <div class="premiumBite" aria-hidden="true"><span>🍔</span></div>
 </section>
-<header class="top"><div class="topin"><div class="brand"><div aria-hidden="true" class="brandMark">CB</div><h1 id="storeName">O Caseirão Burger</h1><div class="status" id="storeStatus">Carregando cardápio...</div></div><button class="headbtn" id="trackBtn">Acompanhar</button><button class="headbtn" id="adminBtn">ADM</button></div></header>
-<main class="wrap">
-<div class="banner hide" id="banner"></div>
-<input autocomplete="off" class="search" id="search" placeholder="Buscar no cardápio"/>
-<nav aria-label="Atalhos" class="quicknav"><button class="quickbtn" id="homeBtn">⌂ Início</button><button class="quickbtn promoQuick" id="promotionsBtn">🔥 Promoções</button><button class="quickbtn" id="loyaltyBtn">★ Minha fidelidade</button><button class="quickbtn" id="installBtn">↓ Instalar</button></nav>
-<div class="cats" id="cats"></div>
-<div class="grid" id="products"><div aria-label="Carregando" class="card skeleton"><div class="pic"></div><div class="pc"><div class="name">Carregando...</div><div class="desc">Preparando o cardápio</div></div></div></div>
-<footer class="siteFooter">© 2026 O Caseirão Burger — Todos os direitos reservados.</footer>
+<section id="banner" class="banner hidden"></section>
+<section id="bestSection" class="best hidden"><div class="bestHead"><div><b>🔥 Mais pedidos</b><small>Os queridinhos do Caseirão</small></div><span id="bestCash"></span></div><div id="bestTrack" class="bestTrack"></div></section>
+<section class="quick"><button id="repeatBtn">🔁 Pedir novamente</button><button id="promoBtn">🔥 Promoções</button><button id="loyaltyBtn">🎁 Minha fidelidade</button><button id="cashbackBtn">💰 Cashback</button><button id="installBtn" class="hidden">⬇ Instalar</button></section>
+<div class="searchShell"><span aria-hidden="true">⌕</span><input id="search" class="search" placeholder="O que você quer pedir hoje?" autocomplete="off"></div><nav id="cats" class="cats" aria-label="Categorias do cardápio"></nav>
+<div class="menuHeading"><div><small>FEITO NA CHAPA</small><h2>Nosso cardápio</h2></div><span>Escolha o seu favorito</span></div>
+<section id="products" class="products"><div class="loading">Carregando produtos…</div></section>
 </main>
-<div class="cartbar"><button class="cartbtn" id="cartBtn"><span id="cartLabel">Carrinho • 0 itens</span><span id="cartTotal">R$ 0,00</span></button></div>
-<div id="modalRoot"></div>
-<div aria-hidden="true" class="loadingBar hide" id="loadingBar"></div>
-<script src="./js/config.js?v=20260927-adicionar-itens-v37"></script>
-<script src="./js/foundation.js?v=20260927-adicionar-itens-v37"></script>
-<script src="./js/admin.js?v=20261003-layout-pedidos-v21"></script>
-<script src="./js/tables.js?v=20260930-abertura-organizada-v54"></script>
-<script src="./js/team.js?v=20261003-login-profissional-v22"></script>
-<script src="./js/delivery.js?v=20260929-remover-finalizadas-v41"></script>
-<script src="./js/operations.js?v=20261003-layout-pedidos-v21"></script>
-<script src="./js/management.js?v=20260930-mesa-addons-v43"></script>
-<script src="./js/runtime-bridge.js?v=20260927-adicionar-itens-v37"></script>
-<script src="./js/printing.js?v=20260930-mesa-print-addons-v42"></script>
-<script src="./js/admin-ui.js?v=20261003-login-profissional-v22"></script>
-<script src="./js/whatsapp-coexistence.js?v=20260927-wpp-coexistence-v1"></script>
-<script src="./js/professional-shell.js?v=20261003-professional-v2.3"></script>
-</body>
-</html>
+<button id="cartBtn" class="cart"><span id="cartLabel">Carrinho • 0 itens</span><b id="cartTotal">R$ 0,00</b></button><div id="modal"></div>
+</body></html>
