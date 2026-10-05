@@ -243,7 +243,7 @@ function renderOrders(box){
         await adminCall('update_status',{
           order_id:orderId,
           status:next,
-          cancel_reason:b.dataset.cancelReason||''
+          reason:b.dataset.cancelReason||''
         });
 
         if(['entregue','cancelado'].includes(next)){
