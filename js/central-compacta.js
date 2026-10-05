@@ -64,7 +64,8 @@
     const dock=document.createElement('section');
     dock.className=`statusFloatDock tone-${current}`;
     dock.setAttribute('aria-label','Controle rápido do status do pedido');
-    dock.innerHTML=`<div class="statusDockTop"><div class="statusNow"><small>STATUS ATUAL</small><b><i>${statusMeta[current]?.icon||'●'}</i>${statusMeta[current]?.label||current}</b></div><button type="button" class="statusDockMenu" aria-expanded="false">•••</button></div><div class="statusProgress">${operationalFlow.map((status,i)=>`<span class="${i<index?'done':i===index?'current':''}" title="${statusMeta[status].label}"><i>${statusMeta[status].icon}</i><small>${statusMeta[status].label}</small></span>`).join('')}</div>${next?`<button type="button" class="statusNext" data-status-proxy="${next}"><span>PRÓXIMA ETAPA</span><b>${statusMeta[next].icon} ${statusMeta[next].label.toUpperCase()}</b></button>`:`<div class="statusCompleted">✓ PEDIDO FINALIZADO</div>`}<div class="statusDockOptions" hidden><b>CORRIGIR STATUS</b><div>${operationalFlow.filter(status=>status!==current).map(status=>`<button type="button" data-status-proxy="${status}">${statusMeta[status].icon} ${statusMeta[status].label}</button>`).join('')}</div>${current!=='cancelado'&&current!=='entregue'?'<button type="button" class="statusCancel" data-status-proxy="cancelado">× Cancelar pedido</button>':''}</div>`;
+    const nextCopy={confirmado:'ACEITAR PEDIDO',preparando:'INICIAR PREPARO',pronto:'MARCAR COMO PRONTO',em_rota:'ENVIAR PARA ENTREGA',entregue:isDelivery?'FINALIZAR ENTREGA':'FINALIZAR PEDIDO'};
+    dock.innerHTML=`<div class="statusDockTop"><div class="statusNow"><small>STATUS ATUAL</small><b><i>${statusMeta[current]?.icon||'●'}</i>${statusMeta[current]?.label||current}</b></div><button type="button" class="statusDockMenu" aria-expanded="false" aria-label="Outras ações">•••</button></div><div class="statusProgress">${operationalFlow.map((status,i)=>`<span class="${i<index?'done':i===index?'current':''}" title="${statusMeta[status].label}"><i>${statusMeta[status].icon}</i><small>${statusMeta[status].label}</small></span>`).join('')}</div>${next?`<button type="button" class="statusNext" data-status-proxy="${next}"><span>PRÓXIMA AÇÃO</span><b>${statusMeta[next].icon} ${nextCopy[next]||statusMeta[next].label.toUpperCase()}</b></button>`:`<div class="statusCompleted">✓ PEDIDO FINALIZADO</div>`}<div class="statusDockOptions" hidden><b>OUTRAS AÇÕES</b><label class="statusCorrection"><span>Corrigir etapa do pedido</span><select>${operationalFlow.filter(status=>status!==current).map(status=>`<option value="${status}">${statusMeta[status].label}</option>`).join('')}</select></label><button type="button" class="statusApplyCorrection">APLICAR CORREÇÃO</button>${current!=='cancelado'&&current!=='entregue'?'<button type="button" class="statusCancel">× CANCELAR PEDIDO</button>':''}</div>`;
     original.hidden=true;
     body.appendChild(dock);
     dock.querySelector('.statusDockMenu').onclick=event=>{
@@ -75,11 +76,53 @@
     };
     dock.querySelectorAll('[data-status-proxy]').forEach(button=>button.onclick=event=>{
       event.preventDefault();event.stopPropagation();
-      const target=statusButton(card,button.dataset.statusProxy);
-      if(!target||target.disabled)return;
-      button.disabled=true;dock.classList.add('updating');
-      target.click();
+      updateStatusInPlace(card,button.dataset.statusProxy,button);
     });
+    dock.querySelector('.statusApplyCorrection')?.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      const value=dock.querySelector('.statusCorrection select')?.value;
+      if(value&&confirm(`Corrigir este pedido para “${statusMeta[value]?.label||value}”?`))updateStatusInPlace(card,value,event.currentTarget);
+    });
+    dock.querySelector('.statusCancel')?.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      updateStatusInPlace(card,'cancelado',event.currentTarget);
+    });
+  }
+
+  async function updateStatusInPlace(card,next,trigger){
+    const id=orderId(card),target=statusButton(card,next);
+    if(!id||!target||target.disabled)return;
+    let reason='';
+    if(next==='cancelado'){
+      reason=String(prompt('Informe o motivo do cancelamento:')||'').trim();
+      if(!reason)return;
+    }
+    const dock=card.querySelector(':scope > .orderBody > .statusFloatDock');
+    const scrollHost=document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
+    const scrollTop=scrollHost?.scrollTop||0;
+    try{
+      trigger.disabled=true;dock?.classList.add('updating');
+      await adminCall('update_status',{order_id:id,status:next,reason});
+      if(['entregue','cancelado'].includes(next))await deliveryApi('admin_stop',{order_id:id},true).catch(()=>{});
+      const order=(typeof admin!=='undefined'&&admin?.orders||[]).find(item=>String(item.id)===id);
+      if(order){order.status=next;order.cancel_reason=next==='cancelado'?reason:null;order.updated_at=new Date().toISOString()}
+      if(typeof knownOrderStatuses!=='undefined')knownOrderStatuses.set(id,next);
+      target.closest('.orderactions')?.querySelectorAll('[data-st]').forEach(button=>{
+        const active=button.dataset.st===next;
+        button.classList.toggle('selected',active);
+        button.setAttribute('aria-pressed',String(active));
+      });
+      const badge=card.querySelector('.orderSummary .statusBadge');
+      if(badge){badge.className=`statusBadge ${statusTone(next)}`;badge.textContent=statusMeta[next]?.label||next}
+      dock?.remove();installStatusDock(card);card.open=true;
+      card.classList.add('recentlyUpdated');
+      setTimeout(()=>card.classList.remove('recentlyUpdated'),3500);
+      if(scrollHost)scrollHost.scrollTop=scrollTop;
+      if(typeof showAppToast==='function')showAppToast(`Pedido atualizado: ${statusMeta[next]?.label||next}.`,'ok');
+    }catch(error){
+      trigger.disabled=false;dock?.classList.remove('updating');
+      alert(error?.message||String(error));
+    }
   }
 
   function foldPrinter(root){
