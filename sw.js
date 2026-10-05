@@ -1,10 +1,10 @@
-const CACHE = 'caseirao-equipe-professional-v2.2-login';
+const CACHE = 'caseirao-equipe-central-completa-v2.4.1';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './js/config.js', './js/foundation.js',
+  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './js/config.js', './js/foundation.js',
   './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
   './js/operations.js', './js/management.js', './js/runtime-bridge.js',
-  './js/printing.js', './js/admin-ui.js', './js/professional-shell.js'
+  './js/printing.js', './js/admin-ui.js', './js/professional-shell.js', './js/central-compacta.js'
 ];
 
 self.addEventListener('install', event => {
