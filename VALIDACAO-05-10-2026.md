@@ -9,6 +9,9 @@
 - O envio do motivo de cancelamento foi alinhado ao campo esperado pela API.
 - A troca de status passou a atualizar somente o cartão selecionado, sem reconstruir a lista, fechar o pedido ou alterar a rolagem.
 - O fluxo exibe apenas uma ação principal por etapa; correção e cancelamento ficam no menu de ações.
+- A Central passou a usar um Kanban em quatro etapas: Recebidos, Em preparo, Prontos e Entrega/Final.
+- Busca e filtros continuam funcionando sem recarregar a tela, com contadores por coluna.
+- Ao mudar o status, o cartão vai para a coluna correta mantendo-se aberto e sem perder a posição da tela.
 
 ## Supabase
 
