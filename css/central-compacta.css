@@ -1,5 +1,5 @@
 /* Central compacta v2.4 — leitura rápida sem remover funções. */
-.admWorkspaceMain #admContent{max-width:1480px!important}
+.admWorkspaceMain #admContent{max-width:1040px!important}
 .admWorkspaceMain .operationHint{display:none!important}
 .admWorkspaceMain .proToolbar{position:sticky;top:70px;z-index:18;margin:0 0 8px!important;padding:7px;background:rgba(246,247,248,.96);border:1px solid #e1e4e7;border-radius:12px;backdrop-filter:blur(8px)}
 .admWorkspaceMain .proFilters{position:sticky;top:127px;z-index:17;margin:0 0 9px!important;padding:5px;background:rgba(246,247,248,.96);border-bottom:1px solid #e1e4e7;backdrop-filter:blur(8px)}
@@ -29,16 +29,6 @@
 .centralPrinterFold{margin:9px 0;border:1px solid #dde2e6;border-radius:11px;background:#fff;overflow:hidden}
 .centralPrinterFold>summary{padding:9px 11px;color:#555f68;font-size:10px;font-weight:900;cursor:pointer}
 .centralPrinterFold #caseiraoPrinterPanel{margin:0!important;border:0!important;border-top:1px solid #e4e7ea!important;border-radius:0!important}
-.ordersKanban{display:grid;grid-template-columns:repeat(4,minmax(270px,1fr));gap:10px;align-items:start;margin:10px 0 14px;overflow-x:auto;padding:1px 1px 10px;scrollbar-width:thin}
-.kanbanColumn{min-width:270px;padding:7px;border:1px solid #e1e4e7;border-radius:14px;background:#f3f5f6}
-.kanbanColumn>header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;padding:5px 6px 9px;border-bottom:3px solid #b8c0c7}
-.kanbanColumn>header div{display:flex;min-width:0;flex-direction:column}.kanbanColumn>header b{color:#252b30;font-size:12px;font-weight:1000}.kanbanColumn>header small{margin-top:2px;color:#7a838b;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.055em}
-.kanbanCount{display:grid;place-items:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:#fff;color:#343a40;box-shadow:0 1px 4px rgba(25,31,37,.09);font-size:11px;font-weight:1000}
-.kanban-received>header{border-color:#eb8b35}.kanban-preparing>header{border-color:#d5aa27}.kanban-ready>header{border-color:#27a363}.kanban-delivery>header{border-color:#4384d1}
-.kanbanCards{display:flex;flex-direction:column;gap:7px;padding-top:7px}.kanbanColumn.isEmpty .kanbanCards:after{content:'Nenhum pedido nesta etapa';display:grid;place-items:center;min-height:72px;padding:12px;border:1px dashed #cdd3d8;border-radius:10px;color:#8a9299;font-size:9px;font-weight:800;text-align:center}
-.ordersKanban .orderDetailed{width:100%;margin:0!important;background:#fff}.ordersKanban .orderDetailed[open]{position:relative;z-index:2;box-shadow:0 12px 28px rgba(24,31,37,.15)!important}
-.ordersKanban .orderDetailed .orderSummary{align-items:center}.ordersKanban .orderDetailed .summaryCustomer b{max-width:135px}.ordersKanban .orderDetailed .summaryRight{min-width:74px!important}.ordersKanban .orderDetailed .orderInfoGrid{grid-template-columns:1fr!important}
-.ordersKanban .orderDetailed .statusFloatDock{position:relative;bottom:auto}
 .statusFloatDock{position:sticky;bottom:8px;z-index:16;margin-top:9px;padding:10px;border:1px solid #d9dee3;border-radius:15px;background:rgba(255,255,255,.97);box-shadow:0 12px 32px rgba(25,31,37,.2);backdrop-filter:blur(12px)}
 .statusDockTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .statusNow small{display:block;color:#7b848c;font-size:8px;font-weight:950;letter-spacing:.1em}
@@ -80,7 +70,4 @@
   .admWorkspaceMain .orderDetailed .orderInfoGrid{grid-template-columns:1fr 1fr!important}
   .statusFloatDock{bottom:5px;margin-left:-2px;margin-right:-2px;padding:8px;border-radius:13px}
   .statusProgress small{display:none}.statusProgress{margin:6px 0}.statusNext{min-height:46px!important}.statusCorrection{grid-template-columns:1fr}
-  .ordersKanban{grid-template-columns:repeat(4,minmax(82vw,82vw));scroll-snap-type:x proximity;gap:8px;margin-left:-2px;margin-right:-2px}
-  .kanbanColumn{min-width:82vw;scroll-snap-align:start}
 }
-@media(min-width:601px) and (max-width:1180px){.ordersKanban{grid-template-columns:repeat(4,minmax(310px,1fr))}}
