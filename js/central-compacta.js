@@ -3,6 +3,13 @@
   'use strict';
   let lastAction={id:'',at:0};
 
+  const boardColumns=[
+    {key:'received',title:'Recebidos',hint:'Novos pedidos',statuses:['novo','confirmado']},
+    {key:'preparing',title:'Em preparo',hint:'Na cozinha',statuses:['preparando']},
+    {key:'ready',title:'Prontos',hint:'Aguardando saída',statuses:['pronto']},
+    {key:'delivery',title:'Entrega / final',hint:'Rota e concluídos',statuses:['em_rota','entregue','cancelado']}
+  ];
+
   function orderId(card){
     return String(card.querySelector('[data-oid]')?.dataset.oid||'');
   }
@@ -115,6 +122,7 @@
       const badge=card.querySelector('.orderSummary .statusBadge');
       if(badge){badge.className=`statusBadge ${statusTone(next)}`;badge.textContent=statusMeta[next]?.label||next}
       dock?.remove();installStatusDock(card);card.open=true;
+      moveCardToColumn(card,next);
       card.classList.add('recentlyUpdated');
       setTimeout(()=>card.classList.remove('recentlyUpdated'),3500);
       if(scrollHost)scrollHost.scrollTop=scrollTop;
@@ -135,10 +143,57 @@
     panel.before(fold);fold.append(summary,panel);
   }
 
+  function cardStatus(card){
+    const id=orderId(card);
+    const order=(typeof admin!=='undefined'&&admin?.orders||[]).find(item=>String(item.id)===id);
+    if(order?.status)return String(order.status);
+    return [...card.querySelectorAll('.orderactions [data-st]')].find(button=>button.classList.contains('selected'))?.dataset.st||'novo';
+  }
+
+  function updateBoardCounts(board){
+    board.querySelectorAll('.kanbanColumn').forEach(column=>{
+      const cards=[...column.querySelectorAll(':scope > .kanbanCards > .orderDetailed')].filter(card=>!card.classList.contains('hide'));
+      const count=column.querySelector('.kanbanCount');
+      if(count)count.textContent=String(cards.length);
+      column.classList.toggle('isEmpty',cards.length===0);
+    });
+  }
+
+  function moveCardToColumn(card,status){
+    const board=card.closest('.ordersKanban');
+    if(!board)return;
+    const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
+    board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
+    card.dataset.kanbanStatus=status;
+    updateBoardCounts(board);
+  }
+
+  function organizeKanban(content){
+    const cards=[...content.querySelectorAll(':scope > details.orderDetailed')];
+    if(!cards.length)return;
+    let board=content.querySelector(':scope > .ordersKanban');
+    if(!board){
+      board=document.createElement('section');
+      board.className='ordersKanban';
+      board.setAttribute('aria-label','Fluxo dos pedidos');
+      board.innerHTML=boardColumns.map(column=>`<section class="kanbanColumn kanban-${column.key}" data-kanban="${column.key}"><header><div><b>${column.title}</b><small>${column.hint}</small></div><span class="kanbanCount">0</span></header><div class="kanbanCards"></div></section>`).join('');
+      const filters=content.querySelector(':scope > .proFilters');
+      (filters||content.querySelector(':scope > .proToolbar'))?.after(board);
+    }
+    cards.forEach(card=>{
+      const status=cardStatus(card);
+      const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
+      board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
+      card.dataset.kanbanStatus=status;
+    });
+    updateBoardCounts(board);
+  }
+
   function enhance(root=document){
     const content=root.matches?.('#admContent')?root:root.querySelector?.('#admContent');
     if(!content)return;
     content.querySelectorAll('details.orderDetailed').forEach(compactCard);
+    organizeKanban(content);
     foldPrinter(content);
 
     if(lastAction.id&&Date.now()-lastAction.at<9000){
@@ -157,6 +212,14 @@
     const button=event.target.closest('[data-st][data-oid]');
     if(!button)return;
     lastAction={id:String(button.dataset.oid||''),at:Date.now()};
+  },true);
+
+  document.addEventListener('input',event=>{
+    if(event.target?.id!=='orderSearch')return;
+    requestAnimationFrame(()=>{
+      const board=event.target.closest('#admContent')?.querySelector('.ordersKanban');
+      if(board)updateBoardCounts(board);
+    });
   },true);
 
   const observer=new MutationObserver(records=>{
