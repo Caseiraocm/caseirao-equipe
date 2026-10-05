@@ -7,6 +7,8 @@
 - O cartão alterado permanece aberto, recebe destaque e volta ao centro da tela.
 - O cache do PWA foi atualizado para incluir os novos arquivos da central.
 - O envio do motivo de cancelamento foi alinhado ao campo esperado pela API.
+- A troca de status passou a atualizar somente o cartão selecionado, sem reconstruir a lista, fechar o pedido ou alterar a rolagem.
+- O fluxo exibe apenas uma ação principal por etapa; correção e cancelamento ficam no menu de ações.
 
 ## Supabase
 
@@ -19,6 +21,7 @@
 - Nenhum item de pedido, adicional ou entrega órfã encontrado.
 - Registro único de configurações encontrado.
 - Nenhum erro HTTP 4xx/5xx das Edge Functions encontrado na janela recente consultada após os testes.
+- A regra real da coluna `orders.status` e a ação `update_status` da API foram reconferidas com os sete estados usados pela interface.
 
 ## Integridade do pacote
 

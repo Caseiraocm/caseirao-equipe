@@ -1,4 +1,4 @@
-const CACHE = 'caseirao-equipe-status-interativo-v2.5';
+const CACHE = 'caseirao-equipe-central-sem-recarga-v2.6';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './js/config.js', './js/foundation.js',
