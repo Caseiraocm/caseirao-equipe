@@ -46,8 +46,9 @@
 .statusCompleted{padding:11px;border-radius:11px;background:#e8f6ee;color:#147745;text-align:center;font-size:12px;font-weight:1000}
 .statusDockOptions{margin-top:8px;padding-top:8px;border-top:1px solid #e3e6e8}
 .statusDockOptions>b{display:block;margin-bottom:6px;color:#7a838b;font-size:8px;letter-spacing:.08em}
-.statusDockOptions>div{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.statusDockOptions button{min-height:36px!important;padding:6px!important;border:1px solid #dce1e4!important;border-radius:9px!important;background:#f5f6f7!important;color:#333a40!important;font-size:9px!important;font-weight:900!important}
+.statusCorrection{display:grid;grid-template-columns:1fr minmax(130px,.75fr);gap:8px;align-items:center;color:#4f5860;font-size:10px;font-weight:850}
+.statusCorrection select{width:100%;min-height:38px;padding:7px 9px;border:1px solid #dce1e4;border-radius:9px;background:#fff;color:#252b30;font-size:11px;font-weight:850}
+.statusDockOptions button{width:100%!important;min-height:38px!important;margin-top:6px!important;padding:7px!important;border:1px solid #dce1e4!important;border-radius:9px!important;background:#f1f3f5!important;color:#333a40!important;font-size:9px!important;font-weight:950!important}
 .statusDockOptions .statusCancel{width:100%!important;margin-top:6px!important;border-color:#f0c8c8!important;background:#fff0f0!important;color:#ad3030!important}
 .statusFloatDock.updating{pointer-events:none;opacity:.72}.statusFloatDock.updating .statusNext b:after{content:'  •••'}
 .orderDetailed>.orderBody>.orderactions{display:none!important}
@@ -68,5 +69,5 @@
   .admWorkspaceMain .orderDetailed .waitBadge{display:none!important}
   .admWorkspaceMain .orderDetailed .orderInfoGrid{grid-template-columns:1fr 1fr!important}
   .statusFloatDock{bottom:5px;margin-left:-2px;margin-right:-2px;padding:8px;border-radius:13px}
-  .statusProgress small{display:none}.statusProgress{margin:6px 0}.statusNext{min-height:46px!important}
+  .statusProgress small{display:none}.statusProgress{margin:6px 0}.statusNext{min-height:46px!important}.statusCorrection{grid-template-columns:1fr}
 }
