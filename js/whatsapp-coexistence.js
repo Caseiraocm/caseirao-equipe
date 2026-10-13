@@ -65,7 +65,11 @@ function installPanel(box){
   if(!box||box.querySelector('#caseiraoWhatsAppCoexistence'))return;
   const panel=document.createElement('div');
   panel.id='caseiraoWhatsAppCoexistence';panel.className='storeControl';
-  panel.innerHTML=`<div class="sectionTitle">WhatsApp Business oficial</div>
+  panel.innerHTML=`<div class="sectionTitle">WhatsApp Web — avisos aos clientes</div>
+    <div style="font-size:13px;line-height:1.45;margin:7px 0 12px">No Redmi Pad 2, abra no <b>Chrome</b> e ative <b>Site para computador</b>. Conecte o WhatsApp do Caseirão em Aparelhos conectados. Use o mesmo navegador para o painel e o WhatsApp Web.</div>
+    <a class="whatsappAction" href="https://web.whatsapp.com/" target="_blank" rel="noopener">ABRIR WHATSAPP WEB</a>
+    <div class="mini" style="margin:9px 0 18px">Os avisos abrem a conversa com a mensagem pronta. Confira e toque em Enviar. Este painel não verifica se o Web está conectado nem confirma o envio.</div>
+    <div class="sectionTitle">Cadastro WhatsApp Business pela Meta</div>
     <div style="font-size:13px;line-height:1.45;margin:7px 0 12px">Conecte o número do Caseirão pela opção oficial de <b>Coexistência</b>. O mesmo número continua funcionando no aplicativo WhatsApp Business do celular.</div>
     <button id="caseiraoConnectWhatsApp" class="primary" type="button">CONECTAR WHATSAPP BUSINESS</button>
     <div id="caseiraoWhatsStatus" class="mini" style="margin-top:9px">Configuração Meta pronta para iniciar o cadastro incorporado.</div>`;
