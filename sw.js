@@ -1,9 +1,9 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-runtime-auto-v31-whatsapp-web';
+const CACHE = 'caseirao-equipe-signature-60-20261020';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css',
+  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css', './css/caseirao-signature-60.css',
   './js/config.js', './js/foundation.js', './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
   './js/operations.js', './js/management.js', './js/runtime-bridge.js', './js/printing.js', './js/admin-ui.js',
   './js/whatsapp-coexistence.js', './js/professional-shell.js', './js/central-compacta.js', './js/owner-header.js'
