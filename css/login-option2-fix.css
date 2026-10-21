@@ -1,0 +1,172 @@
+/* Caseirão ADM Premium 6.1 - Correção da tela inicial (Opção 2)
+   Claro sofisticado com contraste forte.
+   Carregado por último para neutralizar heranças antigas. */
+
+:root{
+  --login2-ink:#182436;
+  --login2-sub:#667489;
+  --login2-card:#ffffff;
+  --login2-card-alt:#f5f7fa;
+  --login2-admin:#f7f0e2;
+  --login2-admin-border:#dfcb9e;
+  --login2-line:#dde4ec;
+  --login2-warm:#b78a37;
+  --login2-shadow:0 14px 30px rgba(20,32,48,.07),0 2px 8px rgba(20,32,48,.05);
+}
+
+body.teamApp #teamHome.teamLauncher{
+  background:
+    radial-gradient(circle at 12% 14%, rgba(197,151,70,.10), transparent 28%),
+    radial-gradient(circle at 94% 86%, rgba(55,92,138,.15), transparent 32%),
+    linear-gradient(135deg,#0d1420 0%,#132136 52%,#0d1420 100%) !important;
+}
+
+body.teamApp #teamHome .teamLauncherCard{
+  background:rgba(255,255,255,.97) !important;
+  border:1px solid rgba(226,232,240,.95) !important;
+  box-shadow:0 30px 80px rgba(0,0,0,.26) !important;
+}
+
+body.teamApp #teamHome .teamLauncherIntro,
+body.teamApp #teamHome .teamLauncherCard > .teamLogo + h1,
+body.teamApp #teamHome .teamLauncherCard > p{
+  color:var(--login2-ink) !important;
+}
+
+body.teamApp #teamHome .teamLauncherKicker{
+  color:#9a7433 !important;
+  -webkit-text-fill-color:#9a7433 !important;
+}
+body.teamApp #teamHome .teamLauncherIntro h1,
+body.teamApp #teamHome .teamLauncherCard h1{
+  color:var(--login2-ink) !important;
+  -webkit-text-fill-color:var(--login2-ink) !important;
+}
+body.teamApp #teamHome .teamLauncherIntro p,
+body.teamApp #teamHome .teamLauncherCard p{
+  color:var(--login2-sub) !important;
+  -webkit-text-fill-color:var(--login2-sub) !important;
+}
+
+body.teamApp #teamHome .teamAccessGrid{
+  gap:14px !important;
+}
+
+body.teamApp #teamHome .teamAccessGrid .teamChoice,
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice{
+  position:relative !important;
+  background:var(--login2-card) !important;
+  border:1px solid var(--login2-line) !important;
+  box-shadow:var(--login2-shadow) !important;
+  color:var(--login2-ink) !important;
+}
+
+body.teamApp #teamHome .teamAccessGrid #teamAdminBtn{
+  background:linear-gradient(180deg,#fbf6eb 0%, #f5ede0 100%) !important;
+  border-color:var(--login2-admin-border) !important;
+}
+
+body.teamApp #teamHome #teamEmployeeBtn,
+body.teamApp #teamHome #teamDispatcherBtn{
+  background:linear-gradient(180deg,#ffffff 0%, #f7f9fc 100%) !important;
+}
+
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice{
+  background:linear-gradient(145deg,#162131,#0e1724) !important;
+  border-color:#26384c !important;
+  box-shadow:0 18px 34px rgba(12,22,34,.30) !important;
+}
+
+body.teamApp #teamHome .teamChoice > span:last-child,
+body.teamApp #teamHome .teamChoice > span:last-child *{
+  opacity:1 !important;
+}
+
+body.teamApp #teamHome .teamChoice strong,
+body.teamApp #teamHome .teamChoice strong *{
+  color:var(--login2-ink) !important;
+  -webkit-text-fill-color:var(--login2-ink) !important;
+  text-shadow:none !important;
+}
+
+body.teamApp #teamHome .teamChoice small,
+body.teamApp #teamHome .teamChoice small *{
+  color:var(--login2-sub) !important;
+  -webkit-text-fill-color:var(--login2-sub) !important;
+  text-shadow:none !important;
+}
+
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice strong,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice strong *,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice .teamChoiceIcon{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice small,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice small *{
+  color:#cad5e3 !important;
+  -webkit-text-fill-color:#cad5e3 !important;
+}
+
+body.teamApp #teamHome .teamChoice .teamChoiceIcon{
+  background:#f5efe4 !important;
+  border:1px solid #eadfcb !important;
+  color:#684d1f !important;
+  box-shadow:none !important;
+}
+
+body.teamApp #teamHome #teamEmployeeBtn .teamChoiceIcon{
+  background:#eef3f8 !important;
+  border-color:#dce4ee !important;
+  color:#36506b !important;
+}
+
+body.teamApp #teamHome #teamDispatcherBtn .teamChoiceIcon{
+  background:#f3eefb !important;
+  border-color:#e2d9f4 !important;
+  color:#6650a8 !important;
+}
+
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice .teamChoiceIcon{
+  background:#203247 !important;
+  border-color:#30465e !important;
+}
+
+body.teamApp #teamHome .teamAccessGrid .teamChoice:hover,
+body.teamApp #teamHome .teamAccessGrid .teamChoice:focus-visible,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice:hover,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice:focus-visible{
+  transform:translateY(-3px) !important;
+  border-color:#c79a49 !important;
+  box-shadow:0 18px 36px rgba(20,32,48,.13) !important;
+}
+
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice:hover,
+body.teamApp #teamHome #teamDriverBtn.driverAccessChoice:focus-visible{
+  border-color:#d1a259 !important;
+  box-shadow:0 20px 38px rgba(12,22,34,.34) !important;
+}
+
+body.teamApp #teamHome .teamInstall{
+  background:#fbfcfd !important;
+  border:1px dashed #cfd7e0 !important;
+  color:#44556b !important;
+  -webkit-text-fill-color:#44556b !important;
+}
+
+body.teamApp #teamHome .teamVersion{
+  color:#8e99a7 !important;
+  -webkit-text-fill-color:#8e99a7 !important;
+}
+
+@media (max-width: 540px){
+  body.teamApp #teamHome .teamLauncherCard{
+    padding:18px 14px !important;
+  }
+  body.teamApp #teamHome .teamAccessGrid .teamChoice,
+  body.teamApp #teamHome .teamAccessGrid #teamAdminBtn{
+    min-height:92px !important;
+  }
+}
