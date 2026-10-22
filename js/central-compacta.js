@@ -121,7 +121,7 @@
       });
       const badge=card.querySelector('.orderSummary .statusBadge');
       if(badge){badge.className=`statusBadge ${statusTone(next)}`;badge.textContent=statusMeta[next]?.label||next}
-      dock?.remove();installStatusDock(card);card.open=true;
+      dock?.remove();installStatusDock(card);card.open=false;
       moveCardToColumn(card,next);
       card.classList.add('recentlyUpdated');
       setTimeout(()=>card.classList.remove('recentlyUpdated'),3500);
@@ -199,9 +199,8 @@
     if(lastAction.id&&Date.now()-lastAction.at<9000){
       const card=[...content.querySelectorAll('details.orderDetailed')].find(item=>orderId(item)===lastAction.id);
       if(card){
-        card.open=true;
+        card.open=false;
         card.classList.add('recentlyUpdated');
-        requestAnimationFrame(()=>card.scrollIntoView({block:'center',behavior:'smooth'}));
         setTimeout(()=>card.classList.remove('recentlyUpdated'),7000);
         lastAction={id:'',at:0};
       }
