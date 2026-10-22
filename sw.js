@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-alertas-v8-20261022';
+const CACHE = 'caseirao-equipe-voz-destinos-v10-20261022';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css', './css/caseirao-signature-60.css', './css/order-items-v7.css', './css/alertas-sonoros-v8.css',
