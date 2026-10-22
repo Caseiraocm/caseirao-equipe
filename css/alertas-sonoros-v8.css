@@ -1,4 +1,13 @@
-.caseiraoV8SoundPanel{margin:10px 0 16px;padding:12px;border:1px solid #dce3e8;border-radius:14px;background:#f8fafb;box-shadow:0 3px 14px rgba(30,38,47,.04)}
+.caseiraoV8SoundPanel{margin:8px 0 12px;padding:0;border:1px solid #dce3e8;border-radius:12px;background:#f8fafb;box-shadow:0 3px 14px rgba(30,38,47,.04);overflow:hidden}
+.caseiraoV8SoundToggle{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 14px;cursor:pointer;color:#263943;font-size:12px;font-weight:850;user-select:none}
+.caseiraoV8SoundToggle::-webkit-details-marker{display:none}
+.caseiraoV8SoundToggle::marker{content:''}
+.caseiraoV8SoundToggle:focus-visible{outline:2px solid #d95416;outline-offset:-3px;border-radius:12px}
+.caseiraoV8SoundHint{display:flex;align-items:center;gap:9px;font-size:11px;color:#657785;font-weight:700;white-space:nowrap}
+.caseiraoV8SoundChevron{display:inline-block;font-size:18px;line-height:1;transition:transform .18s ease}
+.caseiraoV8SoundPanel[open] .caseiraoV8SoundChevron{transform:rotate(180deg)}
+.caseiraoV8SoundBody{padding:4px 14px 14px;border-top:1px solid #e1e7ec}
+
 .caseiraoV8SoundTitle{font-size:12px;font-weight:900;letter-spacing:.02em;color:#1d303c}
 .caseiraoV8SoundTitle small{display:block;font-size:11px;font-weight:550;letter-spacing:0;color:#617483;margin-top:3px}
 .caseiraoV8SoundActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
@@ -14,6 +23,10 @@
 .caseiraoV8DispatcherVoice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #c1dce9;border-radius:12px;background:#eff9fd;padding:11px;margin:9px 0 12px;color:#24506b}
 .caseiraoV8DispatcherVoice b{font-size:12px}.caseiraoV8DispatcherVoice span{font-size:11px;flex:1;min-width:170px}
 .caseiraoV8DispatcherVoice button{width:auto;min-height:36px;border:1px solid #84b8cf;border-radius:9px;background:white;color:#19506a;font-size:11px;font-weight:850;padding:7px 10px}
-@media(max-width:500px){.caseiraoV8Voice{margin-left:0}.caseiraoV8SoundPanel{padding:11px}.caseiraoV8SoundActions button{font-size:10px}}
+@media(max-width:500px){.caseiraoV8Voice{margin-left:0}.caseiraoV8SoundToggle{padding:10px 11px}.caseiraoV8SoundBody{padding:4px 11px 11px}.caseiraoV8SoundActions button{font-size:10px}}
 
 .caseiraoV8DispatcherToggle{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:750;white-space:nowrap}.caseiraoV8DispatcherToggle input{accent-color:#d95416;min-width:16px;min-height:16px}
+
+/* V10: opções de teste de fala por modalidade, compactas no painel do despachante. */
+.caseiraoV10VoiceSamples{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.caseiraoV10VoiceSamples button{min-height:34px;padding:6px 10px}
