@@ -138,6 +138,19 @@
     balcao:{type:'counter',customer_name:'Lucas',order_number:126}
   };
   function previewVoice(kind){prepare();return speak(makeReadyText(voiceExamples[kind]||voiceExamples.entrega),true)}
+  // Prefere Francisca quando disponibilizada pelo sistema. A voz Neural da
+  // Microsoft não é distribuída pela Web Speech API do Chrome Android;
+  // para garantia de voz Neural é necessária integração segura com Azure TTS.
+  function selectNaturalVoice(voices){
+    const pt=voices.filter(v=>/^pt(?:[-_]BR)?$/i.test(v.lang));
+    const score=v=>{
+      const n=String(v.name||'').toLowerCase();
+      return (/francisca/.test(n)?1000:0)+(/neural|natural|online/.test(n)?200:0)+
+        (/microsoft/.test(n)?100:0)+(/google/.test(n)?40:0)+
+        (/female|feminina|woman/.test(n)?15:0)-(v.localService?5:0);
+    };
+    return pt.sort((a,b)=>score(b)-score(a))[0]||voices.find(v=>/^pt/i.test(v.lang));
+  }
   function speak(text,force=false){
     if(!force&&!pref.voice)return false;
     const speech=window.speechSynthesis;
@@ -145,15 +158,16 @@
     try{
       speech.cancel();
       const u=new SpeechSynthesisUtterance(String(text));
-      const voices=speech.getVoices()||[];
-      const voice=voices.find(v=>/^pt[-_]BR$/i.test(v.lang))||voices.find(v=>/^pt\b/i.test(v.lang));
+      const voice=selectNaturalVoice(speech.getVoices()||[]);
       if(voice)u.voice=voice;
-      u.lang='pt-BR';u.rate=.94;u.pitch=1;u.volume=Math.min(1,Number(pref.volume)/100);
+      u.lang='pt-BR';u.rate=.91;u.pitch=1.04;u.volume=Math.min(1,Number(pref.volume)/100);
       lastSpeech=u;
       speech.speak(u);
       return true;
     }catch(e){console.warn('Caseirão: leitura por voz indisponível',e);return false;}
   }
+  // Em alguns navegadores as vozes só aparecem após o carregamento inicial.
+  try{window.speechSynthesis?.getVoices();}catch{}
   function eventId(order,status){return `${String(order?.id||'')}:${status}`;}
   function recentlyNotified(order,status){
     const k=eventId(order,status);
@@ -265,7 +279,7 @@
       <button type="button" data-caseirao-voice="balcao">🔊 Voz balcão</button>
     </div>
     <div class="caseiraoV8SoundPrefs"><label>Volume <input type="range" id="caseiraoV8Volume" min="0" max="100" value="${Math.max(0,Math.min(100,Number(pref.volume)||0))}"></label><output id="caseiraoV8VolumeLabel">${Math.max(0,Math.min(100,Number(pref.volume)||0))}%</output><label class="caseiraoV8Voice"><input type="checkbox" id="caseiraoV8Voice" ${pref.voice?'checked':''}> Voz ao ficar pronto</label></div>
-    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app. A voz usa o leitor em português do aparelho.</small></div>`;
+    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app. A voz prioriza Francisca, quando disponível no aparelho; caso contrário usa a melhor voz em português instalada.</small></div>`;
     panel.addEventListener('toggle',()=>{soundPanelExpanded=panel.open});
     // Não troca a posição nem as ações dos cartões de pedidos.
     const alertControl=box.querySelector('.alertControl');
