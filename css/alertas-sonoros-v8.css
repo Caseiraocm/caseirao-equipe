@@ -1,0 +1,19 @@
+.caseiraoV8SoundPanel{margin:10px 0 16px;padding:12px;border:1px solid #dce3e8;border-radius:14px;background:#f8fafb;box-shadow:0 3px 14px rgba(30,38,47,.04)}
+.caseiraoV8SoundTitle{font-size:12px;font-weight:900;letter-spacing:.02em;color:#1d303c}
+.caseiraoV8SoundTitle small{display:block;font-size:11px;font-weight:550;letter-spacing:0;color:#617483;margin-top:3px}
+.caseiraoV8SoundActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.caseiraoV8SoundActions button{min-height:36px;width:auto;border-radius:9px;border:1px solid #cdd9e1;background:#fff;color:#263c4b;font-size:11px;font-weight:850;padding:8px 10px;cursor:pointer}
+.caseiraoV8SoundActions button:first-child{background:#fff0e4;border-color:#ebbd92;color:#944b14}
+.caseiraoV8SoundPrefs{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:12px;font-size:12px;color:#354754}
+.caseiraoV8SoundPrefs>label:first-child{display:flex;align-items:center;gap:8px;font-weight:650}
+.caseiraoV8SoundPrefs input[type=range]{width:85px;accent-color:#d95416}
+.caseiraoV8SoundPrefs output{min-width:32px;color:#3b4953;font-weight:750}
+.caseiraoV8Voice{margin-left:auto;display:flex;align-items:center;gap:5px;font-weight:700}
+.caseiraoV8SoundPrefs input[type=checkbox]{accent-color:#d95416;min-width:16px;min-height:16px}
+.caseiraoV8Disclaimer{display:block;font-size:10px;color:#687887;margin-top:10px;line-height:1.4}
+.caseiraoV8DispatcherVoice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #c1dce9;border-radius:12px;background:#eff9fd;padding:11px;margin:9px 0 12px;color:#24506b}
+.caseiraoV8DispatcherVoice b{font-size:12px}.caseiraoV8DispatcherVoice span{font-size:11px;flex:1;min-width:170px}
+.caseiraoV8DispatcherVoice button{width:auto;min-height:36px;border:1px solid #84b8cf;border-radius:9px;background:white;color:#19506a;font-size:11px;font-weight:850;padding:7px 10px}
+@media(max-width:500px){.caseiraoV8Voice{margin-left:0}.caseiraoV8SoundPanel{padding:11px}.caseiraoV8SoundActions button{font-size:10px}}
+
+.caseiraoV8DispatcherToggle{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:750;white-space:nowrap}.caseiraoV8DispatcherToggle input{accent-color:#d95416;min-width:16px;min-height:16px}
