@@ -1,0 +1,31 @@
+/* Caseirão V11 — foco operacional: pedidos acima de configurações. */
+body.teamApp .proContent .caseiraoV11Settings{
+  display:block!important; margin:16px 0 3px!important;
+  border:1px solid #d7e0e8!important; border-radius:13px!important;
+  background:#f7f9fb!important; overflow:hidden;
+  box-shadow:0 3px 14px rgba(27,37,50,.035)!important;
+}
+body.teamApp .proContent .caseiraoV11SettingsToggle{
+  list-style:none; display:flex; align-items:center; justify-content:space-between;
+  gap:12px; min-height:43px; padding:10px 14px; cursor:pointer;
+  color:#32465d!important; font-size:12px; font-weight:850;
+}
+.caseiraoV11SettingsToggle::-webkit-details-marker{display:none}
+.caseiraoV11SettingsToggle::marker{content:''}
+.caseiraoV11SettingsToggle:focus-visible{outline:2px solid #d45c22;outline-offset:-3px}
+body.teamApp .proContent .caseiraoV11SettingsHint{display:flex;align-items:center;gap:8px;font-size:10px;color:#778599!important;font-weight:700}
+.caseiraoV11SettingsHint span{font-size:15px;transition:transform .16s ease}
+.caseiraoV11Settings[open] .caseiraoV11SettingsHint span{transform:rotate(180deg)}
+.caseiraoV11SettingsBody{padding:5px 12px 12px;border-top:1px solid #e2e7ee;display:flex;flex-direction:column;gap:8px}
+.caseiraoV11SettingsBody .centralPrinterFold,
+.caseiraoV11SettingsBody #caseiraoPrinterPanel,
+.caseiraoV11SettingsBody .caseiraoV8SoundPanel{margin:0!important;flex-shrink:0}
+.caseiraoV11SettingsBody .centralPrinterFold{order:1}
+.caseiraoV11SettingsBody #caseiraoV8SoundPanel{order:2}
+/* As configurações são um único botão discreto quando fechadas. */
+.caseiraoV11Settings:not([open])>.caseiraoV11SettingsBody{display:none!important}
+@media(max-width:650px){
+ body.teamApp .proContent .caseiraoV11SettingsToggle{padding:10px 11px;font-size:11px}
+ body.teamApp .proContent .caseiraoV11SettingsHint{font-size:9px}
+ .caseiraoV11SettingsBody{padding:5px 9px 10px}
+}
