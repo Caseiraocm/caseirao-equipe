@@ -236,6 +236,7 @@ function renderOrders(box){
       const orderId=String(b.dataset.oid||'');
       const card=b.closest('details.order');
       const wasOpen=!!card?.open;
+      const cardTop=card?.getBoundingClientRect().top;
       const scrollHost=document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
       const savedScroll=scrollHost?.scrollTop||0;
 
@@ -265,14 +266,21 @@ function renderOrders(box){
            e fechava o pedido aberto ao trocar o status. */
         draw();
 
-        if(wasOpen&&!['entregue','cancelado'].includes(next)){
-          const sameOrder=[...box.querySelectorAll('[data-st]')]
-            .find(el=>String(el.dataset.oid||'')===orderId)
-            ?.closest('details.order');
-          if(sameOrder)sameOrder.open=true
+        // Mantém os pedidos recolhidos após mudar de etapa e marca o pedido
+        // movimentado com uma borda vermelha temporária.
+        const sameOrder=[...box.querySelectorAll('details.orderDetailed')]
+          .find(el=>[...el.querySelectorAll('[data-oid]')].some(btn=>String(btn.dataset.oid||'')===orderId));
+        if(sameOrder){
+          sameOrder.open=false;
+          sameOrder.classList.add('caseiraoPedidoMovido');
+          if(scrollHost && Number.isFinite(cardTop)){
+            const delta=sameOrder.getBoundingClientRect().top-cardTop;
+            scrollHost.scrollTop+=delta;
+          }
+          setTimeout(()=>sameOrder.classList.remove('caseiraoPedidoMovido'),4200);
+        }else if(scrollHost){
+          scrollHost.scrollTop=savedScroll;
         }
-
-        if(scrollHost)scrollHost.scrollTop=savedScroll
       }catch(e){
         b.disabled=false;
         alert(e.message)
