@@ -1,0 +1,9 @@
+/* Destaque temporário do pedido após mudar o status. */
+details.orderDetailed.caseiraoPedidoMovido {
+  border: 2px solid rgba(215, 35, 48, .88) !important;
+  outline: 3px solid rgba(220, 38, 48, .18) !important;
+  background: rgba(255, 48, 62, .075) !important;
+  box-shadow: 0 0 0 5px rgba(220, 38, 48, .09), 0 8px 24px rgba(150, 0, 20, .10) !important;
+  transition: border-color .25s, box-shadow .25s, background .25s;
+}
+details.orderDetailed.caseiraoPedidoMovido > summary {background: rgba(255, 60, 65, .08) !important;}
