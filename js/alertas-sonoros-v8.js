@@ -1,5 +1,5 @@
 'use strict';
-/* Caseirão V8 — alertas por evento + anúncio falado de pedido no ponto.
+/* Caseirão V10 — alertas por evento + anúncio falado adaptado ao destino.
    Opera sobre os fluxos existentes e não altera o envio nem o estado dos pedidos. */
 (function () {
   const key = 'caseirao_alertas_v8';
@@ -11,6 +11,8 @@
   let lastSpeech=null;
   const emitted=new Map();
   let queue=Promise.resolve();
+  // Começa fechado para liberar espaço dos cartões; mantém estado ao atualizar pedidos.
+  let soundPanelExpanded=false;
   const validTypes=new Set(['novo','confirmado','pronto','em_rota','entregue']);
   const money=(v)=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -95,21 +97,47 @@
     const raw=String(name||'').replace(/[\n\r]/g,' ').replace(/[^\p{L}\p{M} .'-]/gu,' ').replace(/\s+/g,' ').trim();
     return /^(cliente|pedido manual|não informado)$/i.test(raw)||raw.length<2?'':raw.slice(0,70);
   }
-  function makeReadyText(order){
-    const name=cleanName(order?.customer_name);
-    const number=Number(order?.order_number);
-    const intro=name?`Pedido de ${name}`:'Pedido';
-    const identification=Number.isSafeInteger(number)&&number>0?`, número ${number}`:'';
-    const type=String(order?.type||'').toLowerCase();
+  function readyOrderCategory(order){
+    const type=String(order?.type||'').trim().toLowerCase();
     const notes=String(order?.notes||'');
-    const mesa=Number(order?.table_number)||0;
-    let final='Pode mandar alguém buscar aqui no Caseirão.';
-    if(mesa>0)final=`Pode levar até a mesa ${mesa}.`;
-    else if(/^\s*\[BALCÃO\]/i.test(notes)||type==='counter')final='Pode chamar para retirar no balcão.';
-    else if(type==='pickup')final='Pode avisar o cliente para retirar no Caseirão.';
-    else if(type==='local')final='Pode servir o cliente.';
-    return `${intro}${identification} está pronto. ${final}`;
+    const recordedMesa=Number(order?.table_number);
+    const mesaTag=notes.match(/\[MESA\s*(\d{1,3})\]/i);
+    const mesa=Number.isSafeInteger(recordedMesa)&&recordedMesa>0?recordedMesa:(mesaTag?Number(mesaTag[1]):0);
+    if(mesa>0)return {kind:'mesa',mesa};
+    if(type==='counter'||type==='balcao'||/^\s*\[BALC[AÃ]O\]/i.test(notes))return {kind:'balcao',mesa:0};
+    if(type==='delivery'||type==='entrega')return {kind:'entrega',mesa:0};
+    if(type==='pickup'||type==='retirada')return {kind:'retirada',mesa:0};
+    if(type==='local'||type==='mesa'||type==='table')return {kind:'local',mesa:0};
+    return {kind:'outro',mesa:0};
   }
+  function voiceCustomer(order){
+    let raw=String(order?.customer_name||'').trim();
+    // As comandas de mesa trazem "Mesa 04 • Maria" no nome; não ler "Mesa" como se fosse uma pessoa.
+    if(readyOrderCategory(order).kind==='mesa')raw=raw.replace(/^mesa\s*\d+\s*(?:[•|:;,.\-–—]\s*)?/i,'').trim();
+    const name=cleanName(raw);
+    return /^(mesa|cliente da mesa|respons[aá]vel da mesa)$/i.test(name)?'':name;
+  }
+  function makeReadyText(order){
+    const name=voiceCustomer(order);
+    const number=Number(order?.order_number);
+    const numberPart=Number.isSafeInteger(number)&&number>0?`, número ${number},`:'';
+    const customerPart=name?` de ${name}`:'';
+    const {kind,mesa}=readyOrderCategory(order);
+    if(kind==='entrega')return `Pedido para entrega${customerPart}${numberPart} está pronto. Atenção, entregador! Pode buscar o pedido no Caseirão para sair em rota.`;
+    if(kind==='retirada')return `Pedido para retirada${customerPart}${numberPart} está pronto. Pode avisar o cliente para vir retirar aqui no Caseirão.`;
+    if(kind==='mesa')return `Pedido para consumo no local, mesa ${mesa}${name?`, de ${name}`:''}${numberPart} está pronto. Atendimento, pode levar o pedido para a mesa ${mesa}.`;
+    if(kind==='balcao')return `Pedido de balcão${customerPart}${numberPart} está pronto. Pode chamar o cliente para retirar no balcão.`;
+    if(kind==='local')return `Pedido para consumo no local${customerPart}${numberPart} está pronto. Atendimento, pode servir o pedido no salão.`;
+    // Não direcionar um pedido sem tipo conhecido para o entregador ou para o cliente errado.
+    return `Pedido${customerPart}${numberPart} está pronto. Confira o destino do pedido na Central.`;
+  }
+  const voiceExamples={
+    entrega:{type:'delivery',customer_name:'Maria Eduarda',order_number:123},
+    retirada:{type:'pickup',customer_name:'João Pedro',order_number:124},
+    mesa:{type:'local',table_number:4,customer_name:'Mesa 04 • Ana Clara',order_number:125},
+    balcao:{type:'counter',customer_name:'Lucas',order_number:126}
+  };
+  function previewVoice(kind){prepare();return speak(makeReadyText(voiceExamples[kind]||voiceExamples.entrega),true)}
   function speak(text,force=false){
     if(!force&&!pref.voice)return false;
     const speech=window.speechSynthesis;
@@ -220,23 +248,30 @@
   }
   function injectControls(box){
     if(!box||box.querySelector('#caseiraoV8SoundPanel'))return;
-    const panel=document.createElement('section');panel.id='caseiraoV8SoundPanel';panel.className='caseiraoV8SoundPanel';
-    panel.innerHTML=`<div class="caseiraoV8SoundTitle">🔔 ALERTAS POR ETAPA <small>Campainha forte exclusiva do pedido novo</small></div>
+    const panel=document.createElement('details');panel.id='caseiraoV8SoundPanel';panel.className='caseiraoV8SoundPanel';
+    // <details> ocupa apenas uma linha enquanto fechado. O som continua funcionando sempre.
+    panel.open=soundPanelExpanded;
+    panel.innerHTML=`<summary class="caseiraoV8SoundToggle"><span>🔔 Alertas sonoros e voz</span><span class="caseiraoV8SoundHint"><span class="caseiraoV8SoundHintText">Configurar</span><span class="caseiraoV8SoundChevron" aria-hidden="true">⌄</span></span></summary>
+    <div class="caseiraoV8SoundBody"><div class="caseiraoV8SoundTitle">🔔 ALERTAS POR ETAPA <small>Campainha forte exclusiva do pedido novo</small></div>
     <div class="caseiraoV8SoundActions">
       <button type="button" data-caseirao-sound="novo">🔔 Pedido novo</button>
       <button type="button" data-caseirao-sound="confirmado">✓ Confirmado</button>
       <button type="button" data-caseirao-sound="pronto">📦 No ponto</button>
       <button type="button" data-caseirao-sound="em_rota">🛵 Saiu</button>
       <button type="button" data-caseirao-sound="entregue">✅ Entregue</button>
-      <button type="button" id="caseiraoV8VoiceTest">▶ Testar voz</button>
+      <button type="button" data-caseirao-voice="entrega">🔊 Voz entrega</button>
+      <button type="button" data-caseirao-voice="retirada">🔊 Voz retirada</button>
+      <button type="button" data-caseirao-voice="mesa">🔊 Voz mesa</button>
+      <button type="button" data-caseirao-voice="balcao">🔊 Voz balcão</button>
     </div>
     <div class="caseiraoV8SoundPrefs"><label>Volume <input type="range" id="caseiraoV8Volume" min="0" max="100" value="${Math.max(0,Math.min(100,Number(pref.volume)||0))}"></label><output id="caseiraoV8VolumeLabel">${Math.max(0,Math.min(100,Number(pref.volume)||0))}%</output><label class="caseiraoV8Voice"><input type="checkbox" id="caseiraoV8Voice" ${pref.voice?'checked':''}> Voz ao ficar pronto</label></div>
-    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app. A voz usa o leitor em português do aparelho.</small>`;
+    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app. A voz usa o leitor em português do aparelho.</small></div>`;
+    panel.addEventListener('toggle',()=>{soundPanelExpanded=panel.open});
     // Não troca a posição nem as ações dos cartões de pedidos.
     const alertControl=box.querySelector('.alertControl');
     if(alertControl)alertControl.after(panel);else box.prepend(panel);
     panel.querySelectorAll('[data-caseirao-sound]').forEach(b=>b.addEventListener('click',()=>play(b.dataset.caseiraoSound)));
-    panel.querySelector('#caseiraoV8VoiceTest').addEventListener('click',()=>{prepare();speak('Pedido de Maria Eduarda, número cento e vinte e três, está pronto. Pode mandar alguém buscar aqui no Caseirão.',true)});
+    panel.querySelectorAll('[data-caseirao-voice]').forEach(b=>b.addEventListener('click',()=>previewVoice(b.dataset.caseiraoVoice)));
     panel.querySelector('#caseiraoV8Volume').addEventListener('input',event=>{pref.volume=Math.max(0,Math.min(100,Number(event.target.value)));panel.querySelector('#caseiraoV8VolumeLabel').textContent=pref.volume+'%';save()});
     panel.querySelector('#caseiraoV8Voice').addEventListener('change',event=>{pref.voice=event.target.checked;save()});
   }
@@ -254,13 +289,13 @@
       queue?.querySelectorAll('[data-pack-ready]').forEach(button=>button.addEventListener('click',prepare,{capture:true}));
       if(queue&&!document.querySelector('#caseiraoV8DispatcherVoice')){
         const hint=document.createElement('div');hint.id='caseiraoV8DispatcherVoice';hint.className='caseiraoV8DispatcherVoice';
-        hint.innerHTML=`<b>🔊 Confirmação por voz</b><span>Ao marcar NO PONTO, o nome e o número do pedido serão anunciados.</span><label class="caseiraoV8DispatcherToggle"><input type="checkbox" ${pref.voice?'checked':''}> Voz ativa</label><button type="button">▶ TESTAR VOZ</button>`;
+        hint.innerHTML=`<b>🔊 Confirmação por voz</b><span>Ao marcar NO PONTO, a voz fala o nome, número e destino: entrega, retirada ou consumo no local.</span><label class="caseiraoV8DispatcherToggle"><input type="checkbox" ${pref.voice?'checked':''}> Voz ativa</label><div class="caseiraoV10VoiceSamples"><button type="button" data-caseirao-voice="entrega">▶ Entrega</button><button type="button" data-caseirao-voice="retirada">▶ Retirada</button><button type="button" data-caseirao-voice="mesa">▶ Mesa</button><button type="button" data-caseirao-voice="balcao">▶ Balcão</button></div>`;
         queue.before(hint);
-        hint.querySelector('button').onclick=()=>{prepare();speak('Pedido de Maria Eduarda, número cento e vinte e três, está pronto. Pode mandar alguém buscar aqui no Caseirão.',true)};
+        hint.querySelectorAll('[data-caseirao-voice]').forEach(b=>b.addEventListener('click',()=>previewVoice(b.dataset.caseiraoVoice)));
         hint.querySelector('input').onchange=(ev)=>{pref.voice=ev.target.checked;save()};
       }
       return result;
     };
   }
-  window.CaseiraoSoundV8={play,makeReadyText,speak,previewReady:()=>speak('Pedido de Maria Eduarda, número cento e vinte e três, está pronto. Pode mandar alguém buscar aqui no Caseirão.',true)};
+  window.CaseiraoSoundV8={play,makeReadyText,readyOrderCategory,speak,previewReady:()=>previewVoice('entrega'),previewType:previewVoice};
 })();
