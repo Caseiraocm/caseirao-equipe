@@ -1,12 +1,12 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-items-v7-20261022';
+const CACHE = 'caseirao-equipe-alertas-v8-20261022';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css', './css/caseirao-signature-60.css', './css/order-items-v7.css',
+  './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css', './css/caseirao-signature-60.css', './css/order-items-v7.css', './css/alertas-sonoros-v8.css',
   './js/config.js', './js/foundation.js', './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
   './js/operations.js', './js/management.js', './js/runtime-bridge.js', './js/printing.js', './js/admin-ui.js',
-  './js/whatsapp-coexistence.js', './js/professional-shell.js', './js/central-compacta.js', './js/owner-header.js', './js/order-items-v7.js'
+  './js/whatsapp-coexistence.js', './js/professional-shell.js', './js/central-compacta.js', './js/owner-header.js', './js/order-items-v7.js', './js/alertas-sonoros-v8.js'
 ];
 
 function normalizedCacheKey(request) {
