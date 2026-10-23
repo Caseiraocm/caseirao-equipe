@@ -4,10 +4,12 @@
   let lastAction={id:'',at:0};
 
   const boardColumns=[
-    {key:'received',title:'Recebidos',hint:'Novos pedidos',statuses:['novo','confirmado']},
-    {key:'preparing',title:'Em preparo',hint:'Na cozinha',statuses:['preparando']},
-    {key:'ready',title:'Prontos',hint:'Aguardando saída',statuses:['pronto']},
-    {key:'delivery',title:'Entrega / final',hint:'Rota e concluídos',statuses:['em_rota','entregue','cancelado']}
+    {key:'received',title:'NOVOS',hint:'Aguardando aceite',statuses:['novo']},
+    {key:'accepted',title:'ACEITOS',hint:'Aguardando cozinha',statuses:['confirmado']},
+    {key:'preparing',title:'EM PREPARO',hint:'Na cozinha',statuses:['preparando']},
+    {key:'ready',title:'PRONTOS',hint:'Aguardando retirada ou saída',statuses:['pronto']},
+    {key:'delivery',title:'EM ENTREGA',hint:'A caminho do cliente',statuses:['em_rota']},
+    {key:'finished',title:'FINALIZADOS',hint:'Concluídos ou cancelados',statuses:['entregue','cancelado']}
   ];
 
   function orderId(card){
@@ -40,6 +42,7 @@
     }
     card.dataset.compactReady='1';
     installStatusDock(card);
+    installQuickAction(card);
   }
 
   const statusMeta={
@@ -121,7 +124,7 @@
       });
       const badge=card.querySelector('.orderSummary .statusBadge');
       if(badge){badge.className=`statusBadge ${statusTone(next)}`;badge.textContent=statusMeta[next]?.label||next}
-      dock?.remove();installStatusDock(card);card.open=false;
+      dock?.remove();installStatusDock(card);installQuickAction(card);card.open=false;
       moveCardToColumn(card,next);
       card.classList.add('recentlyUpdated');
       setTimeout(()=>card.classList.remove('recentlyUpdated'),3500);
@@ -131,6 +134,27 @@
       trigger.disabled=false;dock?.classList.remove('updating');
       alert(error?.message||String(error));
     }
+  }
+
+  function installQuickAction(card){
+    const summary=card.querySelector(':scope > .orderSummary');
+    const dock=card.querySelector(':scope > .orderBody > .statusFloatDock');
+    if(!summary||!dock)return;
+    const proxy=dock.querySelector('[data-status-proxy]');
+    let quick=card.querySelector(':scope > .caseiraoQuickAction');
+    if(!proxy){quick?.remove();return;}
+    if(!quick){
+      quick=document.createElement('button');
+      quick.type='button';quick.className='caseiraoQuickAction';
+      summary.after(quick);
+      quick.addEventListener('click',event=>{
+        event.preventDefault();event.stopPropagation();
+        const current=card.querySelector(':scope > .orderBody > .statusFloatDock [data-status-proxy]');
+        if(current&&!current.disabled)current.click();
+      });
+    }
+    quick.textContent=proxy.querySelector('b')?.textContent?.trim()||'PRÓXIMA ETAPA';
+    quick.dataset.nextStatus=proxy.dataset.statusProxy;
   }
 
   function foldPrinter(root){
