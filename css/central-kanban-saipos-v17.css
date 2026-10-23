@@ -1,0 +1,59 @@
+/* Caseirão v17: painel Kanban inspirado na organização por etapas da Saipos.
+   Escopo exclusivo da central ADM. Não altera fluxos, eventos ou impressão. */
+.admWorkspaceMain #admContent .ordersKanban{
+ display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(245px, 275px)!important;
+ grid-template-columns:none!important;flex-direction:initial!important;align-items:stretch!important;
+ gap:10px!important;overflow-x:auto!important;overflow-y:hidden!important;width:100%!important;
+ padding:4px 3px 12px!important;scroll-snap-type:x proximity!important;
+ scrollbar-width:thin!important;background:transparent!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn{
+ display:flex!important;flex-direction:column!important;min-width:245px!important;width:auto!important;
+ max-height:calc(100dvh - 240px)!important;min-height:200px!important;
+ background:#f2f5f8!important;border:1px solid #dce3e9!important;border-radius:12px!important;
+ padding:7px!important;scroll-snap-align:start!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header{
+ position:sticky!important;top:0!important;z-index:2!important;display:flex!important;
+ justify-content:space-between!important;align-items:center!important;min-height:45px!important;
+ padding:8px 10px!important;border:0!important;border-radius:9px!important;
+ background:#233d56!important;color:#fff!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header b{color:#fff!important;font-size:12px!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header small{color:#e0eaf3!important;font-size:9px!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-received>header{background:#a85713!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-accepted>header{background:#17674a!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-preparing>header{background:#ae6b11!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-ready>header{background:#166d61!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-delivery>header{background:#285da2!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-finished>header{background:#52606c!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanCount{background:#ffffff30!important;color:#fff!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanCards{
+ display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+ overflow-y:auto!important;min-height:0!important;gap:7px!important;padding:8px 2px 3px!important;
+ scrollbar-width:thin!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed{
+ display:block!important;position:relative!important;width:100%!important;min-width:0!important;
+ margin:0!important;border:1px solid #dce3e9!important;border-radius:10px!important;
+ background:#fff!important;box-shadow:0 2px 5px rgba(17,38,60,.05)!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderSummary{
+ display:flex!important;min-height:62px!important;padding:9px!important;background:#fff!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed .summaryCustomer b{max-width:105px!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction{
+ display:block!important;width:calc(100% - 16px)!important;min-width:0!important;max-width:none!important;
+ min-height:34px!important;margin:0 8px 8px!important;padding:8px!important;
+ border:0!important;border-radius:7px!important;background:#147e56!important;
+ color:white!important;font-size:10px!important;font-weight:850!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=pronto]{background:#ad6b11!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=em_rota]{background:#315eaa!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=entregue]{background:#506274!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderBody{display:block!important;min-width:0!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed:not([open])>.orderBody{display:none!important}
+@media(max-width:650px){
+ .admWorkspaceMain #admContent .ordersKanban{grid-auto-columns:minmax(250px,82vw)!important}
+ .admWorkspaceMain #admContent .ordersKanban .kanbanColumn{max-height:calc(100dvh - 210px)!important}
+}
