@@ -1,0 +1,24 @@
+/* V16: lista vertical compacta; apenas #admContent, sem alterar demais módulos. */
+.admWorkspaceMain #admContent .ordersKanban{display:flex!important;flex-direction:column!important;overflow:visible!important;gap:10px!important;width:100%!important;scroll-snap-type:none!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn{width:100%!important;min-width:0!important;display:block!important;background:#f5f7f9!important;padding:5px!important;border:1px solid #dce2e8!important;border-radius:12px!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header{min-height:36px!important;padding:7px 12px!important;border-bottom:0!important;border-radius:8px!important;background:#17385d!important;color:#fff!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header b{font-size:13px!important;color:#fff!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header small{color:#e0e8f1!important;font-size:9px!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-accepted>header{background:#14613d!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-preparing>header{background:#a85d10!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-ready>header{background:#5035a3!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-delivery>header{background:#a72736!important}
+.admWorkspaceMain #admContent .ordersKanban .kanban-finished>header{background:#374653!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanCount{background:#ffffff30!important;color:white!important;border-radius:20px!important;padding:4px 10px!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanCards{display:flex!important;flex-direction:column!important;gap:5px!important;padding-top:5px!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed{position:relative!important;min-width:0!important;margin:0!important;border:1px solid #e0e6eb!important;border-radius:9px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;background:#fff!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderSummary{grid-column:1!important;min-width:0!important;min-height:52px!important;margin:0!important;padding:7px 12px!important;background:#fff!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction{grid-column:2!important;grid-row:1!important;margin:0 10px!important;border:0!important;border-radius:8px!important;padding:12px 14px!important;min-width:155px!important;min-height:40px!important;background:#147e56!important;color:#fff!important;font-size:11px!important;font-weight:900!important;cursor:pointer!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=pronto]{background:#b66a0a!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=em_rota]{background:#5635bd!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction[data-next-status=entregue]{background:#b02739!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction:disabled{opacity:.5!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderBody{grid-column:1/-1!important;grid-row:2!important;min-width:0!important}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed:not([open])>.orderBody{display:none!important}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn.isEmpty .kanbanCards:after{min-height:30px!important;padding:6px!important}
+@media(max-width:720px){.admWorkspaceMain #admContent .ordersKanban .orderDetailed{grid-template-columns:minmax(0,1fr) auto!important}.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction{min-width:95px!important;max-width:120px!important;padding:8px!important;font-size:9px!important}.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderSummary{padding:6px!important}.admWorkspaceMain #admContent .ordersKanban .orderDetailed .summaryRight{min-width:65px!important}}
