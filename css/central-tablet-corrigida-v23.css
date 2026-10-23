@@ -1,0 +1,28 @@
+/* V23: correção do cartão comprimido e cabeçalhos, sem alterar JS */
+html body .hybridOrdersShell .hybridBoard{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;min-width:0!important;width:100%!important;align-items:start!important}
+html body .hybridOrdersShell .hybridColumn{min-width:0!important;width:100%!important;min-height:90px!important;overflow:hidden!important;background:#f1f3f6!important}
+html body .hybridOrdersShell .hybridColumn>header{display:flex!important;min-height:35px!important;padding:7px 6px!important;border:0!important}
+html body .hybridOrdersShell .hybridColumn:nth-child(1)>header{background:#2563eb!important}
+html body .hybridOrdersShell .hybridColumn:nth-child(2)>header{background:#e58b18!important}
+html body .hybridOrdersShell .hybridColumn:nth-child(3)>header{background:#16a34a!important}
+html body .hybridOrdersShell .hybridColumn:nth-child(4)>header{background:#7c3aed!important}
+html body .hybridOrdersShell .hybridColumn>header b{color:white!important;font-size:10px!important;line-height:1.15!important}
+html body .hybridOrdersShell .hybridColumn>header small{display:none!important}
+html body .hybridOrdersShell .hybridColumnBody{padding:5px!important;min-height:50px!important;height:auto!important;overflow:visible!important}
+html body .hybridOrdersShell .orderDetailed{display:block!important;min-width:0!important;max-width:100%!important;margin:0 0 5px!important;overflow:hidden!important;border-radius:7px!important}
+html body .hybridOrdersShell .orderDetailed[hidden]{display:none!important}
+html body .hybridOrdersShell .orderDetailed>.orderSummary{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;position:relative!important;gap:4px!important;min-height:0!important;height:auto!important;padding:7px 6px!important;box-sizing:border-box!important;overflow:hidden!important}
+html body .hybridOrdersShell .orderDetailed>.orderSummary:after{position:absolute!important;right:4px!important;top:4px!important;font-size:12px!important;line-height:1!important}
+html body .hybridOrdersShell .summaryMain{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;width:100%!important;min-width:0!important;max-width:100%!important}
+html body .hybridOrdersShell .orderNumber{display:block!important;grid-row:auto!important;min-width:0!important;width:auto!important;height:auto!important;padding:2px 4px!important;border-radius:4px!important;font-size:10px!important;line-height:1.3!important}
+html body .hybridOrdersShell .summaryCustomer{display:block!important;min-width:0!important;width:100%!important;max-width:100%!important}
+html body .hybridOrdersShell .summaryCustomer>b{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:10px!important;line-height:1.25!important;max-width:100%!important}
+html body .hybridOrdersShell .summaryCustomer>span{display:none!important}
+html body .hybridOrdersShell .hybridMeta{display:flex!important;grid-column:auto!important;flex-wrap:wrap!important;gap:3px!important;width:100%!important;min-width:0!important;margin:0!important}
+html body .hybridOrdersShell .hybridMeta>span{display:inline-block!important;max-width:100%!important;min-width:0!important;min-height:0!important;padding:2px 3px!important;font-size:8px!important;line-height:1.25!important;white-space:normal!important;overflow-wrap:break-word!important}
+html body .hybridOrdersShell .summaryRight{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;min-width:0!important;max-width:100%!important;width:100%!important}
+html body .hybridOrdersShell .summaryRight>b{font-size:11px!important;line-height:1.2!important;white-space:nowrap!important}
+html body .hybridOrdersShell .summaryRight>.statusBadge{display:inline-block!important;max-width:100%!important;min-width:0!important;padding:3px 4px!important;font-size:8px!important;line-height:1.2!important;white-space:normal!important;overflow-wrap:break-word!important}
+html body .hybridOrdersShell .hybridQuick{min-width:0!important;width:100%!important;min-height:27px!important;padding:5px 3px!important;font-size:9px!important;white-space:normal!important;line-height:1.2!important}
+html body .hybridOrdersShell .hybridBoardViewport{height:auto!important;min-height:0!important;overflow-x:hidden!important;overflow-y:visible!important}
+html body .hybridOrdersShell .hybridFinished{width:100%!important;margin-top:8px!important}
