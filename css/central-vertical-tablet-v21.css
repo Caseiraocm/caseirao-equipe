@@ -1,0 +1,30 @@
+/* V21 — fluxo vertical no tablet. Somente apresentação; nenhuma regra de pedidos alterada. */
+html body #admContent .ordersKanban,
+html body .ordersKanban {
+ display:flex!important; flex-direction:column!important; flex-wrap:nowrap!important;
+ grid-template-columns:none!important; grid-auto-columns:auto!important;
+ width:100%!important; max-width:100%!important; min-width:0!important;
+ overflow-x:hidden!important; overflow-y:visible!important; gap:10px!important;
+ scroll-snap-type:none!important; align-items:stretch!important;
+}
+html body #admContent .ordersKanban > .kanbanColumn,
+html body .ordersKanban > .kanbanColumn {
+ display:block!important; flex:0 0 auto!important; grid-column:auto!important;
+ width:100%!important; min-width:0!important; max-width:100%!important;
+ max-height:none!important; overflow:visible!important; scroll-snap-align:none!important;
+ box-sizing:border-box!important;
+}
+html body #admContent .ordersKanban .kanbanCards,
+html body .ordersKanban .kanbanCards {
+ display:flex!important; flex-direction:column!important;
+ grid-template-columns:none!important; width:100%!important; min-width:0!important;
+ max-height:none!important; overflow:visible!important;
+}
+html body #admContent .ordersKanban .kanban-finished .kanbanCards,
+html body .ordersKanban .kanban-finished .kanbanCards {
+ display:flex!important; flex-direction:column!important; grid-template-columns:none!important;
+}
+html body .ordersKanban .orderDetailed {width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+html body .ordersKanban .orderSummary {min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+html body .ordersKanban .kanban-delivery>header {border-left:5px solid #286cc0!important}
+@media(max-width:900px){html body #admContent,html body .admWorkspaceMain{min-width:0!important}html body .ordersKanban{padding-inline:0!important}}
