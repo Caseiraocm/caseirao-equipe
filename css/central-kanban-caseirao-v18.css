@@ -1,0 +1,47 @@
+/* V18: layout operacional para tablet, sem alterar status, impressão ou eventos. */
+.admWorkspaceMain #admContent .ordersKanban{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-auto-flow:row!important;grid-auto-columns:auto!important;
+ overflow:visible!important;gap:10px!important;align-items:start!important;
+ width:100%!important;margin:8px 0 12px!important;padding:0!important;
+ scroll-snap-type:none!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn{
+ width:100%!important;min-width:0!important;max-width:none!important;
+ min-height:0!important;max-height:calc(100dvh - 205px)!important;
+ padding:6px!important;border-radius:11px!important;
+ background:#f3f5f8!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn>header{
+ min-height:40px!important;padding:7px 9px!important;border-radius:8px!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanCards{
+ min-height:0!important;gap:6px!important;padding:6px 0 0!important;
+ overflow-y:auto!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanbanColumn.isEmpty .kanbanCards:after{
+ min-height:32px!important;padding:6px!important;font-size:10px!important;
+ content:'Sem pedidos'!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.orderSummary{
+ min-height:56px!important;padding:7px!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .orderDetailed>.caseiraoQuickAction{
+ min-height:31px!important;margin:0 7px 7px!important;width:calc(100% - 14px)!important;
+}
+/* Finalizados não competem com as três etapas principais. */
+.admWorkspaceMain #admContent .ordersKanban .kanban-finished{
+ grid-column:1/-1!important;max-height:220px!important;
+}
+.admWorkspaceMain #admContent .ordersKanban .kanban-finished .kanbanCards{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+@media (max-width:850px){
+ .admWorkspaceMain #admContent .ordersKanban{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .admWorkspaceMain #admContent .ordersKanban .kanban-finished .kanbanCards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:650px){
+ .admWorkspaceMain #admContent .ordersKanban{grid-template-columns:minmax(0,1fr)!important}
+ .admWorkspaceMain #admContent .ordersKanban .kanbanColumn{max-height:none!important}
+ .admWorkspaceMain #admContent .ordersKanban .kanban-finished .kanbanCards{grid-template-columns:1fr!important}
+}
