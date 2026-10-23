@@ -4,8 +4,7 @@
   let lastAction={id:'',at:0};
 
   const boardColumns=[
-    {key:'received',title:'NOVOS',hint:'Aguardando aceite',statuses:['novo']},
-    {key:'accepted',title:'ACEITOS',hint:'Aguardando cozinha',statuses:['confirmado']},
+    {key:'accepted',title:'ACEITOS',hint:'Aguardando preparo',statuses:['novo','confirmado']},
     {key:'preparing',title:'EM PREPARO',hint:'Na cozinha',statuses:['preparando']},
     {key:'ready',title:'PRONTOS',hint:'Aguardando retirada ou saída',statuses:['pronto']},
     {key:'delivery',title:'EM ENTREGA',hint:'A caminho do cliente',statuses:['em_rota']},
