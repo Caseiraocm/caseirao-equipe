@@ -1,24 +1,37 @@
-/* Caseirão: integra impressão automática ao watcher final (inclusive alertas sonoros). */
+'use strict';
+/* Ponte final entre o monitor de pedidos e a impressao automatica. */
 (()=>{
-  if(typeof checkNewOrders!=='function'||typeof caseiraoPrintObserve!=='function'||typeof flushPendingAutoPrint!=='function')return;
-  const previous=checkNewOrders;
-  let running=false;
-  checkNewOrders=async function(...args){
-    if(running)return;
-    running=true;
-    try{
-      await previous.apply(this,args);
-      if(!sessionStorage.getItem('caseirao_admin_pin'))return;
-      if(!printerPrefs().auto)return;
-      caseiraoPrintObserve(admin?.orders||[],false);
-      await flushPendingAutoPrint();
-    }catch(e){console.error('[Caseirao AutoPrint] Falha no ciclo:',e)}
-    finally{running=false}
-  };
-  // Se o watcher já estiver ativo, o próximo ciclo usará a versão corrigida.
-  // A fila é preservada mesmo quando a impressora está desconectada.
-  if(printerPrefs().auto){
-    try{caseiraoPrintObserve(admin?.orders||[],true)}catch(e){console.warn('[Caseirao AutoPrint] Baseline:',e)}
-    setTimeout(()=>flushPendingAutoPrint().catch(e=>console.error('[Caseirao AutoPrint]',e)),500);
+  if(typeof checkNewOrders!=='function'||typeof flushPendingAutoPrint!=='function'||typeof queueAutoPrint!=='function'||typeof eligibleForAutoPrint!=='function')return;
+  let observed=null,bridgeBusy=false;
+  const printState=order=>({eligible:!!eligibleForAutoPrint(order),payment:String(order?.payment_status||'').toLowerCase(),status:String(order?.status||'').toLowerCase()});
+  function observeOrders(orders,baseline=false){
+    const next=new Map();
+    for(const order of (orders||[])){
+      const id=String(order?.id||'');if(!id)continue;
+      const state=printState(order),previous=observed?.get(id);next.set(id,state);
+      const becameEligible=previous&&!previous.eligible&&state.eligible,isNew=observed&&!previous;
+      if(!baseline&&state.eligible&&(isNew||becameEligible)&&!wasAutoPrinted(id))queueAutoPrint(id);
+    }
+    observed=next;
   }
+  // A fotografia atual evita reimprimir pedidos antigos ao atualizar a pagina.
+  observeOrders(admin?.orders||[],true);
+  const previousCheck=checkNewOrders;
+  checkNewOrders=async function(...args){
+    if(bridgeBusy)return;bridgeBusy=true;
+    try{
+      await previousCheck.apply(this,args);
+      if(!sessionStorage.getItem('caseirao_admin_pin'))return;
+      observeOrders(admin?.orders||[],false);
+      if(printerPrefs().auto)await flushPendingAutoPrint();
+    }catch(error){console.error('[Caseirao AutoPrint] Falha no ciclo:',error)}finally{bridgeBusy=false}
+  };
+  if(typeof startOrderWatcher==='function'){
+    const previousStart=startOrderWatcher;
+    startOrderWatcher=function(...args){observeOrders(admin?.orders||[],true);return previousStart.apply(this,args)};
+  }
+  if(printerPrefs().auto)setTimeout(()=>flushPendingAutoPrint().catch(error=>console.error('[Caseirao AutoPrint] Falha ao retomar fila:',error)),500);
+  // Se o ADM foi restaurado automaticamente antes deste ultimo script,
+  // reinicia o intervalo para ele apontar para a rotina ja corrigida.
+  if(sessionStorage.getItem('caseirao_admin_pin')&&admin&&typeof startOrderWatcher==='function')startOrderWatcher();
 })();
