@@ -98,6 +98,8 @@
 
   async function updateStatusInPlace(card,next,trigger){
     const id=orderId(card),target=statusButton(card,next);
+    const currentOrder=(admin?.orders||[]).find(o=>String(o.id)===id);
+    if(next==='pronto'&&currentOrder?.type==='delivery')next='em_rota';
     if(!id||!target||target.disabled)return;
     let reason='';
     if(next==='cancelado'){

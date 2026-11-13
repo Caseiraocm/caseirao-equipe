@@ -203,7 +203,8 @@
         const status=String(order.status||'').toLowerCase();
         if(!validTypes.has(status))continue;
         dispatch(status,order,status==='pronto');
-        if(status==='pronto'){
+        if(status==='pronto'||(status==='em_rota'&&['confirmado','preparando'].includes(old.get(String(order.id))))){
+          if(status==='em_rota')dispatch('pronto',order,true);
           try{savePreparationStop(order.id,Date.parse(order.updated_at)||Date.now())}catch{}
           showReadyToast(order);showReadyCentralAlert(order);
         }else if(status==='entregue'){
