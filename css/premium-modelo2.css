@@ -1,0 +1,66 @@
+/* Caseirão • Cabeçalho Vibrante • Novembro 2026 */
+:root{--premium-ink:#20252d;--premium-muted:#68717c;--premium-line:#dde2e7;--premium-bg:#f4f5f7}
+body.teamApp{background:var(--premium-bg)!important;color:var(--premium-ink)!important}
+body.teamApp .sheet.full:not(.admLoginPremium){background:#f4f5f7!important;color:#20252d!important}
+body.teamApp .admWorkspaceMain,body.teamApp #admContent{background:#f4f5f7!important}
+body.teamApp .admManagement{background:#fff!important;border-color:#e0e3e8!important}
+body.teamApp .admManagementNav button{color:#4d5865!important;border-radius:10px!important}
+body.teamApp .admManagementNav button.on{background:#fff0c4!important;color:#594208!important}
+body.teamApp .admPrimaryNav button.on{background:#ffd23e!important;color:#202020!important;border-color:#eabd2f!important}
+body.teamApp .orderDetailed[data-premium-tone]{--tone:#ffc341;border:2px solid var(--tone)!important;border-radius:15px!important;box-shadow:0 4px 0 var(--tone),0 9px 20px #20252d0c!important;background:#fff!important;overflow:hidden!important;margin-bottom:15px!important}
+body.teamApp .orderDetailed[data-premium-tone=ready]{--tone:#42cd91}
+body.teamApp .orderDetailed[data-premium-tone=route]{--tone:#68b0fa}
+body.teamApp .orderDetailed[data-premium-tone=finished]{--tone:#a4d5be}
+body.teamApp .orderDetailed[data-premium-tone=cancelled]{--tone:#edaaa7}
+body.teamApp .orderDetailed[data-premium-tone=received]{--tone:#ffda62}
+body.teamApp .orderDetailed[data-premium-tone]>.orderSummary{display:flex!important;flex-wrap:wrap!important;gap:10px!important;max-height:none!important;height:auto!important;padding:12px!important;background:var(--tone)!important;color:#20252d!important;border:0!important;cursor:pointer}
+body.teamApp .orderDetailed[data-premium-tone] .summaryMain{flex:1 1 150px!important;min-width:0!important}
+body.teamApp .orderDetailed[data-premium-tone] .orderNumber{background:#ffffffb5!important;color:#20252d!important;-webkit-text-fill-color:#20252d!important;font-size:18px!important;border:0!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer b{color:#20252d!important;font-size:14px!important;-webkit-text-fill-color:#20252d!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer span{color:#38414c!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight{color:#20252d!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight .statusBadge{background:#ffffffbd!important;color:#27313a!important;border:0!important}
+body.teamApp .orderSummary>.premiumQuick{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;flex:0 0 100%;width:100%;padding:2px 0 0}
+body.teamApp .premiumQuick>a,body.teamApp .premiumQuick>button{display:flex!important;align-items:center;justify-content:center;min-height:44px!important;border-radius:10px!important;font:800 12px system-ui!important;text-decoration:none!important;padding:9px 5px!important;box-shadow:none!important}
+body.teamApp .premiumQuick>.premiumWhatsApp{background:#e6f9ed!important;border:1px solid #acdaba!important;color:#176b3d!important}
+body.teamApp .premiumQuick>.premiumPrint{background:#fff9e6!important;border:1px solid #e5d18d!important;color:#5b470c!important}
+body.teamApp .premiumQuick>button:disabled{opacity:.65;cursor:default}
+body.teamApp .orderDetailed[data-premium-tone] .orderBody{background:#fff!important;color:#343e49!important}
+body.teamApp .orderDetailed[data-premium-tone] .statusNext{background:#20252d!important;color:#fff!important;border:0!important}
+body.teamApp .orderDetailed[data-premium-tone] .orderItemsBox{background:#f8f9fa!important;border-color:#e4e7ea!important}
+body.teamApp .kanbanColumn{border:1px solid #dfe3e8!important;border-radius:17px!important;background:#eceef1!important;padding:10px!important}
+body.teamApp .kanbanColumn>header{background:#eceef1!important;border:0!important;color:#303b46!important;border-radius:10px!important}
+body.teamApp .kanbanCount{background:#fff!important;color:#20252d!important}
+body.teamApp .premiumPanelCard{background:#fff!important;border:1px solid #dce2e7!important;border-radius:17px!important;box-shadow:0 5px 16px #182c4010!important;color:#25313d!important;overflow:hidden}
+body.teamApp .packOrderTop,body.teamApp .kitchenOrderTop,body.teamApp .deliveryCardTop{background:#ffd16a!important;color:#222!important;padding:13px!important;border-radius:10px!important}
+body.teamApp .packOrderTop strong,body.teamApp .packCustomer b,body.teamApp .packItem b,body.teamApp .deliveryCard h3{color:#25313d!important}
+body.teamApp .packItem small{color:#626d79!important}
+body.teamApp .packGeneralNote,body.teamApp .packNote{background:#fff3cf!important;color:#715210!important}
+body.teamApp .driverScreenNew{color:#25313d!important}
+body.teamApp .metric,body.teamApp .slaCard,body.teamApp .restaurantTableCard{border-radius:14px!important;box-shadow:0 4px 15px #1b324008!important}
+body.teamApp .in,body.teamApp .ta,body.teamApp .sel{background:#fff!important;color:#273442!important;border-color:#cdd6df!important}
+body.teamApp .in:focus,body.teamApp .ta:focus,body.teamApp .sel:focus{outline:2px solid #e6b332!important;outline-offset:1px}
+body.teamApp #teamHome.teamLauncher{background:#f4f5f7!important}
+body.teamApp #teamHome .teamLauncherCard{border-radius:24px!important;box-shadow:0 24px 70px #20304018!important}
+body.teamApp .teamLogo img,body.teamApp .admLoginBrand img{width:100%;height:100%;object-fit:contain}
+body.teamApp .teamLogo,body.teamApp .admLoginBrand{background:#fff!important;border:0!important;padding:4px!important}
+body.teamApp .sheet.full.admLoginPremium{display:grid!important;grid-template-columns:minmax(280px,1fr) minmax(320px,460px)!important;align-items:center!important;justify-content:center!important;gap:6vw!important;padding:6vw!important;background:#f5f6f8!important;overflow:auto!important}
+body.teamApp .admLoginPremium .loginbox{width:100%!important;box-shadow:0 15px 55px #20304012!important;border-radius:22px!important}
+body.teamApp .admLoginPremium .admLoginBrand{display:none!important}
+.premiumLoginIdentity{max-width:550px;justify-self:center;color:#232d38}
+.premiumLoginIdentity img{display:block;width:180px;height:180px;object-fit:contain;margin-bottom:28px}
+.premiumLoginIdentity>span{font:800 11px system-ui;letter-spacing:.16em;color:#986700}
+.premiumLoginIdentity h1{font:850 clamp(28px,3.5vw,48px)/1.12 system-ui;letter-spacing:-.04em;margin:16px 0}
+.premiumLoginIdentity p{font:15px/1.6 system-ui;color:#697482}
+body.teamApp :is(button,a,input,select):focus-visible{outline:3px solid #266cc2!important;outline-offset:3px}
+@media(max-width:700px){body.teamApp .sheet.full.admLoginPremium{grid-template-columns:minmax(0,1fr)!important;gap:18px!important;padding:50px 18px 24px!important;align-content:start!important}.premiumLoginIdentity{display:flex;align-items:center;gap:14px;width:min(460px,100%)}.premiumLoginIdentity img{width:72px;height:72px;margin:0}.premiumLoginIdentity h1,.premiumLoginIdentity p{display:none}.premiumLoginIdentity>span{font-size:10px}body.teamApp .admLoginPremium .loginbox{justify-self:center;padding:26px!important;max-width:460px!important}}
+@media(prefers-reduced-motion:reduce){body.teamApp *{scroll-behavior:auto!important;transition:none!important}}
+body.teamApp .admLoginPremium>.premiumLoginIdentity{grid-column:1!important;grid-row:1!important}
+body.teamApp .admLoginPremium>.loginbox{grid-column:2!important;grid-row:1!important;align-self:center!important}
+body.teamApp .admLoginPremium>.modalNav{position:absolute!important;right:28px!important;top:24px!important;width:auto!important}
+@media(max-width:700px){body.teamApp .admLoginPremium>.loginbox{grid-column:1!important;grid-row:2!important}body.teamApp .admLoginPremium>.premiumLoginIdentity{grid-row:1!important}}
+body.teamApp #teamHome.teamLauncher #teamAdminBtn strong,body.teamApp #teamHome.teamLauncher #teamEmployeeBtn strong,body.teamApp #teamHome.teamLauncher #teamDispatcherBtn strong{color:#263344!important;-webkit-text-fill-color:#263344!important}
+body.teamApp #teamHome.teamLauncher #teamAdminBtn small,body.teamApp #teamHome.teamLauncher #teamEmployeeBtn small,body.teamApp #teamHome.teamLauncher #teamDispatcherBtn small{color:#667489!important;-webkit-text-fill-color:#667489!important}
+body.teamApp #teamHome.teamLauncher .teamLauncherIntro .teamLogo{background:#fff!important;border-color:#e5e8ed!important;padding:5px!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight{flex-wrap:wrap!important}
