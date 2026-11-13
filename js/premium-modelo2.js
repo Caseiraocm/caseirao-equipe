@@ -8,7 +8,6 @@
     if(printing.has(String(id)))return false;
     printing.add(String(id));
     try{
-      if(!printerConnected())await connectBluetoothPrinter();
       return await printOrderBluetooth(id,sourceOrders);
     }catch(error){
       const message=String(error?.message||error);
@@ -21,7 +20,7 @@
   function enhance(){
     queued=false;
     document.querySelectorAll('details.orderDetailed').forEach(card=>{
-      const id=card.querySelector('[data-oid]')?.dataset.oid||card.querySelector('[data-webprint]')?.dataset.webprint;
+      const id=card.querySelector('[data-oid]')?.dataset.oid||card.querySelector('[data-btprint]')?.dataset.btprint||card.querySelector('[data-webprint]')?.dataset.webprint;
       const order=(admin?.orders||[]).find(o=>String(o.id)===String(id));
       if(!order)return;
       const tone=tones[order.status]||'received';
@@ -42,11 +41,20 @@
       wa.textContent='☏ WhatsApp';
       if(url){wa.href=url;wa.target='_blank';wa.rel='noopener';wa.setAttribute('aria-label',`WhatsApp do cliente do pedido ${order.order_number}`)}
       else {wa.type='button';wa.disabled=true;wa.title='Cliente sem telefone válido';wa.textContent='Sem telefone'}
-      const print=document.createElement('button');print.type='button';print.className='premiumPrint';print.textContent='Bluetooth';
+      // Move o próprio botão de impressão do rodapé, preservando seu comando.
+      const originalPrint=card.querySelector('.printActions [data-btprint]');
+      const print=originalPrint||document.createElement('button');print.type='button';print.classList.add('premiumPrint');print.textContent='Bluetooth';
       print.setAttribute('aria-label',`Imprimir pedido ${order.order_number} via Bluetooth`);
-      print.onclick=event=>{event.preventDefault();event.stopPropagation();printBluetooth(order.id)};
+      print.title='Imprimir comanda por Bluetooth';
+      if(!originalPrint){
+        print.dataset.btprint=order.id;
+        print.onclick=()=>printBluetooth(order.id);
+      }
+      print.addEventListener('click',event=>{event.preventDefault();event.stopPropagation()});
       wa.addEventListener('click',event=>event.stopPropagation());
       quick.append(wa,print);summary.append(quick);
+      card.querySelectorAll('.printActions [data-webprint]').forEach(button=>button.remove());
+      card.querySelectorAll('.printActions').forEach(actions=>{if(!actions.children.length)actions.remove()});
     });
     document.querySelectorAll('.printActions').forEach(actions=>{
       const legacy=actions.querySelector('[data-webprint]');
