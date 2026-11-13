@@ -7,32 +7,45 @@ body.teamApp .admManagement{background:#fff!important;border-color:#e0e3e8!impor
 body.teamApp .admManagementNav button{color:#4d5865!important;border-radius:10px!important}
 body.teamApp .admManagementNav button.on{background:#fff0c4!important;color:#594208!important}
 body.teamApp .admPrimaryNav button.on{background:#ffd23e!important;color:#202020!important;border-color:#eabd2f!important}
-body.teamApp .orderDetailed[data-premium-tone]{--tone:#ffc341;border:2px solid var(--tone)!important;border-radius:15px!important;box-shadow:0 4px 0 var(--tone),0 9px 20px #20252d0c!important;background:#fff!important;overflow:hidden!important;margin-bottom:15px!important}
-body.teamApp .orderDetailed[data-premium-tone=ready]{--tone:#42cd91}
-body.teamApp .orderDetailed[data-premium-tone=route]{--tone:#68b0fa}
-body.teamApp .orderDetailed[data-premium-tone=finished]{--tone:#a4d5be}
-body.teamApp .orderDetailed[data-premium-tone=cancelled]{--tone:#edaaa7}
-body.teamApp .orderDetailed[data-premium-tone=received]{--tone:#ffda62}
-body.teamApp .orderDetailed[data-premium-tone]>.orderSummary{display:flex!important;flex-wrap:wrap!important;gap:10px!important;max-height:none!important;height:auto!important;padding:12px!important;background:var(--tone)!important;color:#20252d!important;border:0!important;cursor:pointer}
-body.teamApp .orderDetailed[data-premium-tone] .summaryMain{flex:1 1 150px!important;min-width:0!important}
-body.teamApp .orderDetailed[data-premium-tone] .orderNumber{background:#ffffffb5!important;color:#20252d!important;-webkit-text-fill-color:#20252d!important;font-size:18px!important;border:0!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer b{color:#20252d!important;font-size:14px!important;-webkit-text-fill-color:#20252d!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer span{color:#38414c!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryRight{color:#20252d!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryRight .statusBadge{background:#ffffffbd!important;color:#27313a!important;border:0!important}
-body.teamApp .orderSummary>.premiumQuick{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;flex:0 0 100%;width:100%;padding:2px 0 0}
-body.teamApp .premiumQuick>a,body.teamApp .premiumQuick>button{display:flex!important;align-items:center;justify-content:center;min-height:44px!important;border-radius:10px!important;font:800 12px system-ui!important;text-decoration:none!important;padding:9px 5px!important;box-shadow:none!important}
-body.teamApp .premiumQuick>.premiumWhatsApp{background:#e6f9ed!important;border:1px solid #acdaba!important;color:#176b3d!important}
-body.teamApp .premiumQuick>.premiumPrint{background:#fff9e6!important;border:1px solid #e5d18d!important;color:#5b470c!important}
-body.teamApp .premiumQuick>button:disabled{opacity:.65;cursor:default}
-body.teamApp .orderDetailed[data-premium-tone] .orderBody{background:#fff!important;color:#343e49!important}
-body.teamApp .orderDetailed[data-premium-tone] .statusNext{background:#20252d!important;color:#fff!important;border:0!important}
-body.teamApp .orderDetailed[data-premium-tone] .orderItemsBox{background:#f8f9fa!important;border-color:#e4e7ea!important}
-body.teamApp .kanbanColumn{border:1px solid #dfe3e8!important;border-radius:17px!important;background:#eceef1!important;padding:10px!important}
-body.teamApp .kanbanColumn>header{background:#eceef1!important;border:0!important;color:#303b46!important;border-radius:10px!important}
-body.teamApp .kanbanCount{background:#fff!important;color:#20252d!important}
+/* Cards: cabeçalho de identidade, dados alinhados e ações fixas. */
+body.teamApp .orderDetailed[data-premium-tone]{--tone:#a56500;--head-start:#ffdd69;--head-end:#fff0b4;--badge-bg:#ffe7a0;--badge-ink:#704300;border:1px solid #e7dfce!important;border-radius:16px!important;box-shadow:0 6px 18px #5c421211!important;background:#fff!important;overflow:hidden!important;margin:0 0 12px!important;min-width:0!important;width:100%!important;box-sizing:border-box!important;transform:none!important}
+body.teamApp .orderDetailed[data-premium-tone=preparing]{--tone:#c35c14;--head-start:#ffbd7d;--head-end:#ffe5be;--badge-bg:#ffdfb9;--badge-ink:#8a3a0b}
+body.teamApp .orderDetailed[data-premium-tone=ready]{--tone:#16805c;--head-start:#8ee0b5;--head-end:#d6f5e1;--badge-bg:#cdf3dd;--badge-ink:#0e6241}
+body.teamApp .orderDetailed[data-premium-tone=route]{--tone:#356dc1;--head-start:#9bc9ff;--head-end:#deeeff;--badge-bg:#d3e6ff;--badge-ink:#254f93}
+body.teamApp .orderDetailed[data-premium-tone=finished]{--tone:#507b61;--head-start:#b6d9c2;--head-end:#edf7f0;--badge-bg:#e4f1e7;--badge-ink:#3d6248}
+body.teamApp .orderDetailed[data-premium-tone=cancelled]{--tone:#b44646;--head-start:#efb2b2;--head-end:#fbe5e5;--badge-bg:#fae1e1;--badge-ink:#8a3333}
+body.teamApp .orderDetailed[data-premium-tone]>.orderSummary{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:0!important;max-height:none!important;min-height:0!important;height:auto!important;padding:0!important;background:#fff!important;color:#26303b!important;border:0!important;cursor:pointer;list-style:none!important}
+body.teamApp .orderSummary::-webkit-details-marker{display:none}
+body.teamApp .orderDetailed[data-premium-tone] .premiumCardHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;grid-column:1/-1!important;padding:13px 14px!important;background:linear-gradient(110deg,var(--head-start),var(--head-end))!important;border-bottom:1px solid #ffffff90!important;min-width:0!important}
+body.teamApp .orderDetailed[data-premium-tone] .orderNumber{background:transparent!important;color:#302b21!important;-webkit-text-fill-color:#302b21!important;font:850 22px/1.1 system-ui!important;letter-spacing:-.04em!important;border:0!important;padding:0!important;min-width:0!important;box-shadow:none!important}
+body.teamApp .orderDetailed[data-premium-tone] .orderNumber:before{content:'PEDIDO';display:block;font:750 9px/1.5 system-ui;letter-spacing:.12em;margin-bottom:2px;color:#665329;-webkit-text-fill-color:#665329}
+body.teamApp .orderDetailed[data-premium-tone] .summaryMain{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:0!important;min-width:0!important;padding:14px 8px 12px 14px!important;align-self:start!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;white-space:normal!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer b{color:#27313d!important;font:750 14px/1.35 system-ui!important;-webkit-text-fill-color:#27313d!important;white-space:normal!important;overflow-wrap:anywhere!important;max-width:none!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer span{color:#727d89!important;font:500 11px/1.5 system-ui!important;white-space:normal!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight{display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:3px!important;min-width:0!important;color:#26303b!important;padding:14px 14px 12px 0!important;align-self:start!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight>b{font:850 17px/1.35 system-ui!important;letter-spacing:-.035em!important;white-space:nowrap!important}
+body.teamApp .orderDetailed[data-premium-tone] .summaryRight:before{content:'TOTAL';font:700 9px/1.3 system-ui;letter-spacing:.08em;color:#7b8490}
+body.teamApp .orderDetailed[data-premium-tone] .premiumCardHead .statusBadge{display:inline-flex!important;align-items:center!important;gap:5px!important;background:var(--badge-bg)!important;color:var(--badge-ink)!important;border:1px solid #ffffff85!important;border-radius:20px!important;font:750 10px/1.2 system-ui!important;padding:7px 9px!important;white-space:nowrap!important;box-shadow:0 2px 4px #5c421208!important}
+body.teamApp .orderDetailed[data-premium-tone] .premiumCardHead .statusBadge:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+body.teamApp .orderSummary>.premiumQuick{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-column:1/-1!important;gap:8px!important;width:auto!important;margin:0 14px 14px!important;padding:0!important;border:0!important;box-sizing:border-box!important}
+body.teamApp .premiumQuick>a,body.teamApp .premiumQuick>button{display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-height:43px!important;min-width:0!important;width:100%!important;box-sizing:border-box!important;border-radius:10px!important;font:750 12px system-ui!important;text-decoration:none!important;padding:9px 4px!important;letter-spacing:0!important;transition:filter .15s!important}
+body.teamApp .premiumQuick>.premiumWhatsApp{background:#198553!important;border:1px solid #147748!important;color:#fff!important;box-shadow:0 3px 6px #19855318!important}
+body.teamApp .premiumQuick>.premiumPrint{background:#2c63c5!important;border:1px solid #2459b7!important;color:#fff!important;box-shadow:0 3px 6px #2c63c51c!important}
+body.teamApp .premiumQuick>:hover{filter:brightness(1.07)}
+body.teamApp .premiumQuick>button:disabled{opacity:.55;cursor:default}
+body.teamApp .orderDetailed[data-premium-tone] .orderBody{background:#fff!important;color:#343e49!important;padding:14px!important;border-top:1px solid #eef0f2!important}
+body.teamApp .orderDetailed[data-premium-tone] .statusNext{background:linear-gradient(110deg,#ffbe32,#ffd65b)!important;color:#4a3308!important;border:1px solid #efb536!important;box-shadow:0 3px 7px #e4a72718!important;border-radius:10px!important}
+body.teamApp .orderDetailed[data-premium-tone] .orderItemsBox{background:#fffcf4!important;border-color:#eee6d2!important;border-radius:10px!important}
+body.teamApp .kanbanColumn{--column-dot:#e7a522;border:1px solid #e4e4e3!important;border-radius:16px!important;background:#f0f1f2!important;padding:10px!important;min-width:0!important}
+body.teamApp .kanbanColumn.kanban-preparing{--column-dot:#ef934e}
+body.teamApp .kanbanColumn.kanban-ready{--column-dot:#28a97a}
+body.teamApp .kanbanColumn.kanban-delivery{--column-dot:#528bea}
+body.teamApp .kanbanColumn>header{background:transparent!important;border:0!important;color:#303947!important;border-radius:0!important;padding:5px 3px 14px!important;box-shadow:none!important}
+body.teamApp .kanbanColumn>header b:before{content:'';display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:3px;background:var(--column-dot)}
+body.teamApp .kanbanCount{background:#fff!important;color:#505d6e!important;border:1px solid #e0e3e8!important}
 body.teamApp .premiumPanelCard{background:#fff!important;border:1px solid #dce2e7!important;border-radius:17px!important;box-shadow:0 5px 16px #182c4010!important;color:#25313d!important;overflow:hidden}
-body.teamApp .packOrderTop,body.teamApp .kitchenOrderTop,body.teamApp .deliveryCardTop{background:#ffd16a!important;color:#222!important;padding:13px!important;border-radius:10px!important}
+body.teamApp .packOrderTop,body.teamApp .kitchenOrderTop,body.teamApp .deliveryCardTop{background:linear-gradient(110deg,#ffdd69,#fff0b4)!important;color:#302b21!important;padding:13px!important;border-radius:10px!important}
 body.teamApp .packOrderTop strong,body.teamApp .packCustomer b,body.teamApp .packItem b,body.teamApp .deliveryCard h3{color:#25313d!important}
 body.teamApp .packItem small{color:#626d79!important}
 body.teamApp .packGeneralNote,body.teamApp .packNote{background:#fff3cf!important;color:#715210!important}
@@ -62,5 +75,3 @@ body.teamApp .admLoginPremium>.modalNav{position:absolute!important;right:28px!i
 body.teamApp #teamHome.teamLauncher #teamAdminBtn strong,body.teamApp #teamHome.teamLauncher #teamEmployeeBtn strong,body.teamApp #teamHome.teamLauncher #teamDispatcherBtn strong{color:#263344!important;-webkit-text-fill-color:#263344!important}
 body.teamApp #teamHome.teamLauncher #teamAdminBtn small,body.teamApp #teamHome.teamLauncher #teamEmployeeBtn small,body.teamApp #teamHome.teamLauncher #teamDispatcherBtn small{color:#667489!important;-webkit-text-fill-color:#667489!important}
 body.teamApp #teamHome.teamLauncher .teamLauncherIntro .teamLogo{background:#fff!important;border-color:#e5e8ed!important;padding:5px!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryCustomer{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
-body.teamApp .orderDetailed[data-premium-tone] .summaryRight{flex-wrap:wrap!important}
