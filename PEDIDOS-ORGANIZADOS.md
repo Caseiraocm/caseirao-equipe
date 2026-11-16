@@ -22,3 +22,12 @@ Não foram realizados testes visuais em navegador, impressão em equipamento fí
 
 ## Sua logo em JPG
 A imagem enviada foi incluída sem alterações em assets/logo-caseirao.jpg e configurada na entrada do ADM e na tela inicial. Inclua a pasta assets ao publicar. O cache foi atualizado para distribuir a correção. A logo antiga usada na impressão permanece inalterada.
+
+## Mouse no tablet e botões de status
+A Central ADM agora possui um controle horizontal acima das colunas: arraste o puxador com o mouse ou use as setas esquerda e direita. O controle acompanha a posição das colunas e fica no topo da área durante a rolagem. Os filtros deixam de ficar sobre os cards. Uma barra horizontal nativa também está configurada na base do quadro, conforme suporte do navegador.
+
+Os botões de correção de status foram alinhados em duas colunas, mantendo o cancelamento em uma linha inteira. Todos usam os mesmos comandos originais. As ações principais, WhatsApp, Bluetooth, Pix, configuração de cores e logo permanecem preservados.
+
+Atualize index.html e sw.js na pasta principal; orders-layout.js dentro de js; orders-layout.css dentro de css. O ZIP contém o aplicativo completo, incluindo sua logo.
+
+Validação local em DOM: arrastar o controle, setas, limites, sincronização ao rolar, redimensionamento, filtros, busca, restauração da aparência e referências da logo. Confirmado que as rotinas originais de pedidos, pagamentos e impressão permanecem idênticas à versão anterior. Não houve teste visual em navegador nem teste com mouse físico no tablet, impressora ou pagamento real.
