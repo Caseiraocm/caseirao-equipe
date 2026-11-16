@@ -64,12 +64,12 @@
       if(button&&button.textContent!=='Bluetooth')button.textContent='Bluetooth';
     });
     document.querySelectorAll('.teamLogo,.admLoginBrand').forEach(logo=>{
-      if(!logo.querySelector('img'))logo.innerHTML='<img src="./assets/logo-caseirao.svg" alt="O Caseirão Burger">';
+      if(!logo.querySelector('img'))logo.innerHTML='<img src="./assets/logo-caseirao.jpg" alt="O Caseirão Burger">';
     });
     const login=document.querySelector('.sheet.admLoginPremium');
     if(login&&!login.querySelector('.premiumLoginIdentity')){
       const identity=document.createElement('section');identity.className='premiumLoginIdentity';
-      identity.innerHTML='<img src="./assets/logo-caseirao.svg" alt="Logo oficial O Caseirão Burger"><span>CENTRAL DE OPERAÇÕES</span><h1>O sabor da casa.<br>A gestão nas suas mãos.</h1><p>Pedidos, equipe e entregas em um só lugar.</p>';
+      identity.innerHTML='<img src="./assets/logo-caseirao.jpg" alt="Logo oficial O Caseirão Burger"><span>CENTRAL DE OPERAÇÕES</span><h1>O sabor da casa.<br>A gestão nas suas mãos.</h1><p>Pedidos, equipe e entregas em um só lugar.</p>';
       login.prepend(identity);
     }
     document.querySelectorAll('.packOrder,.kitchenCard,.deliveryCard').forEach(card=>{
