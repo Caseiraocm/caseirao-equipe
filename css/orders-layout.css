@@ -1,0 +1,41 @@
+/* Central de pedidos: hierarquia compacta. Nenhuma regra é aplicada à impressão. */
+@media screen {
+body.teamApp .proAdmin.ca-orders-page .proMain{padding:22px 26px!important}
+body.teamApp .proAdmin.ca-orders-page .proPageTitle{align-items:center!important;margin-bottom:14px!important;gap:12px!important}
+body.teamApp .proAdmin.ca-orders-page .proPageTitle small{display:none!important}
+body.teamApp .proAdmin.ca-orders-page .proPageTitle h1{font-size:26px!important;line-height:1.2!important;margin:0!important}
+body.teamApp .proAdmin.ca-orders-page #proManualOrder{min-height:44px!important;padding:0 18px!important;border-radius:10px!important;background:var(--ca-accent,#ffd23e)!important;color:var(--ca-accent-ink,#20252d)!important;box-shadow:none!important;font-weight:750!important}
+body.teamApp .proAdmin.ca-orders-page .proContent{padding:0 0 20px!important}
+/* Uma única ação de novo pedido, no cabeçalho. O comando original continua disponível. */
+body.teamApp .proAdmin.ca-orders-page #manualOrder{display:none!important}
+body.teamApp .proAdmin.ca-orders-page .proToolbar{display:flex!important;align-items:center!important;gap:12px!important;margin:0 0 12px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .proToolbar #orderSearch{flex:1!important;min-width:0!important;width:100%!important;min-height:46px!important;height:46px!important;border:1px solid #d9dfe6!important;border-radius:10px!important;padding:0 15px!important;font-size:14px!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .proToolbar .alertControl{flex:0 0 auto!important;width:auto!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .alertControlTop{padding:0!important;gap:0!important}
+body.teamApp .proAdmin.ca-orders-page .alertControlTop>div{display:none!important}
+body.teamApp .proAdmin.ca-orders-page #enableAdminAlerts{min-height:42px!important;font-size:11px!important;padding:8px 12px!important;border-radius:9px!important;margin:0!important;box-shadow:none!important;white-space:nowrap!important}
+body.teamApp .proAdmin.ca-orders-page .proFilters{display:flex!important;flex-wrap:wrap!important;gap:6px!important;padding:0 0 14px!important;margin:0 0 16px!important;border-bottom:1px solid #dfe4eb!important}
+body.teamApp .proAdmin.ca-orders-page .proFilters button{display:inline-flex!important;align-items:center!important;gap:8px!important;min-height:40px!important;padding:8px 12px!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;color:#526174!important;font-size:12px!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .proFilters button:hover{background:#e8edf3!important}
+body.teamApp .proAdmin.ca-orders-page .proFilters button.on{background:#202c3c!important;color:#fff!important;border-color:#202c3c!important}
+body.teamApp .proAdmin.ca-orders-page .ca-filter-count{display:inline-grid!important;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;background:#e6ebf1!important;color:#445369!important;font-size:10px;font-weight:800}
+body.teamApp .proAdmin.ca-orders-page .proFilters button.on .ca-filter-count{background:#ffffff26!important;color:#fff!important}
+body.teamApp .proAdmin.ca-orders-page .cleanEmpty{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;min-height:150px!important;padding:30px 18px!important;margin:0 0 16px!important;border:1px dashed #d8dfe7!important;border-radius:12px!important;background:var(--ca-panel,#fff)!important;box-shadow:none!important;text-align:center!important}
+body.teamApp .proAdmin.ca-orders-page .cleanEmpty b{font-size:15px!important;color:var(--ca-panel-ink,#263342)!important}
+body.teamApp .proAdmin.ca-orders-page .cleanEmpty span{font-size:13px!important;color:var(--ca-panel-ink,#738093)!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;margin:16px 0 0!important;padding:14px 0!important;border-top:1px solid #dfe4eb!important;border-bottom:1px solid #dfe4eb!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-height:26px!important;padding:2px 16px!important;margin:0!important;border:0!important;border-right:1px solid #dfe4eb!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard:first-child{padding-left:0!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard:last-child{border-right:0!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard span{font-size:10px!important;color:var(--ca-background-ink,#637185)!important;font-weight:600!important;text-transform:none!important;line-height:1.4!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard b{font-size:16px!important;color:var(--ca-background-ink,#263342)!important;white-space:nowrap!important}
+body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard.danger b{color:#bf3535!important}
+body.teamApp .proAdmin.ca-orders-page .caseiraoV11Settings{margin:16px 0 0!important;border:1px solid #dfe4eb!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsToggle{min-height:46px!important;font-size:12px!important;font-weight:700!important}
+body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsBody .ordersTools{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:8px 0!important;margin:0!important}
+body.teamApp .proAdmin.ca-orders-page .ordersTools button{flex:1 1 180px!important;min-height:42px!important;font-size:11px!important;box-shadow:none!important}
+body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsBody .operationHint{font-size:11px!important;line-height:1.5!important;margin:0!important;padding:8px 0!important;border:0!important;background:transparent!important}
+body.teamApp .proAdmin.ca-orders-page :is(.proFilters button,#proManualOrder,#enableAdminAlerts):focus-visible{outline:3px solid #2563eb!important;outline-offset:2px!important}
+@media(max-width:1050px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:18px!important}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{flex-direction:column!important;align-items:flex-start!important;gap:4px!important;padding:0 12px!important}}
+@media(max-width:540px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:14px 12px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar{flex-wrap:wrap!important;gap:8px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar #orderSearch{flex-basis:100%!important}body.teamApp .proAdmin.ca-orders-page .proPageTitle h1{font-size:23px!important}body.teamApp .proAdmin.ca-orders-page .proFilters{gap:4px!important}body.teamApp .proAdmin.ca-orders-page .proFilters button{padding:7px 9px!important;font-size:11px!important}body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsHint{font-size:9px!important;max-width:65%;text-align:right}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{padding:0 7px!important}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard span{font-size:9px!important}}
+}
