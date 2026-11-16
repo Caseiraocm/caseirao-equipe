@@ -1,0 +1,26 @@
+AGENDAMENTOS CASEIRÃO — 16/11/2026
+
+COMO ATUALIZAR
+1. No repositório do cardápio, substitua os arquivos pelo conteúdo da pasta caseirao-delivery-main do ZIP do cardápio.
+2. No repositório da Central ADM, substitua os arquivos pelo conteúdo da pasta caseirao-equipe-main do ZIP da central.
+3. Aguarde a publicação do GitHub Pages. Feche e abra o aplicativo. Se ainda aparecer a versão antiga, atualize a página.
+4. A parte do servidor e do banco já foi aplicada nesta entrega. NÃO precisa executar o SQL novamente.
+
+COMO FUNCIONA
+- Cliente: escolhe os itens mesmo com a loja fechada; no checkout escolhe data e horário.
+- Antecedência mínima: 30 minutos. Prazo máximo: 30 dias. Horário respeita abertura/fechamento configurados, no fuso de Campo Maior.
+- Não foi adicionada uma regra fixa para terça-feira. A Central deve recusar datas sem atendimento.
+- Central ADM: menu Agendados. Confirmar reserva mantém a reserva separada. Liberar para preparo exige expediente aberto e, se Pix, pagamento confirmado.
+- Recusar pede motivo, exibido ao cliente. Se um Pix já foi pago, o estorno é manual.
+- Bluetooth imprime a comanda com a data/hora e aviso para não iniciar preparo enquanto a reserva aguarda liberação.
+- O cliente acompanha se a reserva aguarda confirmação ou já foi confirmada.
+
+VALIDAÇÃO EXECUTADA
+- Sintaxe dos JavaScripts dos dois pacotes e dos serviços alterados.
+- Testes automatizados dos serviços com banco simulado: loja fechada, validação de datas, itens, confirmação, bloqueio de preparo e autorização ADM.
+- Conversão do horário de Campo Maior e obrigatoriedade da data no agendamento.
+- Teste transacional no banco real, com rollback: proteção contra arquivamento, pagamento sem liberar preparo, liberação manual e ausência de atribuição antecipada ao entregador.
+- O navegador automatizado do ambiente não iniciou. Não foi possível validar visualmente as telas nesta execução.
+- A impressão física depende de teste com sua impressora Bluetooth.
+
+Os arquivos de suporte-agendamentos são uma cópia do código do servidor já instalado, para futuras manutenções.

@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-mouse-status-20261116';
+const CACHE = 'caseirao-agendamentos-v1-equipe-mouse-status-20261116';
 const APP_SHELL = [
   './css/orders-layout.css', './js/orders-layout.js',
   './css/appearance.css', './js/appearance.js',

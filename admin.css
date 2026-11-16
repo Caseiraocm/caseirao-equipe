@@ -393,3 +393,5 @@ body.teamApp{background:#0d0f12}
     touch-action:pan-y!important;
   }
 }
+
+.scheduleGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:16px;margin-top:18px}.scheduleCard{background:#fff;border:1px solid #e0e4e9;border-radius:18px;padding:20px;line-height:1.55;overflow-wrap:anywhere}.scheduleCard h2{font-size:22px;margin:4px 0}.scheduleCardTop{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}.scheduleState{background:#fff1d6;color:#855600;border-radius:9px;padding:6px 10px;font-size:12px;height:fit-content}.scheduleState.accepted{background:#e3f5e8;color:#146538}.scheduleItems{border-block:1px solid #edf0f4;margin:14px 0}.scheduleActions{display:flex;gap:8px;flex-wrap:wrap}.scheduleActions button{flex:1 1 140px;font-size:13px;padding:12px}.scheduleCard small{color:#635c4b}
