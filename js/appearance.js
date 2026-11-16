@@ -1,0 +1,31 @@
+/* Aparência local da Central ADM. Não acessa pedidos, pagamentos ou impressão. */
+(()=>{
+  'use strict';
+  const KEY='caseirao_adm_appearance_v1';
+  const fields=[['accent','Botões principais','#ffd23e'],['background','Fundo do painel','#f4f5f7'],['panel','Cards e painéis','#ffffff'],['menu','Menu lateral','#ffffff'],['column','Colunas de pedidos','#f0f1f2'],['whatsapp','Botão WhatsApp','#198553'],['bluetooth','Botão Bluetooth','#2c63c5']];
+  const defaults=Object.fromEntries(fields.map(([key,,color])=>[key,color]));
+  const presets={original:defaults,azul:{...defaults,accent:'#2563eb',background:'#f0f5fb',menu:'#172c49',column:'#e5edf7'},verde:{...defaults,accent:'#15805c',background:'#f0f7f3',menu:'#193d32',column:'#e3eee7'}};
+  const valid=value=>value&&typeof value==='object'&&fields.every(([key])=>typeof value[key]==='string'&&/^#[0-9a-f]{6}$/i.test(value[key]));
+  const copy=value=>Object.fromEntries(fields.map(([key])=>[key,value[key]]));
+  let saved=null,draft=null;
+  try{const value=JSON.parse(localStorage.getItem(KEY));if(valid(value))saved=copy(value)}catch(_){}
+  function ink(hex){const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.179?'#17212e':'#ffffff'}
+  function paint(node,palette){fields.forEach(([key])=>{node.style.setProperty('--ca-'+key,palette[key]);node.style.setProperty('--ca-'+key+'-ink',ink(palette[key]))})}
+  function apply(){const root=document.querySelector('.proAdmin');if(!root)return;root.classList.toggle('ca-custom',!!saved);if(saved)paint(root,saved);else fields.forEach(([key])=>{root.style.removeProperty('--ca-'+key);root.style.removeProperty('--ca-'+key+'-ink')})}
+  function draw(box){
+    if(!draft)draft=copy(saved||defaults);
+    box.innerHTML=`<section class="ca-settings"><header><span class="ca-eyebrow">DO SEU JEITO</span><h2>Aparência</h2><p>Escolha as cores da sua Central ADM. Confira a prévia e salve quando gostar.</p></header><div class="ca-layout"><div><div class="ca-presets" aria-label="Temas prontos"><button type="button" data-ca-preset="original">Caseirão claro</button><button type="button" data-ca-preset="azul">Azul</button><button type="button" data-ca-preset="verde">Verde</button></div><div class="ca-fields">${fields.map(([key,label])=>`<label class="ca-field"><span>${label}</span><input type="color" data-ca-color="${key}" aria-label="${label}" value="${draft[key]}"><output data-ca-value="${key}">${draft[key].toUpperCase()}</output></label>`).join('')}</div></div><aside><div class="ca-preview" aria-label="Prévia das cores"><div class="ca-preview-menu">CASEIRÃO <small>Menu administrativo</small></div><div class="ca-preview-main"><strong>Sua central de pedidos</strong><div class="ca-preview-column"><div class="ca-preview-card"><b>Pedido de exemplo</b><p>Veja como ficam seus cards e botões.</p><button type="button" class="ca-preview-accent" tabindex="-1">Botão principal</button><div class="ca-preview-actions"><span>WhatsApp</span><span>Bluetooth</span></div></div></div></div></div><p class="ca-note">A prévia é ilustrativa. As cores só entram no painel após salvar. Os textos dos botões se ajustam para manter a leitura.</p></aside></div><footer class="ca-actions"><button type="button" id="caSave">Salvar cores</button><button type="button" id="caDiscard">Descartar alterações</button><button type="button" id="caReset">Restaurar cores originais</button></footer><p class="ca-note">Preferências salvas somente neste navegador e aparelho. Os demais acessos mantêm suas próprias cores.</p><p id="caMessage" role="status" aria-live="polite"></p></section>`;
+    const preview=box.querySelector('.ca-preview');paint(preview,draft);
+    box.querySelectorAll('[data-ca-color]').forEach(input=>input.addEventListener('input',()=>{draft[input.dataset.caColor]=input.value;box.querySelector(`[data-ca-value="${input.dataset.caColor}"]`).textContent=input.value.toUpperCase();paint(preview,draft);box.querySelector('#caMessage').textContent='Prévia atualizada. Clique em Salvar cores para aplicar.'}));
+    box.querySelectorAll('[data-ca-preset]').forEach(button=>button.onclick=()=>{draft=copy(presets[button.dataset.caPreset]);draw(box)});
+    const message=text=>{box.querySelector('#caMessage').textContent=text};
+    box.querySelector('#caSave').onclick=()=>{try{localStorage.setItem(KEY,JSON.stringify(draft));saved=copy(draft);apply();message('Cores salvas e aplicadas neste aparelho.')}catch(_){message('Não foi possível salvar. Verifique se o navegador permite armazenamento local.')}};
+    box.querySelector('#caDiscard').onclick=()=>{draft=copy(saved||defaults);draw(box);message('Alterações descartadas.')} ;
+    box.querySelector('#caReset').onclick=()=>{try{localStorage.removeItem(KEY);saved=null;draft=copy(defaults);apply();draw(box);message('Visual original restaurado.')}catch(_){message('Não foi possível restaurar. Verifique o armazenamento do navegador.')}};
+  }
+  const previousTab=window.renderAdminTab;
+  window.renderAdminTab=function(...args){if(window.adminTab==='aparencia'){const box=document.querySelector('#admContent');if(box)draw(box);return}draft=null;return previousTab.apply(this,args)};
+  const previousRender=window.renderAdmin;
+  window.renderAdmin=function(...args){const result=previousRender.apply(this,args);const root=document.querySelector('.proAdmin'),nav=root?.querySelector('.proSidebar nav');if(nav&&!nav.querySelector('[data-ca-open]')){const group=document.createElement('section');group.className='proNavGroup';const button=document.createElement('button');button.type='button';button.className='proNavButton'+(window.adminTab==='aparencia'?' active':'');button.dataset.caOpen='';button.innerHTML='<span aria-hidden="true">◐</span><b>Aparência</b>';button.onclick=()=>{window.adminTab='aparencia';window.renderAdmin()};group.append(button);nav.append(group)}if(window.adminTab==='aparencia'){const title=root?.querySelector('.proPageTitle h1');if(title)title.textContent='Aparência'}apply();return result};
+  window.addEventListener('storage',event=>{if(event.key!==KEY&&event.key!==null)return;try{const value=JSON.parse(localStorage.getItem(KEY));saved=valid(value)?copy(value):null;apply()}catch(_){}});
+})();
