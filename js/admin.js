@@ -3,7 +3,7 @@
 function shiftOrders(){
   if(!admin?.open_shift)return [];
   const opened=Date.parse(admin.open_shift.opened_at||0);
-  return (admin.orders||[]).filter(o=>!o.archived_at&&(!opened||Date.parse(o.created_at)>=opened));
+  return (admin.orders||[]).filter(o=>!o.archived_at&&(o.shift_id===admin.open_shift.id||!opened||Date.parse(o.created_at)>=opened));
 }
 function orderPaymentConfirmed(o){
   return String(o?.payment||'').toLowerCase()!=='pix'||String(o?.payment_status||'').toLowerCase()==='confirmed';

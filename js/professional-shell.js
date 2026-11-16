@@ -2,7 +2,7 @@
 (()=>{
   'use strict';
   const sections=[
-    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
+    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade','★','Fidelidade'],['promocoes','🔥','Promoções']]},
     {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','↻','Histórico'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];

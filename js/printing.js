@@ -310,6 +310,7 @@ escposBytes=async function(o){
   const wrap=t=>wrapReceipt(stripAccents(String(t||'')),width);
   const pair=(label,value)=>{label=stripAccents(String(label));value=stripAccents(String(value));const room=width-label.length-value.length;return room>0?label+' '.repeat(room)+value:label+' '+value};
   const body=[];
+  if(o.scheduled_for)body.push("AGENDADO: "+new Date(o.scheduled_for).toLocaleString("pt-BR",{timeZone:"America/Fortaleza"}),["agendado","agendado_confirmado"].includes(o.status)?"RESERVA - NAO INICIAR PREPARO":"AGENDAMENTO LIBERADO",hr);
   body.push(hr,`CLIENTE: ${o.customer_name||''}`,`FONE: ${o.customer_phone||''}`,`TIPO: ${orderTypeLabel(o.type)}`);
   if(o.type==='delivery')body.push(hr,'ENDERECO:',...wrap(orderAddress(o)));
   body.push(hr,`PAGAMENTO: ${paymentLabel(o.payment)}`);if(o.change_for)body.push(`TROCO PARA: ${o.change_for}`);
