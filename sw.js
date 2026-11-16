@@ -1,10 +1,10 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-pedidos-organizados-20261116';
+const CACHE = 'caseirao-equipe-logo-jpg-20261116';
 const APP_SHELL = [
   './css/orders-layout.css', './js/orders-layout.js',
   './css/appearance.css', './js/appearance.js',
-  './css/premium-modelo2.css', './js/premium-modelo2.js', './assets/logo-caseirao.svg', './css/login-option2-fix.css', './css/central-pedidos-primeiro-v11.css', './css/pedido-selecionado-v13.css', './js/central-pedidos-primeiro-v11.js', './js/printing-auto-final-fix.js', './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './css/premium-modelo2.css', './js/premium-modelo2.js', './assets/logo-caseirao.jpg', './css/login-option2-fix.css', './css/central-pedidos-primeiro-v11.css', './css/pedido-selecionado-v13.css', './js/central-pedidos-primeiro-v11.js', './js/printing-auto-final-fix.js', './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './css/base.css', './css/admin.css', './css/premium-v52.css', './css/professional.css', './css/central-compacta.css', './css/owner-header.css', './css/caseirao-signature-60.css', './css/order-items-v7.css', './css/alertas-sonoros-v8.css',
   './js/config.js', './js/foundation.js', './js/admin.js', './js/tables.js', './js/team.js', './js/delivery.js',
   './js/operations.js', './js/management.js', './js/runtime-bridge.js', './js/printing.js', './js/admin-ui.js',
