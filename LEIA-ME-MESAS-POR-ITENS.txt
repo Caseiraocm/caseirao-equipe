@@ -1,0 +1,32 @@
+PAGAMENTO DA MESA POR ITENS — CASEIRÃO
+
+ATUALIZAÇÃO
+Substitua os arquivos do repositório do ADM pelo conteúdo da pasta caseirao-equipe-main deste ZIP, preservando as pastas.
+O cardápio do cliente não precisa ser atualizado novamente.
+A pasta suporte-agendamentos é só uma cópia do servidor para manutenção e não precisa subir ao GitHub.
+O servidor e o banco já foram atualizados. Não execute os SQLs de suporte novamente.
+Feche e abra o aplicativo após a publicação. Os aparelhos do atendimento também precisam carregar a nova versão.
+
+USO
+Abra uma mesa e toque em PAGAR POR ITENS / FECHAR.
+Use + e − para escolher as quantidades daquela pessoa. O total e o saldo restante são calculados na hora.
+Confira o recebimento, escolha Pix, dinheiro ou cartão e confirme.
+A baixa só é gravada depois da confirmação. Apenas selecionar não registra dinheiro recebido.
+Para dinheiro, informe o valor entregue e veja o troco.
+O Pix desta tela é registro de recebimento conferido pelo atendente; não gera cobrança automática.
+Os itens pagos ficam marcados PAGO e indisponíveis para novo pagamento.
+O histórico guarda itens, valores, forma, funcionário e horário.
+A mesa permanece aberta até quitar o saldo. O último pagamento libera a mesa.
+Ainda é possível lançar novos pedidos na mesa após um pagamento parcial.
+Depois de começar a pagar por itens, não edite nem cancele pedidos existentes; lance novo pedido para acrescentar consumo.
+Antes de qualquer pagamento por itens, a opção Dividir por valores mantém o fechamento anterior.
+
+SEGURANÇA DO RECEBIMENTO
+Se a conexão cair, use Conferir pagamento anterior. A mesma tentativa não registra outro recebimento.
+O servidor recalcula o valor e verifica se os itens continuam disponíveis. Dois aparelhos não podem pagar a mesma unidade duas vezes.
+
+VALIDAÇÃO
+Teste transacional no banco real, com rollback: um lanche + uma de três águas, saldo correto, quitação final, repetição segura, bloqueio de item pago e valor incorreto.
+Testes de autorização: atendimento e ADM permitidos, embalagem e acesso anônimo bloqueados.
+Verificação de cálculos de quantidades e centavos e sintaxe do JavaScript.
+O ambiente não conseguiu iniciar o navegador automatizado. As telas precisam de conferência visual no tablet.
