@@ -40,7 +40,7 @@
    parts.forEach((p,i)=>receipt({id:s.id+'-'+i,order:os.map(o=>o.order_number).join(' / '),kind:'receipt',method:method(p.method),amount:p.amount,at:s.closed_at,note:'Fechamento de mesa',source:'Mesa por valores'}));
   }
   const staffEntries=data.staff_entries||[],staffMembers=new Map((data.staff_members||[]).map(m=>[m.id,m.name])),staffIndex=new Map(staffEntries.map(e=>[e.id,e]));
-  let staffSales=0,staffGifts=0,staffBalance=0,staffCorrections=0,staffReceived=0;
+  let staffSales=0,staffGifts=0,staffBalance=0,staffCorrections=0,staffReceived=0,staffAdvances=0;const staffOutflows=[];
   for(const e of staffEntries){
    if(day(e.created_at)>end)continue;
    staffBalance+=Number(e.debt_delta_cents);
@@ -48,9 +48,10 @@
    const original=e.reverses_id?staffIndex.get(e.reverses_id):null,kind=original?.kind||e.kind,sign=e.kind==='reversal'?-1:1;
    if(kind==='charge'){staffSales+=sign*Number(e.amount_cents);const d=dailyRow(day(e.created_at));d.staffSales=(d.staffSales||0)+sign*Number(e.amount_cents);}
    if(kind==='gift')staffGifts+=sign*Number(e.amount_cents);
+   if(kind==='advance'){staffAdvances+=sign*Number(e.amount_cents);const d=dailyRow(day(e.created_at));d.staffAdvances=(d.staffAdvances||0)+sign*Number(e.amount_cents);staffOutflows.push({...e,member_name:staffMembers.get(e.member_id),signed_cents:sign*Number(e.amount_cents)});}
    if(kind==='payment'){
     staffReceived+=sign*Number(e.amount_cents);if(sign<0)staffCorrections+=Number(e.amount_cents);
-    receipt({id:e.id,order:staffMembers.get(e.member_id)||'Funcionário',kind:sign<0?'correction':'receipt',method:method(e.method),amount:Number(e.amount_cents),at:e.created_at,note:(sign<0?'Estorno de registro: ':'Pagamento de consumo: ')+(e.note||''),source:'Consumo de funcionário'});
+    receipt({id:e.id,order:staffMembers.get(e.member_id)||'Funcionário',kind:sign<0?'correction':'receipt',method:method(e.method),amount:Number(e.amount_cents),at:e.created_at,note:(sign<0?'Estorno de registro: ':'Pagamento da ficha: ')+(e.note||''),source:'Ficha de funcionário'});
    }
   }
   for(const o of orders){
@@ -72,7 +73,7 @@
   for(const r of dated){const key=r.method,v=byMethod[key]||(byMethod[key]={received:0,refunded:0});v[r.kind==='refund'?'refunded':'received']+=(r.kind==='correction'?-1:1)*r.amount;}
   const sum=(arr,field)=>arr.reduce((s,r)=>s+Number(r[field]||0),0);
   const result={start,end,generated_at:data.generated_at,sales,pending,receipts,issues,byMethod,daily:[...daily.values()].sort((a,b)=>a.day.localeCompare(b.day)),products:[...products.values()].sort((a,b)=>b.qty-a.qty),audit,cash:data.cash_movements||[],orders,
-   staffEntries:staffEntries,staffMembers:data.staff_members||[],totals:{staffSales,staffGifts,staffBalance,staffCorrections,staffReceived,sales:sum(sales,'value'),received:sum(dated.filter(r=>r.kind==='receipt'),'amount')-sum(dated.filter(r=>r.kind==='correction'),'amount'),refunded:sum(dated.filter(r=>r.kind==='refund'),'amount'),undated:undated.reduce((s,r)=>s+(r.kind==='refund'?-r.amount:r.amount),0),due:sum(sales,'due'),pending:sum(pending,'value'),cancelled:sum(orders.filter(o=>o.status==='cancelado'&&inRange(o.sale_date||o.created_at)).map(o=>({value:cents(o.total)})),'value'),delivery:sum(sales.map(o=>({value:cents(o.delivery_fee)-cents(o.delivery_discount)})),'value'),discounts:sum(sales.map(o=>({value:cents(o.discount)+cents(o.delivery_discount)})),'value'),cashback:sum(sales.map(o=>({value:cents(o.cashback_used)})),'value')}};
+   staffOutflows,staffEntries:staffEntries,staffMembers:data.staff_members||[],totals:{staffAdvances,staffSales,staffGifts,staffBalance,staffCorrections,staffReceived,sales:sum(sales,'value'),received:sum(dated.filter(r=>r.kind==='receipt'),'amount')-sum(dated.filter(r=>r.kind==='correction'),'amount'),refunded:sum(dated.filter(r=>r.kind==='refund'),'amount'),undated:undated.reduce((s,r)=>s+(r.kind==='refund'?-r.amount:r.amount),0),due:sum(sales,'due'),pending:sum(pending,'value'),cancelled:sum(orders.filter(o=>o.status==='cancelado'&&inRange(o.sale_date||o.created_at)).map(o=>({value:cents(o.total)})),'value'),delivery:sum(sales.map(o=>({value:cents(o.delivery_fee)-cents(o.delivery_discount)})),'value'),discounts:sum(sales.map(o=>({value:cents(o.discount)+cents(o.delivery_discount)})),'value'),cashback:sum(sales.map(o=>({value:cents(o.cashback_used)})),'value')}};
   return result;
  }
  const api={build,cents,day,csv,decimal,method};root.CaseiraoFinance=api;if(typeof module!=='undefined')module.exports=api;
