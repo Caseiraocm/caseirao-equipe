@@ -187,6 +187,16 @@
   }
   // Mantém o botão antigo Testar toque / Ativar alertas funcional.
   if(typeof playOrderSound==='function')playOrderSound=function(){play('novo')};
+  let pendingPaint=null;
+  const editedBoxes=new WeakSet();
+  document.addEventListener('input',event=>{
+    const box=event.target.closest?.('#admContent');
+    if(box&&event.target.id!=='orderSearch')editedBoxes.add(box);
+  },true);
+  function editingContent(box){
+    return editedBoxes.has(box)||box.contains(document.activeElement)&&document.activeElement.matches('input,select,textarea,[contenteditable="true"]')
+      ||Boolean(box.querySelector('details[open],button:disabled,.updating'));
+  }
   // Emita alertas apenas por transição real (nunca por re-renderização).
   if(typeof checkNewOrders==='function')checkNewOrders=async function(){
     if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;
@@ -194,6 +204,7 @@
     try{
       const old=new Map((admin?.orders||[]).map(o=>[String(o.id),String(o.status||'').toLowerCase()]));
       const fresh=await adminCall('snapshot'),orders=fresh.orders||[];
+      if(!sessionStorage.getItem('caseirao_admin_pin'))return;
       const newOrders=orders.filter(o=>!knownOrderIds.has(o.id));
       const changed=orders.filter(o=>old.has(String(o.id))&&old.get(String(o.id))!==String(o.status||'').toLowerCase());
       orders.forEach(o=>{knownOrderIds.add(o.id);knownOrderStatuses.set(String(o.id),String(o.status||'').toLowerCase())});
@@ -215,8 +226,17 @@
         }
       }
       const box=document.querySelector('#admContent');
-      if(box&&(newOrders.length||changed.length)){
-        if(adminTab==='pedidos')renderOrders(box);
+      const changedData=newOrders.length||changed.length;
+      if(pendingPaint&&(pendingPaint.box!==box||pendingPaint.tab!==adminTab))pendingPaint=null;
+      if(box&&(changedData||pendingPaint)){
+        if(editingContent(box)){pendingPaint={box,tab:adminTab};return;}
+        pendingPaint=null;
+        if(adminTab==='pedidos'){
+          const query=box.querySelector('#orderSearch')?.value||'';
+          renderOrders(box);
+          const search=box.querySelector('#orderSearch');
+          if(search&&query){search.value=query;search.dispatchEvent(new Event('input',{bubbles:true}));}
+        }
         else if(adminTab==='producao')renderKitchen(box);
         else if(adminTab==='caixa')renderCash(box);
         else if(adminTab==='mesas')await renderRemoteTables(box);

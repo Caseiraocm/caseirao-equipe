@@ -45,5 +45,5 @@ function tableSelectedCents(line,qty){return Math.floor(Number(line.total_cents)
   await load();
  }
  // Existing account buttons lead to the item checkout in both ADM and waiter access.
- new MutationObserver(()=>{for(const id of ['adminCloseRemote','employeeCloseTable']){const button=$('#'+id);if(button&&button.textContent!=='PAGAR POR ITENS / FECHAR')button.textContent='PAGAR POR ITENS / FECHAR';}}).observe(document.querySelector('#modal'),{childList:true,subtree:true});
+ new MutationObserver(()=>{for(const id of ['adminCloseRemote','employeeCloseTable']){const button=$('#'+id);if(button&&button.textContent!=='PAGAR POR ITENS / FECHAR')button.textContent='PAGAR POR ITENS / FECHAR';}}).observe(document.querySelector('#modalRoot'),{childList:true,subtree:true});
 })();

@@ -11,8 +11,23 @@ let audioCtx=null,orderWatcher=null,knownOrderIds=new Set(),knownOrderStatuses=n
 let btDevice=null,btWriteChar=null,btPrinterName='',deliveryPoll=null,driverWatch=null,driverWakeLock=null,driverGpsTimer=null,driverVisibilityHandler=null,driverSending=false;
 function unlockOrderSound(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume()}catch{}}
 function playOrderSound(){try{unlockOrderSound();if(audioCtx){const now=audioCtx.currentTime;[880,1175,880].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,now+i*.22);g.gain.exponentialRampToValueAtTime(.22,now+i*.22+.02);g.gain.exponentialRampToValueAtTime(.0001,now+i*.22+.18);o.connect(g);g.connect(audioCtx.destination);o.start(now+i*.22);o.stop(now+i*.22+.2)})}}catch{}try{navigator.vibrate?.([260,120,260])}catch{}}
-function showOrderToast(o){document.querySelector('.orderToast')?.remove();const t=document.createElement('div');t.className='orderToast';t.textContent=`🔔 NOVO PEDIDO #${o.order_number} • ${o.customer_name||'Cliente'} • ${fmt(o.total)}`;document.body.appendChild(t);setTimeout(()=>t.remove(),7000)}
-function showReadyToast(o){document.querySelector('.orderToast')?.remove();const t=document.createElement('div');t.className='orderToast readyToast';t.textContent=`✅ PEDIDO #${o.order_number} ESTÁ NO PONTO`;document.body.appendChild(t);setTimeout(()=>t.remove(),10000)}
+/* Avisos fora da raiz de telas: nunca substituem um formulário nem capturam cliques. */
+function showPassiveNotice(message,type='info',key=''){
+  let host=document.getElementById('caseiraoNotices');
+  if(!host){host=document.createElement('div');host.id='caseiraoNotices';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.setAttribute('aria-relevant','additions');document.body.appendChild(host)}
+  if(key&&[...host.children].some(item=>item.dataset.noticeKey===key))return;
+  const notice=document.createElement('div');notice.className='caseiraoNotice '+(type==='err'?'err':type==='ok'?'ok':'info');notice.dataset.noticeKey=key;notice.textContent=String(message||'Pronto.');
+  while(host.children.length>=3)host.firstElementChild.remove();
+  host.appendChild(notice);setTimeout(()=>notice.remove(),type==='err'?6500:5000);
+}
+function readyNoticeMessage(o){
+  const number=o.order_number||'—',type=typeof operationalOrderType==='function'?operationalOrderType(o):o.type;
+  const table=o.table_number||String(o.notes||'').match(/\[MESA\s*(\d+)\]/i)?.[1];
+  const destination=table?' · Mesa '+table:type==='counter'?' · Balcão':type==='pickup'?' · Retirada':type==='local'?' · Consumo no local':' · Entrega';
+  return '✅ Pedido #'+number+' pronto'+destination+'.';
+}
+function showOrderToast(o){showPassiveNotice('🔔 Novo pedido #'+o.order_number+' · '+(o.customer_name||'Cliente')+' · '+fmt(o.total),'info','new:'+o.id)}
+function showReadyToast(o){showPassiveNotice(readyNoticeMessage(o),'ok','ready:'+(o.id||o.order_number))}
 function startOrderWatcher(){if(orderWatcher)clearInterval(orderWatcher);knownOrderIds=new Set((admin?.orders||[]).map(o=>o.id));knownOrderStatuses=new Map((admin?.orders||[]).map(o=>[String(o.id),o.status]));orderWatcher=setInterval(checkNewOrders,5000)}
 async function checkNewOrders(){if(!sessionStorage.getItem('caseirao_admin_pin'))return;try{const fresh=await adminCall('snapshot');const novos=(fresh.orders||[]).filter(o=>!knownOrderIds.has(o.id)&&o.source!=='manual');const prontos=(fresh.orders||[]).filter(o=>o.status==='pronto'&&knownOrderStatuses.has(String(o.id))&&knownOrderStatuses.get(String(o.id))!=='pronto');(fresh.orders||[]).forEach(o=>{knownOrderIds.add(o.id);knownOrderStatuses.set(String(o.id),o.status)});admin=fresh;if(prontos.length){playOrderSound();showReadyToast(prontos[0])}else if(novos.length){playOrderSound();showOrderToast(novos[0])}const box=$('#admContent');if(box&&adminTab==='pedidos'&&(novos.length||prontos.length))renderOrders(box)}catch{}}
 const modalRoot=$('#modalRoot');

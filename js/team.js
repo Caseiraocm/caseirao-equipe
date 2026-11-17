@@ -134,15 +134,8 @@ function completedOrderMessage(order){
   if(type==='local')return `Atendimento do pedido #${number} finalizado.`;
   return `Pedido #${number} entregue por entregador.`;
 }
-function showReadyCentralAlert(order){
-  const id=String(order.id||order.order_number||''),message=`Pedido #${order.order_number||'—'} está no ponto.`;
-  document.querySelector(`.readyCentralAlert[data-ready-order="${CSS.escape(id)}"]`)?.remove();
-  const layer=document.createElement('div');layer.className='readyCentralAlert';layer.dataset.readyOrder=id;layer.setAttribute('role','alertdialog');layer.setAttribute('aria-modal','true');
-  layer.innerHTML=`<section class="readyCentralAlertCard"><div class="readyCentralAlertIcon">📦</div><div class="readyCentralAlertText"><b>PEDIDO NO PONTO!</b><span>${esc(message)} A despachante confirmou a embalagem.</span></div><button type="button" data-ready-ack>OK, VI</button></section>`;
-  document.body.appendChild(layer);layer.querySelector('[data-ready-ack]').onclick=()=>layer.remove();
-  try{navigator.vibrate?.([400,150,400,150,700])}catch{}
-  if('Notification'in window&&Notification.permission==='granted'){try{new Notification('Pedido no ponto • Caseirão',{body:message,tag:`caseirao-ready-${id}`,renotify:true,requireInteraction:true,vibrate:[400,150,700]})}catch{}}
-}
+function showReadyCentralAlert(order){showReadyToast(order)}
+
 checkNewOrders=async function(){
   if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;
   adminOrderSyncBusy=true;
@@ -311,5 +304,5 @@ if('serviceWorker' in navigator){
   const updateCaseiraoWorker=async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await registration.update();return registration}catch{return null}};
   window.addEventListener('load',()=>{sessionStorage.removeItem('caseirao_sw_reloading');updateCaseiraoWorker()});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCaseiraoWorker()});
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{const key='caseirao_sw_reloading';if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');location.reload()});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(modalRoot.firstElementChild){showAppToast('Atualização disponível. Reabra o aplicativo ao terminar o atendimento.');return;}const key='caseirao_sw_reloading';if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');location.reload()});
 }

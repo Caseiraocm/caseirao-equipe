@@ -353,7 +353,7 @@ renderLoyaltyAdmin=async function(box){
 /* CASEIRAO EXPERIENCE V1 — navegação, carrinho, instalação e avisos */
 let installPrompt=null,apiPending=0,apiTimer=null,lastCartCount=0;
 const nativeAlert=window.alert.bind(window);
-function showAppToast(message,type='info'){document.querySelector('.appToast')?.remove();const toast=document.createElement('div');toast.className=`appToast ${type}`;toast.setAttribute('role','status');toast.textContent=String(message||'Pronto.');document.body.appendChild(toast);setTimeout(()=>toast.remove(),type==='err'?5000:3200)}
+function showAppToast(message,type='info'){showPassiveNotice(message,type,String(message||''))}
 window.alert=message=>showAppToast(message,/erro|falha|não foi|inválid|indisponível/i.test(String(message))?'err':'ok');
 function setLoading(active){apiPending=Math.max(0,apiPending+(active?1:-1));clearTimeout(apiTimer);if(apiPending>0)apiTimer=setTimeout(()=>$('#loadingBar')?.classList.remove('hide'),220);else $('#loadingBar')?.classList.add('hide')}
 const apiOriginal=api;api=async function(slug,opts={}){setLoading(true);try{return await apiOriginal(slug,opts)}finally{setLoading(false)}};

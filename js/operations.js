@@ -285,22 +285,8 @@
     }catch{}
   };
   window.caseiraoSaveDeliveryNotification=saveAlert;
-  const centralAlert=message=>{
-    saveAlert(message);
-    document.querySelector('.deliveryCentralAlert')?.remove();
-    const layer=document.createElement('div');
-    layer.className='deliveryCentralAlert';
-    layer.setAttribute('role','alertdialog');
-    layer.setAttribute('aria-modal','true');
-    layer.innerHTML=`<section class="deliveryCentralAlertCard"><div class="deliveryCentralAlertHead"><div class="deliveryCentralAlertIcon">✓</div><div><b>Entrega concluída!</b><span>Confirmação recebida do entregador</span></div></div><div class="deliveryCentralAlertBody"><div class="deliveryCentralAlertMessage">${esc(message)}</div><div class="deliveryCentralAlertTime">Recebido às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div class="deliveryCentralAlertActions"><button class="primary" data-open-deliveries>ABRIR ENTREGAS</button><button class="secondary" data-ack-delivery>OK, ENTENDI</button></div></div></section>`;
-    document.body.appendChild(layer);
-    try{navigator.vibrate?.([300,120,300,120,500])}catch{}
-    if('Notification' in window&&Notification.permission==='granted'){
-      try{new Notification('Entrega concluída • Caseirão',{body:message,tag:'caseirao-central-'+message,renotify:true,requireInteraction:true,vibrate:[300,120,400]})}catch{}
-    }
-    layer.querySelector('[data-ack-delivery]').onclick=()=>layer.remove();
-    layer.querySelector('[data-open-deliveries]').onclick=()=>{layer.remove();adminTab='entregas';renderAdmin()};
-  };
+  const centralAlert=message=>{saveAlert(message);};
+
   showAppToast=function(message,type='info'){
     const isDelivery=/^Pedido #.+ entregue por .+\.$/i.test(String(message||''));
     if(isDelivery&&String(message)===lastDeliveryMessage&&Date.now()-lastDeliveryMessageAt<15000)return;
@@ -320,18 +306,7 @@
       :type==='pickup'
         ?{title:'Pedido retirado!',subtitle:'Pedido retirado pelo cliente'}
         :{title:'Atendimento finalizado!',subtitle:'Consumo no local concluído'};
-    document.querySelector('.operationalCompletionAlert')?.remove();
-    const layer=document.createElement('div');
-    layer.className='deliveryCentralAlert operationalCompletionAlert';
-    layer.setAttribute('role','alertdialog');
-    layer.setAttribute('aria-modal','true');
-    layer.innerHTML=`<section class="deliveryCentralAlertCard"><div class="deliveryCentralAlertHead"><div class="deliveryCentralAlertIcon">✓</div><div><b>${esc(copy.title)}</b><span>${esc(copy.subtitle)}</span></div></div><div class="deliveryCentralAlertBody"><div class="deliveryCentralAlertMessage">${esc(message)}</div><div class="deliveryCentralAlertTime">Finalizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div><div class="deliveryCentralAlertActions"><button class="secondary" data-ack-operation>OK, ENTENDI</button></div></div></section>`;
-    document.body.appendChild(layer);
-    layer.querySelector('[data-ack-operation]').onclick=()=>layer.remove();
-    try{navigator.vibrate?.([250,100,350])}catch{}
-    if('Notification'in window&&Notification.permission==='granted'){
-      try{new Notification(`${copy.title} • Caseirão`,{body:message,tag:`caseirao-operation-${order?.id||order?.order_number||Date.now()}`,renotify:true,requireInteraction:true,vibrate:[250,100,350]})}catch{}
-    }
+    showPassiveNotice(message||copy.title,'ok',String(message||copy.title));
   };
 })();
 
@@ -425,6 +400,7 @@
     document.querySelector('.deliveryNotificationLayer')?.remove();
     const loading=document.createElement('div');loading.className='deliveryNotificationLayer';loading.innerHTML='<aside class="deliveryNotificationPanel"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>Carregando histórico do banco...</span></div><button data-close-db-notifications>×</button></div></aside>';document.body.appendChild(loading);loading.querySelector('[data-close-db-notifications]').onclick=()=>loading.remove();
     try{await syncDbHistory()}catch(e){loading.querySelector('span').textContent='Falha ao carregar: '+(e.message||e);return}
+    if(!loading.isConnected)return;
     loading.remove();const history=dbHistory,layer=document.createElement('div');layer.className='deliveryNotificationLayer';
     layer.innerHTML=`<aside class="deliveryNotificationPanel" role="dialog" aria-modal="true"><div class="deliveryNotificationPanelHead"><div><h2>🔔 Entregas</h2><span>${history.length?`${history.length} notificações salvas no banco`:'Nenhuma notificação salva'}</span></div><button data-close-db-notifications>×</button></div><div class="deliveryNotificationList">${history.length?history.map(item=>`<article class="deliveryNotificationItem ${item.read?'':'unread'}"><div class="deliveryNotificationItemIcon">✓</div><div><b>${esc(item.message)}</b><time>${new Date(item.time).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</time></div><button class="deliveryNotificationDelete" data-db-delete="${esc(item.id)}" aria-label="Apagar esta notificação">🗑</button></article>`).join(''):'<div class="deliveryNotificationEmpty"><b>Nenhuma entrega notificada</b>As próximas confirmações ficarão salvas aqui.</div>'}</div>${history.length?'<div class="deliveryNotificationFooter"><button data-db-clear>APAGAR TODO O HISTÓRICO</button></div>':''}</aside>`;document.body.appendChild(layer);
     const unread=history.filter(item=>!item.read).map(item=>item.id);if(unread.length){notificationAdminApi('admin_read_notifications',{ids:unread}).then(()=>{dbHistory=dbHistory.map(item=>({...item,read:true}));updateDbBadge()}).catch(()=>{})}
