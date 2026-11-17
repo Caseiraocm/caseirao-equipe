@@ -1,0 +1,51 @@
+CENTRAL CASEIRÃO — EDITAR / REMOVER ITENS — 17/11/2026
+
+Instalação:
+Extraia o ZIP e publique o conteúdo da pasta caseirao-equipe-main no lugar
+dos arquivos atuais do ADM. Feche e reabra o app depois da publicação.
+A função do servidor e a atualização do banco JÁ FORAM aplicadas.
+Não é preciso executar os arquivos da pasta suporte-agendamentos.
+
+Como usar:
+1. No cartão do pedido, toque em EDITAR / REMOVER ITENS.
+2. Use − para reduzir de duas unidades para uma, por exemplo.
+3. Use Remover para retirar a linha inteira; + restaura até a quantidade original.
+4. Confira o novo total e toque SALVAR ALTERAÇÕES.
+5. Se precisar da comanda atualizada na cozinha, reimprima após salvar.
+
+Regras:
+- O cálculo usa os valores e adicionais originais do pedido.
+- O frete e seu desconto são mantidos.
+- Descontos já concedidos são mantidos até o limite do novo subtotal.
+- Cashback usado é limitado ao novo valor; eventual excesso volta ao saldo.
+- Para aumentar quantidades ou incluir produtos, use Adicionar itens.
+- Para tirar todos os itens, use Cancelar pedido.
+- Pedidos finalizados/arquivados e mesas com pagamentos por itens registrados
+  não podem ter os valores reduzidos.
+- Pix automático gerado e ainda em aberto exige cancelar a cobrança antes
+  da redução, evitando pagamento pelo QR antigo com valor incorreto.
+- Pagamento confirmado: o sistema desconta primeiro complementos ainda
+  pendentes e registra a diferença paga a mais como DEVOLUÇÃO PENDENTE.
+- A devolução financeira deve ser realizada por você. Depois de conferir,
+  use CONFIRMAR DEVOLUÇÃO REALIZADA. O botão apenas registra a devolução;
+  não envia dinheiro nem solicita estorno ao banco.
+- Alterações são registradas em auditoria. Duas edições concorrentes não
+  sobrescrevem uma à outra. Uma tentativa interrompida pode ser consultada
+  novamente usando o mesmo identificador.
+
+Mantido:
+Agendamentos, pagamento de mesa por itens, Bluetooth e avisos passivos.
+
+Validação concluída:
+- Rotinas de banco testadas em transações desfeitas ao final, sem conservar
+  pedidos, clientes ou pagamentos de teste.
+- Reduzir quantidade, remover linha e seus adicionais, conservar adicionais
+  da linha restante, frete, descontos, cashback, Pix pago e pendente.
+- Repetição de envio, versão concorrente, remoção total rejeitada, proteção
+  de mesa paga e permissões restritas às funções internas.
+- Interface e autenticação da função do servidor testadas em ambiente
+  simulado; rotas antigas de adicionar itens preservadas.
+- Atualização entre aparelhos detecta itens/total mesmo sem mudar o status.
+- Testes anteriores de avisos passivos executados novamente.
+- O navegador de teste não está disponível neste ambiente; confira a
+  disposição dos botões no tablet após publicar.

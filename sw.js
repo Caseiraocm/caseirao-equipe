@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'caseirao-avisos-passivos-20261117-v1';
+const CACHE = 'caseirao-editar-itens-20261117-v2';
 const APP_SHELL = [
   './js/agendamentos.js', './js/mesa-pagar-itens.js',
   './css/orders-layout.css', './js/orders-layout.js',
