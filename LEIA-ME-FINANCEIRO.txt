@@ -1,0 +1,57 @@
+CASEIRÃO — RELATÓRIOS E ALTERAÇÃO DE PAGAMENTO
+Versão: 17/11/2026
+
+INSTALAÇÃO
+Substitua os arquivos da Central ADM pelos desta pasta, mantendo a estrutura.
+O banco e a função de atendimento financeiro já foram preparados no Supabase do Caseirão.
+Não execute novamente os arquivos de suporte-financeiro: são uma cópia técnica do que já foi aplicado.
+Após publicar a Central, feche e reabra o aplicativo com internet para atualizar os arquivos em cache.
+Esta entrega é a Central ADM; não substitua o cardápio do cliente por estes arquivos.
+
+NA COMANDA
+Abra o pedido e toque em “Pagamento · Alterar / conferir”.
+Escolha Pix, Dinheiro, Cartão de débito ou Cartão de crédito.
+Informe o motivo e, em dinheiro, o valor para troco se necessário.
+Salvar a modalidade NÃO confirma o recebimento. Confirme somente depois de conferir que o cliente pagou.
+As mudanças guardam modalidade anterior, nova modalidade, horário e identificação “Central ADM” (acesso por PIN compartilhado).
+Pedidos de mesa continuam usando o fechamento da própria mesa, preservando a divisão por itens e valores.
+
+PAGAMENTO CONFIRMADO
+Uma modalidade com recebimento confirmado não é apagada por uma troca.
+Se o cliente já recebeu uma devolução integral, registre a devolução real com o motivo; depois altere a modalidade.
+O sistema registra a devolução, mas não transfere dinheiro nem solicita estorno ao provedor automaticamente.
+Pagamentos de QR Pix antigo continuam vinculados ao pedido: se forem confirmados depois da troca, entram como Pix e geram aviso para conferência.
+Um complemento por acréscimo de itens é registrado apenas pelo saldo devido. Devoluções parciais por remoção de itens continuam sinalizadas para conferência; esta tela registra devolução integral.
+
+RELATÓRIOS
+Menu Relatórios: escolha Hoje, Este mês ou datas inicial/final (até 366 dias).
+- Vendas finalizadas: pedidos com status Finalizado/entregue; exclui cancelados, em andamento e agendamentos aguardando atendimento.
+- Data de vendas: criação original do pedido; em agendamentos liberados, data de liberação.
+- Recebimentos: pagamentos confirmados com data no período, incluindo antecipações e pagamentos de pedidos de outros períodos.
+- Devoluções: somente devoluções registradas como efetivamente realizadas.
+- Saldo das vendas: valores ainda a receber até a data final. Registros antigos confirmados sem data são identificados separadamente.
+- Recebimentos das mesas por itens entram uma única vez, nas modalidades efetivamente usadas.
+- Fechamentos antigos por valores usam detalhamento registrado ou identificam a ausência de detalhamento.
+- As listas também incluem pedidos de outras datas vinculados aos recebimentos do período.
+
+BAIXAR
+CSV: resumo/dias/modalidades, pedidos, recebimentos/devoluções, itens, alterações e movimentos de caixa.
+Os CSVs usam ponto e vírgula, vírgula decimal e codificação UTF-8, adequados para importar no Excel.
+Imprimir / Salvar em PDF abre uma versão com resumo, dias, conferências, pedidos e recebimentos. No diálogo de impressão do aparelho, escolha Salvar como PDF.
+
+DADOS ANTIGOS E CONFERÊNCIA
+Não foram inventadas datas de pagamentos antigos. Os confirmados sem data exata aparecem destacados e não entram no total de recebimentos por data.
+Pedidos antigos em dinheiro/cartão marcados somente como “pagar na entrega” não são presumidos recebidos.
+Cancelados pagos sem devolução registrada e valores excedentes ficam destacados para conferência.
+O relatório é gerencial. Não envia declaração nem notas fiscais e não calcula o imposto mensal.
+Recebimento de cartão confirmado é o valor pago pelo cliente; não representa o depósito líquido da adquirente. Taxas, prazos e depósitos devem ser conferidos com os extratos.
+Os movimentos de caixa ficam em exportação separada e não são somados ao faturamento.
+
+VALIDAÇÃO
+- Sintaxe de todos os arquivos JavaScript verificada.
+- 15 cenários do cálculo financeiro verificados.
+- Fluxos JavaScript da interface verificados com simulação de dados e API.
+- Banco: troca sem confirmação indevida, recebimento único, bloqueio de troca paga, devolução e Pix tardio repetido verificados em transações revertidas.
+- Relatório real de novembro consultado com 511 pedidos na verificação inicial.
+- Tabela financeira e funções protegidas contra acesso público e de clientes comuns.
+- O navegador de teste local não pôde ser iniciado pelo ambiente; a aparência e a impressão no tablet não foram verificadas visualmente nesta execução.

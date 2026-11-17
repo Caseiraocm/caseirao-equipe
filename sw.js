@@ -1,7 +1,8 @@
 'use strict';
 
-const CACHE = 'caseirao-editar-itens-20261117-v2';
+const CACHE = 'caseirao-financeiro-20261117-v1';
 const APP_SHELL = [
+  './js/finance-core.js', './js/finance-ui.js', './css/finance.css',
   './js/agendamentos.js', './js/mesa-pagar-itens.js',
   './css/orders-layout.css', './js/orders-layout.js',
   './css/appearance.css', './js/appearance.js',
