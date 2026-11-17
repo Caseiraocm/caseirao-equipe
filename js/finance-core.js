@@ -54,6 +54,12 @@
     receipt({id:e.id,order:staffMembers.get(e.member_id)||'Funcionário',kind:sign<0?'correction':'receipt',method:method(e.method),amount:Number(e.amount_cents),at:e.created_at,note:(sign<0?'Estorno de registro: ':'Pagamento da ficha: ')+(e.note||''),source:'Ficha de funcionário'});
    }
   }
+  const payrollReceipts=data.payroll_receipts||[],payrollOutflows=[];let staffPayrollOutflow=0,staffPayrollOffsets=0,staffPayrollCorrections=0;
+  for(const r of payrollReceipts){
+   const paidAt=r.paid_on+'T12:00:00-03:00';
+   if(inRange(paidAt)){staffPayrollOutflow+=Number(r.net_cents);staffPayrollOffsets+=Number(r.staff_discount_cents);const d=dailyRow(day(paidAt));d.staffPayroll=(d.staffPayroll||0)+Number(r.net_cents);payrollOutflows.push({...r,signed_cents:Number(r.net_cents),event_at:paidAt,event_label:'Pagamento ao funcionário'});}
+   if(r.cancellation&&inRange(r.cancellation.created_at)){staffPayrollOutflow-=Number(r.net_cents);staffPayrollOffsets-=Number(r.staff_discount_cents);staffPayrollCorrections+=Number(r.net_cents);const d=dailyRow(day(r.cancellation.created_at));d.staffPayroll=(d.staffPayroll||0)-Number(r.net_cents);payrollOutflows.push({...r,signed_cents:-Number(r.net_cents),event_at:r.cancellation.created_at,event_label:'Correção de registro de pagamento'});}
+  }
   for(const o of orders){
    const saleDate=o.sale_date||o.scheduled_released_at||o.created_at;if(!inRange(saleDate))continue;
    const value=cents(o.total),paid=net.get(o.id)||0;
@@ -73,7 +79,7 @@
   for(const r of dated){const key=r.method,v=byMethod[key]||(byMethod[key]={received:0,refunded:0});v[r.kind==='refund'?'refunded':'received']+=(r.kind==='correction'?-1:1)*r.amount;}
   const sum=(arr,field)=>arr.reduce((s,r)=>s+Number(r[field]||0),0);
   const result={start,end,generated_at:data.generated_at,sales,pending,receipts,issues,byMethod,daily:[...daily.values()].sort((a,b)=>a.day.localeCompare(b.day)),products:[...products.values()].sort((a,b)=>b.qty-a.qty),audit,cash:data.cash_movements||[],orders,
-   staffOutflows,staffEntries:staffEntries,staffMembers:data.staff_members||[],totals:{staffAdvances,staffSales,staffGifts,staffBalance,staffCorrections,staffReceived,sales:sum(sales,'value'),received:sum(dated.filter(r=>r.kind==='receipt'),'amount')-sum(dated.filter(r=>r.kind==='correction'),'amount'),refunded:sum(dated.filter(r=>r.kind==='refund'),'amount'),undated:undated.reduce((s,r)=>s+(r.kind==='refund'?-r.amount:r.amount),0),due:sum(sales,'due'),pending:sum(pending,'value'),cancelled:sum(orders.filter(o=>o.status==='cancelado'&&inRange(o.sale_date||o.created_at)).map(o=>({value:cents(o.total)})),'value'),delivery:sum(sales.map(o=>({value:cents(o.delivery_fee)-cents(o.delivery_discount)})),'value'),discounts:sum(sales.map(o=>({value:cents(o.discount)+cents(o.delivery_discount)})),'value'),cashback:sum(sales.map(o=>({value:cents(o.cashback_used)})),'value')}};
+   payrollReceipts,payrollOutflows,staffOutflows,staffEntries:staffEntries,staffMembers:data.staff_members||[],totals:{staffPayrollOutflow,staffPayrollOffsets,staffPayrollCorrections,staffAdvances,staffSales,staffGifts,staffBalance,staffCorrections,staffReceived,sales:sum(sales,'value'),received:sum(dated.filter(r=>r.kind==='receipt'),'amount')-sum(dated.filter(r=>r.kind==='correction'),'amount'),refunded:sum(dated.filter(r=>r.kind==='refund'),'amount'),undated:undated.reduce((s,r)=>s+(r.kind==='refund'?-r.amount:r.amount),0),due:sum(sales,'due'),pending:sum(pending,'value'),cancelled:sum(orders.filter(o=>o.status==='cancelado'&&inRange(o.sale_date||o.created_at)).map(o=>({value:cents(o.total)})),'value'),delivery:sum(sales.map(o=>({value:cents(o.delivery_fee)-cents(o.delivery_discount)})),'value'),discounts:sum(sales.map(o=>({value:cents(o.discount)+cents(o.delivery_discount)})),'value'),cashback:sum(sales.map(o=>({value:cents(o.cashback_used)})),'value')}};
   return result;
  }
  const api={build,cents,day,csv,decimal,method};root.CaseiraoFinance=api;if(typeof module!=='undefined')module.exports=api;
