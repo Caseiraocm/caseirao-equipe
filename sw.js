@@ -1,7 +1,8 @@
 'use strict';
 
-const CACHE = 'caseirao-mesas-itens-v1-equipe-mouse-status-20261116';
+const CACHE = 'caseirao-avisos-passivos-20261117-v1';
 const APP_SHELL = [
+  './js/agendamentos.js', './js/mesa-pagar-itens.js',
   './css/orders-layout.css', './js/orders-layout.js',
   './css/appearance.css', './js/appearance.js',
   './css/premium-modelo2.css', './js/premium-modelo2.js', './assets/logo-caseirao.jpg', './css/login-option2-fix.css', './css/central-pedidos-primeiro-v11.css', './css/pedido-selecionado-v13.css', './js/central-pedidos-primeiro-v11.js', './js/printing-auto-final-fix.js', './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',

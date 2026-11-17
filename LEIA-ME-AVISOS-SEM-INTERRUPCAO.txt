@@ -1,0 +1,43 @@
+CENTRAL CASEIRÃO — 17/11/2026
+
+Esta versão parte de Caseirao-ADM-Mesas-Por-Itens.zip.
+
+O que foi corrigido:
+- Avisos de pedido pronto, confirmação do entregador e finalização de balcão,
+  retirada ou mesa agora aparecem no canto da tela e somem em 5 segundos.
+- Os avisos não exigem OK, não abrem telas e não interceptam mouse/toque.
+- Sons e voz continuam seguindo a configuração existente.
+- Eventos iguais não geram dois avisos visuais simultâneos.
+- A sincronização continua recebendo pedidos, mas aguarda para redesenhar
+  o painel enquanto um campo está em edição, um cartão está aberto ou
+  há uma ação em processamento.
+- Rascunhos alterados no painel são preservados mesmo após sair do campo.
+  Para renovar a visualização depois de abandonar um rascunho, use Atualizar.
+- O texto da busca é mantido ao atualizar automaticamente os pedidos.
+- Corrigido erro na inicialização do observador de pagamento por itens.
+- Atualizações do aplicativo não recarregam uma tela de atendimento aberta.
+- Incluídos os módulos de agendamentos e pagamento por itens no cache do app.
+
+COMO COLOCAR NO AR
+Extraia o ZIP e substitua os arquivos do ADM pelo conteúdo da pasta
+caseirao-equipe-main. A pasta contém index.html, js, css e os demais arquivos.
+Depois da publicação, feche e reabra o aplicativo para receber a versão nova.
+Esta entrega não altera automaticamente o site publicado.
+
+VALIDAÇÃO
+- Sintaxe verificada nos 24 scripts usados por index.html e no service worker.
+- Referências locais de index.html verificadas.
+- Testes de lógica com DOM simulado: avisos passivos e expiração, duplicação,
+  preservação de foco/texto, rascunho após perder foco, atualização adiada de
+  cartão aberto e preservação da tela de pagamento por itens.
+- Não foi possível executar o navegador de teste neste ambiente.
+- Impressão Bluetooth, voz no Android e integrações reais precisam ser
+  conferidas no tablet. Nenhum pedido ou pagamento real foi criado nos testes.
+
+TESTE RÁPIDO NO TABLET
+1. Abra um formulário e digite um rascunho sem salvar.
+2. Em outro aparelho, marque um pedido como pronto.
+3. Confira que o aviso aparece e some sem fechar o formulário.
+4. Repita com uma confirmação do entregador.
+5. Na tela de pagar por itens, selecione produtos e confira que a seleção
+   permanece após a chegada de um aviso.
