@@ -4,7 +4,7 @@
   const sections=[
     {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade','★','Fidelidade'],['promocoes','🔥','Promoções']]},
-    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
+    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['consumo','▤','Consumo funcionários'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const paymentKey=value=>{const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(key.includes('pix'))return'pix';if(key.includes('dinheiro'))return'dinheiro';if(key.includes('cartao')||key.includes('credito')||key.includes('debito'))return'cartao';return''};
