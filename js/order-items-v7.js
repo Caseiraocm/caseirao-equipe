@@ -110,6 +110,101 @@
     };
   }
 
+
+  function reducedTotals(order,quantities){
+    const sub=(order.order_items||[]).reduce((sum,item)=>sum+Math.round(Math.round(Number(item.line_total||0)*100)*(quantities.get(String(item.id))||0)/Number(item.quantity)),0);
+    const cents=n=>Math.round(Number(n||0)*100);
+    const discount=Math.min(cents(order.discount),sub),fee=cents(order.delivery_fee),deliveryDiscount=cents(order.delivery_discount);
+    const cashback=Math.min(cents(order.cashback_used),Math.max(0,sub-discount+fee-deliveryDiscount));
+    const total=Math.max(0,sub-discount+fee-deliveryDiscount-cashback),reduced=cents(order.total)-total;
+    return {subtotal:sub/100,discount:discount/100,cashback:cashback/100,total:total/100,
+      refund:order.payment_status==='confirmed'?Math.max(0,reduced-cents(order.additional_payment_due))/100:0,
+      cashbackReturned:(cents(order.cashback_used)-cashback)/100};
+  }
+  const reduceStorage=id=>'caseirao_reduce_items_'+id;
+  async function itemRequest(body){
+    return api('caseirao-order-items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      ...body,pin:sessionStorage.getItem('caseirao_admin_pin')||''
+    })});
+  }
+  function openReduceItems(order){
+    if(!order||order.archived_at||['cancelado','entregue'].includes(order.status))return showAppToast('Este pedido já foi finalizado.','err');
+    const items=order.order_items||[],quantities=new Map(items.map(i=>[String(i.id),Number(i.quantity)]));
+    let attempt=null,busy=false,finished=false;
+    try{attempt=JSON.parse(sessionStorage.getItem(reduceStorage(order.id))||'null')}catch{}
+    if(attempt)for(const item of attempt.items)quantities.set(String(item.item_id),Number(item.qty));
+    modal(`<div class="sheeth"><div><h2>Editar itens · #${esc(order.order_number)}</h2><div class="adminSub">Diminuir quantidade ou remover da comanda</div></div><button class="x" id="backReduceItems" aria-label="Voltar">×</button></div>
+      <p class="caseiraoAddHint">Os preços e adicionais originais são preservados. Descontos já concedidos são mantidos até o limite do novo valor; o frete permanece. Para acrescentar produtos, use “Adicionar itens”.</p>
+      <div class="caseiraoReduceList">${items.map((i,index)=>`<article class="caseiraoReduceRow" data-reduce-row="${index}"><div><b>${esc(i.product_name)}</b><small>${(i.order_item_addons||[]).map(a=>'+ '+esc(a.addon_name)).join(' · ')}${i.note?'<br>Obs.: '+esc(i.note):''}</small><strong data-reduce-price="${index}">${fmt(i.line_total)}</strong></div><div class="caseiraoReduceControls"><button type="button" data-reduce-step="-1" data-index="${index}" aria-label="Diminuir ${esc(i.product_name)}">−</button><b data-reduce-qty="${index}">${Number(i.quantity)}</b><button type="button" data-reduce-step="1" data-index="${index}" aria-label="Restaurar unidade de ${esc(i.product_name)}">+</button><button type="button" data-reduce-remove="${index}" class="caseiraoRemoveLine">Remover</button></div></article>`).join('')}</div>
+      <div class="caseiraoAddSummary"><span>Total anterior <b>${fmt(order.total)}</b></span><span>Novo total <b id="reducedOrderTotal"></b></span><span>Redução <b id="reducedOrderDifference"></b></span></div>
+      <div id="reducedRefundNotice" class="caseiraoNewPixNotice" hidden></div><div id="reduceFeedback" role="status"></div>
+      <button type="button" id="saveReducedItems" class="primary">SALVAR ALTERAÇÕES</button>`,true);
+    const root=$('#saveReducedItems').closest('.sheet'),save=$('#saveReducedItems');
+    const controls=root.querySelectorAll('[data-reduce-step],[data-reduce-remove]');
+    const feedback=$('#reduceFeedback');
+    const draw=()=>{
+      const totals=reducedTotals(order,quantities),changed=items.some(i=>quantities.get(String(i.id))!==Number(i.quantity)),remaining=[...quantities.values()].reduce((a,b)=>a+b,0);
+      $('#reducedOrderTotal').textContent=fmt(totals.total);
+      $('#reducedOrderDifference').textContent=fmt(Number(order.total)-totals.total);
+      items.forEach((i,index)=>{
+        const q=quantities.get(String(i.id))||0;
+        root.querySelector('[data-reduce-qty="'+index+'"]').textContent=q;
+        root.querySelector('[data-reduce-price="'+index+'"]').textContent=q?fmt(Math.round(Number(i.line_total)*100*q/Number(i.quantity))/100):'Será removido';
+        root.querySelector('[data-reduce-row="'+index+'"]').classList.toggle('removed',q===0);
+      });
+      const notice=$('#reducedRefundNotice'),parts=[];
+      if(totals.refund>0)parts.push('Pagamento já confirmado: '+fmt(totals.refund)+' a devolver ao cliente. O sistema não faz estorno automático.');
+      if(totals.cashbackReturned>0)parts.push(fmt(totals.cashbackReturned)+' de cashback será devolvido ao saldo do cliente.');
+      notice.hidden=!parts.length;notice.textContent=parts.join(' ');
+      controls.forEach(b=>{
+        const index=Number(b.dataset.index??b.dataset.reduceRemove),q=quantities.get(String(items[index].id))||0;
+        b.disabled=busy||!!attempt||finished||(b.dataset.reduceStep==='1'?q>=Number(items[index].quantity):q===0);
+      });
+      save.disabled=busy||finished||(!attempt&&(!changed||remaining===0));
+      save.textContent=finished?'ALTERAÇÃO SALVA':busy?'SALVANDO…':attempt?'CONFERIR ALTERAÇÃO ANTERIOR':'SALVAR ALTERAÇÕES';
+      if(!remaining&&!attempt)feedback.textContent='Para remover todos os itens, use Cancelar pedido.';
+    };
+    $('#backReduceItems').onclick=()=>{if(!busy)renderAdmin()};
+    controls.forEach(button=>button.onclick=()=>{
+      const index=Number(button.dataset.index??button.dataset.reduceRemove),item=items[index],id=String(item.id);
+      quantities.set(id,button.hasAttribute('data-reduce-remove')?0:Math.max(0,Math.min(Number(item.quantity),(quantities.get(id)||0)+Number(button.dataset.reduceStep))));
+      feedback.textContent='';draw();
+    });
+    save.onclick=async()=>{
+      if(busy||finished)return;
+      if(!attempt){
+        attempt={action:'reduce',order_id:order.id,request_id:crypto.randomUUID(),expected_updated_at:order.updated_at,
+          items:items.map(i=>({item_id:i.id,qty:quantities.get(String(i.id))||0}))};
+        try{sessionStorage.setItem(reduceStorage(order.id),JSON.stringify(attempt))}catch{attempt=null;feedback.textContent='Não foi possível preservar esta tentativa. Verifique o armazenamento do navegador.';return}
+      }
+      busy=true;draw();feedback.textContent='';
+      let result;
+      try{result=await itemRequest(attempt)}
+      catch(error){
+        busy=false;
+        if(error.httpStatus&&error.httpStatus<500){sessionStorage.removeItem(reduceStorage(order.id));attempt=null}
+        feedback.textContent=(error.message||String(error))+(!attempt?'':' Use “Conferir alteração anterior” para consultar a mesma tentativa sem repetir a redução.');
+        draw();return;
+      }
+      sessionStorage.removeItem(reduceStorage(order.id));finished=true;busy=false;draw();
+      try{
+        admin=await adminCall('snapshot',{},false);renderAdmin();
+        showAppToast('Itens atualizados. Novo total: '+fmt(result.total)+(Number(result.item_refund_due)>0?' · Devolver '+fmt(result.item_refund_due)+' ao cliente.':''),'ok');
+      }catch{
+        feedback.textContent='Alteração SALVA. Novo total '+fmt(result.total)+'. Volte à Central e use Atualizar para renovar a lista.';
+      }
+    };
+    draw();
+  }
+  async function acknowledgeRefund(order){
+    const amount=Number(order.item_refund_due||0);
+    if(!amount||!confirm('Você já devolveu '+fmt(amount)+' ao cliente do pedido #'+order.order_number+'? Confirme somente depois de conferir a devolução. Este botão apenas registra o estorno já realizado.'))return;
+    try{
+      await itemRequest({action:'ack_refund',order_id:order.id,request_id:crypto.randomUUID(),expected_refund:amount});
+      admin=await adminCall('snapshot',{},false);renderAdmin();showAppToast('Devolução registrada.','ok');
+    }catch(e){showAppToast(e.message||String(e),'err')}
+  }
+
   async function settleExtra(order) {
     const due = Number(order.additional_payment_due || 0);
     if (!due) return;
@@ -137,6 +232,9 @@
       if (button.textContent !== '+ ADICIONAR ITENS AO PEDIDO')
         button.textContent = '+ ADICIONAR ITENS AO PEDIDO';
       button.onclick = () => openOrderItems(order);
+      let edit=card.querySelector('.caseiraoReduceOrder');
+      if(!edit){edit=document.createElement('button');edit.type='button';edit.className='caseiraoReduceOrder';edit.textContent='✎ EDITAR / REMOVER ITENS';button.insertAdjacentElement('afterend',edit)}
+      edit.onclick=()=>openReduceItems(order);
       const due = Number(order.additional_payment_due || 0);
       if (due > 0) {
         if (!card.querySelector('.caseiraoPixExtraPending')) {
@@ -152,13 +250,24 @@
       }
     });
   };
+  const decorateRefunds=box=>{
+    (admin?.orders||[]).filter(o=>Number(o.item_refund_due)>0).forEach(order=>{
+      const marker=box?.querySelector('[data-oid="'+CSS.escape(String(order.id))+'"]'),card=marker?.closest('.orderDetailed');
+      if(!card)return;
+      let notice=card.querySelector('.caseiraoItemRefund');
+      if(!notice){notice=document.createElement('div');notice.className='caseiraoItemRefund caseiraoPixExtraPending';card.querySelector('.orderSummary')?.insertAdjacentElement('afterend',notice)}
+      const label='DEVOLUÇÃO PENDENTE: '+fmt(order.item_refund_due);
+      if(notice.querySelector('b')?.textContent!==label){notice.innerHTML='<b>'+esc(label)+'</b><span>Itens reduzidos após o pagamento. Devolva a diferença ao cliente.</span><button type="button" class="caseiraoSettleExtra">CONFIRMAR DEVOLUÇÃO REALIZADA</button>';}
+      notice.querySelector('button').onclick=()=>acknowledgeRefund(order);
+    });
+  };
   renderOrders = function (box) {
     const result = oldRenderOrders(box);
-    decorateOrderCards(box);
+    decorateOrderCards(box);decorateRefunds(box);
     // O filtro e a busca refazem as listas sem chamar renderOrders: observar mudanças
     // preserva a ação "Adicionar itens" mesmo após pesquisar/filtrar pedidos.
     if (box && !box.caseiraoOrdersObserver) {
-      box.caseiraoOrdersObserver = new MutationObserver(() => decorateOrderCards(box));
+      box.caseiraoOrdersObserver = new MutationObserver(() => {decorateOrderCards(box);decorateRefunds(box)});
       box.caseiraoOrdersObserver.observe(box, { childList: true, subtree: true });
     }
     return result;

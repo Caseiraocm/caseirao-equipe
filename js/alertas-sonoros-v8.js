@@ -195,18 +195,21 @@
   },true);
   function editingContent(box){
     return editedBoxes.has(box)||box.contains(document.activeElement)&&document.activeElement.matches('input,select,textarea,[contenteditable="true"]')
-      ||Boolean(box.querySelector('details[open],button:disabled,.updating'));
+      ||Boolean(box.querySelector('details[open],[aria-busy="true"],.adminActionLoading,.updating'));
   }
   // Emita alertas apenas por transição real (nunca por re-renderização).
   if(typeof checkNewOrders==='function')checkNewOrders=async function(){
     if(adminOrderSyncBusy||!sessionStorage.getItem('caseirao_admin_pin'))return;
     adminOrderSyncBusy=true;
     try{
+      const contentKey=order=>tableOrderContentSignature(order)+'|refund:'+Number(order.item_refund_due||0);
+      const oldContent=new Map((admin?.orders||[]).map(o=>[String(o.id),contentKey(o)]));
       const old=new Map((admin?.orders||[]).map(o=>[String(o.id),String(o.status||'').toLowerCase()]));
       const fresh=await adminCall('snapshot'),orders=fresh.orders||[];
       if(!sessionStorage.getItem('caseirao_admin_pin'))return;
       const newOrders=orders.filter(o=>!knownOrderIds.has(o.id));
       const changed=orders.filter(o=>old.has(String(o.id))&&old.get(String(o.id))!==String(o.status||'').toLowerCase());
+      const edited=orders.filter(o=>oldContent.has(String(o.id))&&oldContent.get(String(o.id))!==contentKey(o)&&old.get(String(o.id))===String(o.status||'').toLowerCase());
       orders.forEach(o=>{knownOrderIds.add(o.id);knownOrderStatuses.set(String(o.id),String(o.status||'').toLowerCase())});
       admin=fresh;
       for(const order of newOrders){dispatch('novo',order);showOrderToast(order)}
@@ -226,7 +229,8 @@
         }
       }
       const box=document.querySelector('#admContent');
-      const changedData=newOrders.length||changed.length;
+      for(const order of edited)showAppToast('Pedido #'+order.order_number+' atualizado. Confira os itens e o total.','ok');
+      const changedData=newOrders.length||changed.length||edited.length;
       if(pendingPaint&&(pendingPaint.box!==box||pendingPaint.tab!==adminTab))pendingPaint=null;
       if(box&&(changedData||pendingPaint)){
         if(editingContent(box)){pendingPaint={box,tab:adminTab};return;}
