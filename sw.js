@@ -1,7 +1,8 @@
 'use strict';
 
-const CACHE = 'caseirao-estoque-20261117-v1';
+const CACHE = 'caseirao-recibos80-20261117-v1';
 const APP_SHELL = [
+ './js/payroll-core.js', './js/payroll-ui.js', './css/payroll.css',
  './js/stock-core.js', './js/stock-ui.js', './css/stock.css',
  './js/staff-core.js', './js/staff-consumo.js', './css/staff-consumo.css',
   './js/finance-core.js', './js/finance-ui.js', './css/finance.css',
