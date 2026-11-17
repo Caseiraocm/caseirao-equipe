@@ -6,6 +6,13 @@
  const cnpj=v=>String(v||'').replace(/\D/g,'').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5');
  const cpf=v=>String(v||'').replace(/\D/g,'').replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,'$1.$2.$3-$4');
  function parseMoney(value){let s=String(value??'').replace(/^R\$\s*/,'').trim();if(!s)return 0;if(/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(s))s=s.replace(/\./g,'');if(!/^\d+([.,]\d{1,2})?$/.test(s))return null;const n=Math.round(Number(s.replace(',','.'))*100);return Number.isSafeInteger(n)&&n>=0?n:null;}
+ function paymentDefaults(member,paidOn){
+  const weekly=member.payment_frequency==='weekly',finish=String(paidOn).slice(0,10);
+  const begin=new Date(finish+'T12:00:00Z');begin.setUTCDate(begin.getUTCDate()-6);
+  const initial=weekly?begin.toISOString().slice(0,10):finish.slice(0,8)+'01';
+  const label=weekly?'Pagamento semanal':member.payment_frequency==='monthly'?'Pagamento mensal':'Pagamento';
+  return {start:initial,end:finish,reference:label+' · '+date(initial)+' a '+date(finish),base:member.payment_base_cents==null?'':(Number(member.payment_base_cents)/100).toFixed(2).replace('.',','),label};
+ }
  function calculate(d){const gross=Number(d.base_cents||0)+Number(d.extra_cents||0),discount=Number(d.other_discount_cents||0)+Number(d.staff_discount_cents||0);return {gross,discount,net:gross-discount};}
  const code=r=>r.receipt_number?'RP-'+String(r.paid_on).slice(0,4)+'-'+String(r.receipt_number).padStart(6,'0'):'PRÉVIA';
  function validCnpj(value){const s=String(value||'').replace(/\D/g,'');if(s.length!==14||/^(\d)\1{13}$/.test(s))return false;for(let len=12;len<=13;len++){let sum=0,w=len-7;for(let i=0;i<len;i++){sum+=Number(s[i])*w;if(--w<2)w=9;}const digit=sum%11<2?0:11-sum%11;if(digit!==Number(s[len]))return false;}return true;}
@@ -60,5 +67,5 @@
   addObject(5,[encoder.encode(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.length} >>\nstream\n`),image,encoder.encode('\nendstream')]);
   const xref=length;parts.push(encoder.encode('xref\n0 6\n0000000000 65535 f \n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF'));return join(parts);
  }
- const api={WIDTH,HEIGHT,parseMoney,calculate,validCnpj,cnpj,cpf,date,money,code,logicalCanvas,rotatedCanvas,rasterBytes,pdf,plain};root.CaseiraoPayroll=api;if(typeof module!=='undefined')module.exports=api;
+ const api={WIDTH,HEIGHT,parseMoney,paymentDefaults,calculate,validCnpj,cnpj,cpf,date,money,code,logicalCanvas,rotatedCanvas,rasterBytes,pdf,plain};root.CaseiraoPayroll=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
