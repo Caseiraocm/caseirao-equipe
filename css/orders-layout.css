@@ -72,3 +72,9 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .smartNextAction{min-width:
 body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summary{min-height:44px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:8px 4px!important;box-sizing:border-box!important}
 @media(max-width:600px){body.teamApp .ca-board-scroll{grid-template-columns:44px minmax(60px,1fr) 44px;gap:8px;padding:8px}.ca-board-scroll-label{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px}.ca-board-scroll-label small{margin:0}}
 }
+
+/* Avisos passivos: sem camada de bloqueio e sem interceptar o mouse/toque. */
+#caseiraoNotices{position:fixed;z-index:2147483000;right:16px;bottom:18px;width:min(360px,calc(100vw - 32px));display:grid;gap:8px;pointer-events:none!important}
+.caseiraoNotice{padding:13px 16px;border:1px solid #d5dde5;border-left:4px solid #4a789e;border-radius:13px;background:#fff;color:#233240;box-shadow:0 5px 22px #18283824;font:600 14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere;pointer-events:none!important}
+.caseiraoNotice.ok{border-left-color:#29945c;background:#f0fbf4;color:#165232}
+.caseiraoNotice.err{border-left-color:#c74343;background:#fff4f4;color:#802828}
