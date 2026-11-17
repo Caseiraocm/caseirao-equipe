@@ -1,0 +1,13 @@
+PAGAMENTO SEMANAL DA EQUIPE
+Luciano Farias: R$ 405,25 por semana, salvo no cadastro.
+O valor base é preenchido ao registrar o pagamento.
+Os descontos da ficha são aplicados somente após conferência.
+O período sugerido é de sete dias até hoje: confira e ajuste as datas.
+O recibo identifica o pagamento como semanal e mantém a impressão 80 mm.
+Os demais funcionários estão como semanais, sem atribuir valores não informados.
+Nenhum pagamento foi registrado por esta atualização.
+
+INSTALAÇÃO DA ATUALIZAÇÃO
+Substitua index.html, sw.js, js/payroll-core.js e js/payroll-ui.js,
+mantendo a pasta js. Reabra a Central ADM após a publicação.
+O banco já foi atualizado. Não execute scripts SQL antigos.
