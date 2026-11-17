@@ -1,0 +1,22 @@
+CASEIRÃO BURGER
+Recibo de venda na Central ADM
+
+INSTALAÇÃO
+Este pacote é para a versão semanal da Central ADM do Caseirão.
+No repositório caseirao-equipe, substitua index.html, sw.js e js/finance-ui.js.
+Adicione js/sale-receipt.js na pasta js. Preserve a estrutura das pastas.
+O atendimento do recibo já está ativo no banco. Não há SQL para executar.
+Depois que a publicação terminar, feche e reabra a Central com internet.
+
+USO
+1. Abra a comanda do pedido pago ou uma comanda da mesa quitada.
+2. Toque em “Recibo da venda”. O botão também fica no painel de pagamento.
+3. Informe o nome da empresa cliente e, se solicitado, o CNPJ.
+4. Use “Imprimir Bluetooth · 80 mm” ou “Baixar PDF · 80 mm”.
+
+O recibo usa os dados do Caseirão cadastrados em Gestão → Pagamentos da equipe
+→ Dados da empresa. A data, os itens, o total e as formas vêm da venda.
+Na mesa, o recibo considera a conta inteira, inclusive pagamentos divididos.
+Para guardar uma via com os dados do destinatário, baixe o PDF na hora.
+Pedidos pendentes, cancelados ou com valores a conferir ficam bloqueados.
+O recibo é identificado como documento não fiscal.
