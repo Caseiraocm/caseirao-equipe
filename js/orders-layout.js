@@ -4,6 +4,137 @@
  let queued=false;
  let currentBox=null,cachedAlert=null,cachedSummary=null,cachedTools=null;
  let boardControl=null,boardResize=null;
+ let selectedShortcut='';
+ const queueStatuses=new Set(['novo','confirmado','preparando']);
+ const warningMinutes=30;
+ const lateMinutes=35;
+
+ function summarizeOrders(orders,now=Date.now()){
+  const queue=orders.filter(order=>queueStatuses.has(order.status));
+  const timed=queue
+   .map(order=>({order,created:Date.parse(order.created_at)}))
+   .filter(item=>Number.isFinite(item.created))
+   .sort((a,b)=>a.created-b.created);
+  const age=item=>Math.max(0,Math.floor((now-item.created)/60000));
+  const late=timed.filter(item=>age(item)>=lateMinutes);
+  const near=timed.filter(item=>age(item)>=warningMinutes&&age(item)<lateMinutes);
+  const oldest=timed[0];
+  return {
+   queue,
+   oldest:oldest?{order:oldest.order,minutes:age(oldest)}:null,
+   alerts:[...late,...near].map(item=>item.order),
+   late:late.length,
+   near:near.length,
+   pickup:orders.filter(order=>order.type==='pickup'&&order.status==='pronto'),
+   route:orders.filter(order=>order.status==='em_rota')
+  };
+ }
+
+ function refreshShortcuts(box,strip,orders){
+  const summary=summarizeOrders(orders);
+  if(!strip.classList.contains('ca-order-shortcuts')){
+   strip.className='ordersSummary ca-order-shortcuts';
+   strip.setAttribute('role','group');
+   strip.setAttribute('aria-label','Atalhos dos pedidos');
+   strip.innerHTML=[
+    ['queue','Na fila','≡'],['oldest','Mais antigo','◷'],['alerts','Atenção','!'],
+    ['pickup','Prontos pra retirar','✓'],['route','Em rota','➜']
+   ].map(([key,label,icon])=>`<button type="button" data-order-shortcut="${key}"><i aria-hidden="true">${icon}</i><span><span class="ca-shortcut-label">${label}</span><strong class="ca-shortcut-value"></strong><small class="ca-shortcut-detail"></small></span></button>`).join('');
+  }
+  const values={
+   queue:[summary.queue.length,''],
+   oldest:summary.oldest?[`${summary.oldest.minutes} min`,`#${summary.oldest.order.order_number}`]:['—','Sem pedidos na fila'],
+   alerts:summary.late
+    ? [`${summary.late} ${summary.late===1?'atrasado':'atrasados'}`,summary.near?`+${summary.near} perto do limite`:'35 min ou mais']
+    : [summary.near,summary.near?'Perto do limite':'Fila em dia'],
+   pickup:[summary.pickup.length,''],
+   route:[summary.route.length,'']
+  };
+  strip.dataset.alertTone=summary.late?'late':summary.near?'near':'normal';
+  strip.querySelectorAll('[data-order-shortcut]').forEach(button=>{
+   const key=button.dataset.orderShortcut;
+   const [value,detail]=values[key];
+   const valueNode=button.querySelector('.ca-shortcut-value');
+   const detailNode=button.querySelector('.ca-shortcut-detail');
+   if(valueNode.textContent!==String(value))valueNode.textContent=String(value);
+   if(detailNode.textContent!==detail)detailNode.textContent=detail;
+   button.disabled=key==='oldest'&&!summary.oldest;
+   if(key!=='oldest')button.setAttribute('aria-pressed',String(selectedShortcut===key));
+  });
+  applyShortcut(box,summary);
+ }
+
+ function applyShortcut(box,summary){
+  const selectedOrders=new Set((summary[selectedShortcut]||[]).map(order=>String(order.id)));
+  const cards=[...box.querySelectorAll('details.orderDetailed')];
+  cards.forEach(card=>{
+   const id=card.querySelector('[data-oid]')?.dataset.oid;
+   card.classList.toggle('ca-shortcut-hidden',Boolean(selectedShortcut)&&!selectedOrders.has(id));
+  });
+  box.querySelectorAll('.kanbanColumn').forEach(column=>{
+   const count=column.querySelectorAll('.orderDetailed:not(.hide,.ca-shortcut-hidden)').length;
+   const badge=column.querySelector('.kanbanCount');
+   if(badge&&badge.textContent!==String(count))badge.textContent=String(count);
+   column.classList.toggle('isEmpty',count===0);
+  });
+  let filter=box.querySelector('.ca-shortcut-filter');
+  if(!selectedShortcut){
+   filter?.remove();
+   return;
+  }
+  if(!filter){
+   filter=document.createElement('div');
+   filter.className='ca-shortcut-filter';
+   filter.tabIndex=-1;
+   filter.innerHTML='<span></span><button type="button">Limpar filtro</button>';
+   filter.querySelector('button').onclick=()=>{
+    selectedShortcut='';
+    organize();
+    box.querySelector('.proFilters button.on')?.focus({preventScroll:true});
+   };
+   box.querySelector('.proFilters')?.after(filter);
+  }
+  const labels={queue:'Na fila',alerts:'Pedidos perto do limite ou atrasados',pickup:'Prontos pra retirar',route:'Em rota'};
+  const count=cards.filter(card=>!card.matches('.hide,.ca-shortcut-hidden')).length;
+  const label=`${labels[selectedShortcut]} · ${count===1?'1 pedido':count+' pedidos'}`;
+  if(filter.firstElementChild.textContent!==label)filter.firstElementChild.textContent=label;
+ }
+
+ function openShortcut(button){
+  const box=button.closest('#admContent');
+  const key=button.dataset.orderShortcut;
+  const summary=summarizeOrders(shiftOrders());
+  const targetId=key==='oldest'?summary.oldest?.order.id:null;
+  if(key==='oldest'&&targetId==null)return;
+  const next=key==='oldest'||selectedShortcut===key?'':key;
+  const active=box.querySelector('[data-ofilter="active"]:not(.on)');
+  active?.click();
+  selectedShortcut=next;
+  const input=box.querySelector('#orderSearch');
+  if(input?.value){
+   input.value='';
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  requestAnimationFrame(()=>{
+   if(!box.isConnected)return;
+   organize();
+   const card=[...box.querySelectorAll('details.orderDetailed:not(.hide,.ca-shortcut-hidden)')].find(item=>
+    targetId==null||item.querySelector('[data-oid]')?.dataset.oid===String(targetId));
+   if(targetId!=null&&card){
+    card.open=true;
+    card.querySelector('summary')?.focus({preventScroll:true});
+    card.scrollIntoView({block:'center',inline:'nearest'});
+   }else if(selectedShortcut){
+    const filter=box.querySelector('.ca-shortcut-filter');
+    filter?.focus({preventScroll:true});
+    // Bring the matching column into view on the horizontally scrolling board.
+    const board=card?.closest('.ordersKanban');
+    if(board)board.scrollLeft+=card.getBoundingClientRect().left-board.getBoundingClientRect().left;
+    filter?.scrollIntoView({block:'start',inline:'nearest'});
+   }
+  });
+ }
+
  function navigation(board){
   if(boardControl?.board===board&&boardControl.bar.isConnected){boardControl.sync();return;}
   boardResize?.disconnect();
@@ -31,7 +162,7 @@
   root.classList.toggle('ca-orders-page',active);
   if(!active){boardResize?.disconnect();boardControl=null;return;}
   const box=root.querySelector('#admContent');if(!box)return;
-  if(currentBox!==box){currentBox=box;cachedAlert=null;cachedSummary=null;cachedTools=null;}
+  if(currentBox!==box){currentBox=box;cachedAlert=null;cachedSummary=null;cachedTools=null;selectedShortcut='';}
   cachedAlert=box.querySelector('.alertControl')||cachedAlert;
   cachedSummary=box.querySelector('.ordersSummary')||cachedSummary;
   cachedTools=box.querySelector('.ordersTools')||cachedTools;
@@ -52,6 +183,7 @@
   const board=box.querySelector('.ordersKanban');
   if(board)navigation(board);else{boardControl?.bar.remove();boardResize?.disconnect();boardControl=null;}
   const orders=typeof shiftOrders==='function'?shiftOrders():[];
+  if(cachedSummary)refreshShortcuts(box,cachedSummary,orders);
   box.querySelectorAll('[data-ofilter]').forEach(button=>{
    const key=button.dataset.ofilter;
    const count=orders.filter(o=>key==='all'||(key==='active'?!['entregue','cancelado'].includes(o.status):o.status===key)).length;
@@ -62,6 +194,22 @@
    if(button.getAttribute('aria-pressed')!==String(selected))button.setAttribute('aria-pressed',String(selected));
   });
  }
+ document.addEventListener('click',event=>{
+  const button=event.target.closest?.('.ca-orders-page #admContent button');
+  if(button?.hasAttribute('data-order-shortcut'))openShortcut(button);
+  else if(button?.hasAttribute('data-ofilter')){
+   selectedShortcut='';
+   requestAnimationFrame(organize);
+  }
+ },true);
+ window.addEventListener('input',event=>{
+  if(selectedShortcut&&event.target.id==='orderSearch')requestAnimationFrame(organize);
+ },true);
+ setInterval(()=>{
+  if(!document.hidden&&currentBox?.isConnected&&adminTab==='pedidos'&&cachedSummary?.isConnected){
+   refreshShortcuts(currentBox,cachedSummary,shiftOrders());
+  }
+ },10000);
  const previous=window.renderAdmin;
  window.renderAdmin=function(...args){const result=previous.apply(this,args);organize();return result};
  new MutationObserver(records=>{
