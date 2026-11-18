@@ -54,10 +54,45 @@
   }
   parts.push(new Uint8Array([27,100,4]));return join(parts);
  }
- function plain(r){const c=r.company_snapshot||{},lines=[c.trade_name,c.legal_name,'CNPJ '+cnpj(c.cnpj),c.address,'RECIBO '+code(r),r.cancellation?'*** CANCELADO ***':'',r.employee_name,r.employee_cpf?'CPF '+cpf(r.employee_cpf):'',r.reference,'Período: '+date(r.period_start)+' a '+date(r.period_end),'Pago em: '+date(r.paid_on)+' · '+r.payment_method,'Valor base: '+money(r.base_cents),'Adicionais: '+money(r.extra_cents),r.extra_description||'','Outros descontos: '+money(r.other_discount_cents),r.other_discount_description||'','Desconto ficha: '+money(r.staff_discount_cents),'LIQUIDO: '+money(r.net_cents),'Ficha anterior: '+money(r.balance_before_cents),'Saldo ficha: '+money(r.balance_after_cents),'',r.net_cents===0?'Acerto realizado sem valor líquido.':'Recebi o líquido discriminado acima.',r.note||'','','','','________________________________','Assinatura do funcionário','','________________________________','Responsável pelo pagamento','',''];return lines.filter(v=>v!==undefined).join('\n');}
- function pdf(canvas){
+ function plain(r){
+  const company=r.company_snapshot||{};
+  let statement='Recebi o valor líquido discriminado neste recibo.';
+  if(r.net_cents===0)statement='Acerto realizado sem valor líquido.';
+  if(r.cancellation)statement='REGISTRO CANCELADO. Este documento não comprova pagamento.';
+  if(r.draft)statement='PRÉVIA PARA CONFERÊNCIA. Pagamento ainda não registrado.';
+  return [
+   company.trade_name||'O Caseirão Burger',company.legal_name,'CNPJ '+cnpj(company.cnpj),
+   [company.address,company.city].filter(Boolean).join(' - '),
+   '',r.net_cents===0&&!r.draft?'RECIBO DE ACERTO':'RECIBO DE PAGAMENTO',code(r),
+   ...(r.cancellation?['*** CANCELADO ***']:[]),
+   ...(r.draft?['*** PRÉVIA ***']:[]),
+   'Funcionário: '+(r.employee_name||''),r.employee_cpf?'CPF '+cpf(r.employee_cpf):null,
+   r.reference,'Período: '+date(r.period_start)+' a '+date(r.period_end),
+   'Data: '+date(r.paid_on)+(r.payment_method?' - '+r.payment_method:''),
+   '', 'Valor base: '+money(r.base_cents),
+   'Adicionais: '+money(r.extra_cents),r.extra_description||null,
+   'Outros descontos: '+money(r.other_discount_cents),r.other_discount_description||null,
+   'Desconto da ficha: '+money(r.staff_discount_cents),
+   'LÍQUIDO PAGO: '+money(r.net_cents),
+   'Saldo anterior da ficha: '+money(r.balance_before_cents),
+   'Saldo restante da ficha: '+money(r.balance_after_cents),
+   '',statement,r.note?'Obs.: '+r.note:null,
+   '','','________________________________','Assinatura do funcionário',
+   '','','________________________________','Responsável pelo pagamento'
+  ].filter(value=>value!=null).join('\n');
+ }
+ function thermalTextBytes(lines,width){
+  const content=lines.flatMap(line=>{
+   const text=stripAccents(line)
+    .replace(/[×]/g,'x').replace(/[·•]/g,' - ').replace(/−/g,'-')
+    .replace(/\s/g,' ').replace(/[^\x20-\x7e]/g,'?');
+   return wrapReceipt(text,width);
+  });
+  return new TextEncoder().encode('\x1b@'+content.join('\n')+'\n\n\n\n');
+ }
+ function pdfPage(canvas,pageWidthMm,pageHeightMm,imageWidthMm,imageHeightMm){
   const binary=atob(canvas.toDataURL('image/jpeg',.97).split(',')[1]),image=Uint8Array.from(binary,c=>c.charCodeAt(0)),encoder=new TextEncoder();
-  const pageW=80*72/25.4,pageH=(canvas.height/8+10)*72/25.4,imgW=canvas.width/8*72/25.4,imgH=canvas.height/8*72/25.4,x=(pageW-imgW)/2,y=5*72/25.4;
+  const pageW=pageWidthMm*72/25.4,pageH=pageHeightMm*72/25.4,imgW=imageWidthMm*72/25.4,imgH=imageHeightMm*72/25.4,x=(pageW-imgW)/2,y=(pageH-imgH)/2;
   const content=`q ${imgW.toFixed(3)} 0 0 ${imgH.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm /Im0 Do Q\n`;
   const parts=[encoder.encode('%PDF-1.4\n%Caseirao\n')],offsets=[0];let length=parts[0].length;
   const addObject=(n,body)=>{offsets[n]=length;const bytes=join([encoder.encode(n+' 0 obj\n'),...(Array.isArray(body)?body:[encoder.encode(body)]),encoder.encode('\nendobj\n')]);parts.push(bytes);length+=bytes.length;};
@@ -67,5 +102,7 @@
   addObject(5,[encoder.encode(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.length} >>\nstream\n`),image,encoder.encode('\nendstream')]);
   const xref=length;parts.push(encoder.encode('xref\n0 6\n0000000000 65535 f \n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF'));return join(parts);
  }
- const api={WIDTH,HEIGHT,parseMoney,paymentDefaults,calculate,validCnpj,cnpj,cpf,date,money,code,logicalCanvas,rotatedCanvas,rasterBytes,pdf,plain};root.CaseiraoPayroll=api;if(typeof module!=='undefined')module.exports=api;
+ function pdf(canvas){return pdfPage(canvas,80,(canvas.height/8)+10,canvas.width/8,canvas.height/8);}
+ function pdfA4(canvas){return pdfPage(canvas,297,210,180,72);}
+ const api={WIDTH,HEIGHT,parseMoney,paymentDefaults,calculate,validCnpj,cnpj,cpf,date,money,code,logicalCanvas,rotatedCanvas,rasterBytes,pdf,pdfA4,plain,thermalTextBytes};root.CaseiraoPayroll=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -58,7 +58,7 @@
       '',
       'Emitido em ' + date(new Date()),
     ];
-    return lines.map(singleLine).flatMap(line => line ? wrapReceipt(line, 40) : ['']);
+    return lines.map(singleLine);
   }
 
   function receiptCanvas(lines) {
@@ -106,7 +106,7 @@
           <div class="field"><label for="saleReceiptCnpj">CNPJ da empresa cliente (opcional)</label>
             <input class="in" id="saleReceiptCnpj" autocapitalize="characters" maxlength="18"></div>
           <div class="finPaymentActions">
-            <button type="submit" class="primary" value="print">Imprimir Bluetooth · 80 mm</button>
+            <button type="submit" class="primary" value="print">Imprimir rápido · Bluetooth 80 mm</button>
             <button type="submit" class="secondary" value="pdf">Baixar PDF · 80 mm</button>
           </div>
           <p id="saleReceiptStatus" role="status"></p>
@@ -127,15 +127,16 @@
         buttons.forEach(button => { button.disabled = true; });
         try {
           if (printing && !printerConnected()) await connectBluetoothPrinter();
+          status.textContent = 'Conferindo o pagamento…';
           const currentSale = await request(id);
           if (!form.isConnected) return;
-          const receipt = receiptCanvas(receiptLines(currentSale, buyer, cnpj));
+          const lines = receiptLines(currentSale, buyer, cnpj);
           if (printing) {
             status.textContent = 'Enviando para a impressora…';
-            await btWrite(payroll.rasterBytes(receipt));
+            await btWrite(payroll.thermalTextBytes(lines, printerTextWidth()));
             status.textContent = 'Recibo enviado para a impressora.';
           } else {
-            download(receipt, id);
+            download(receiptCanvas(lines.flatMap(line => wrapReceipt(line, 40))), id);
             status.textContent = 'PDF do recibo gerado.';
           }
         } catch (error) {
