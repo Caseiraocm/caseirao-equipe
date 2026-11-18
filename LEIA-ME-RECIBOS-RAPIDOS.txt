@@ -1,5 +1,8 @@
 CASEIRÃO BURGER — IMPRESSÃO RÁPIDA DOS RECIBOS
 
+A impressão rápida dos recibos de venda e da equipe usa a mesma altura
+de letra dos detalhes da comanda, com destaque para o título e o total.
+
 INSTALAÇÃO
 Na Central ADM (repositório caseirao-equipe), copie index.html e sw.js
 para a raiz. Copie os cinco arquivos da pasta js/ para a pasta js/ do
