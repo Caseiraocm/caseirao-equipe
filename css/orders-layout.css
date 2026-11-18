@@ -23,21 +23,14 @@ body.teamApp .proAdmin.ca-orders-page .proFilters button.on .ca-filter-count{bac
 body.teamApp .proAdmin.ca-orders-page .cleanEmpty{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;min-height:150px!important;padding:30px 18px!important;margin:0 0 16px!important;border:1px dashed #d8dfe7!important;border-radius:12px!important;background:var(--ca-panel,#fff)!important;box-shadow:none!important;text-align:center!important}
 body.teamApp .proAdmin.ca-orders-page .cleanEmpty b{font-size:15px!important;color:var(--ca-panel-ink,#263342)!important}
 body.teamApp .proAdmin.ca-orders-page .cleanEmpty span{font-size:13px!important;color:var(--ca-panel-ink,#738093)!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;margin:16px 0 0!important;padding:14px 0!important;border-top:1px solid #dfe4eb!important;border-bottom:1px solid #dfe4eb!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-height:26px!important;padding:2px 16px!important;margin:0!important;border:0!important;border-right:1px solid #dfe4eb!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard:first-child{padding-left:0!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard:last-child{border-right:0!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard span{font-size:10px!important;color:var(--ca-background-ink,#637185)!important;font-weight:600!important;text-transform:none!important;line-height:1.4!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard b{font-size:16px!important;color:var(--ca-background-ink,#263342)!important;white-space:nowrap!important}
-body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard.danger b{color:#bf3535!important}
 body.teamApp .proAdmin.ca-orders-page .caseiraoV11Settings{margin:16px 0 0!important;border:1px solid #dfe4eb!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}
 body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsToggle{min-height:46px!important;font-size:12px!important;font-weight:700!important}
 body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsBody .ordersTools{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:8px 0!important;margin:0!important}
 body.teamApp .proAdmin.ca-orders-page .ordersTools button{flex:1 1 180px!important;min-height:42px!important;font-size:11px!important;box-shadow:none!important}
 body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsBody .operationHint{font-size:11px!important;line-height:1.5!important;margin:0!important;padding:8px 0!important;border:0!important;background:transparent!important}
 body.teamApp .proAdmin.ca-orders-page :is(.proFilters button,#proManualOrder,#enableAdminAlerts):focus-visible{outline:3px solid #2563eb!important;outline-offset:2px!important}
-@media(max-width:1050px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:18px!important}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{flex-direction:column!important;align-items:flex-start!important;gap:4px!important;padding:0 12px!important}}
-@media(max-width:540px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:14px 12px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar{flex-wrap:wrap!important;gap:8px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar #orderSearch{flex-basis:100%!important}body.teamApp .proAdmin.ca-orders-page .proPageTitle h1{font-size:23px!important}body.teamApp .proAdmin.ca-orders-page .proFilters{gap:4px!important}body.teamApp .proAdmin.ca-orders-page .proFilters button{padding:7px 9px!important;font-size:11px!important}body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsHint{font-size:9px!important;max-width:65%;text-align:right}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard{padding:0 7px!important}body.teamApp .proAdmin.ca-orders-page .ordersSummary .slaCard span{font-size:9px!important}}
+@media(max-width:1050px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:18px!important}}
+@media(max-width:540px){body.teamApp .proAdmin.ca-orders-page .proMain{padding:14px 12px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar{flex-wrap:wrap!important;gap:8px!important}body.teamApp .proAdmin.ca-orders-page .proToolbar #orderSearch{flex-basis:100%!important}body.teamApp .proAdmin.ca-orders-page .proPageTitle h1{font-size:23px!important}body.teamApp .proAdmin.ca-orders-page .proFilters{gap:4px!important}body.teamApp .proAdmin.ca-orders-page .proFilters button{padding:7px 9px!important;font-size:11px!important}body.teamApp .proAdmin.ca-orders-page .caseiraoV11SettingsHint{font-size:9px!important;max-width:65%;text-align:right}}
 }
 
 /* Mouse no tablet: controle horizontal sempre visível e botões alinhados. */
@@ -78,3 +71,120 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
 .caseiraoNotice{padding:13px 16px;border:1px solid #d5dde5;border-left:4px solid #4a789e;border-radius:13px;background:#fff;color:#233240;box-shadow:0 5px 22px #18283824;font:600 14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere;pointer-events:none!important}
 .caseiraoNotice.ok{border-left-color:#29945c;background:#f0fbf4;color:#165232}
 .caseiraoNotice.err{border-left-color:#c74343;background:#fff4f4;color:#802828}
+
+@media screen {
+  body.teamApp .proAdmin .ca-order-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0 0;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts > button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 64px;
+    padding: 8px 10px;
+    text-align: left;
+    border: 1px solid #d9e1eb;
+    border-radius: 10px;
+    background: var(--ca-panel, #fff);
+    color: var(--ca-panel-ink, #263342);
+    box-shadow: none;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts > button > span {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts :is(span, strong, small, i) {
+    color: inherit !important;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts i {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    border-radius: 7px;
+    background: #8195ad26;
+    font-size: 16px;
+    font-style: normal;
+  }
+
+  .ca-shortcut-label, .ca-shortcut-detail { font-size: 11px; line-height: 1.2; }
+  .ca-shortcut-label { font-weight: 650; }
+  .ca-shortcut-detail:empty { display: none; }
+  .ca-shortcut-value { font-size: 19px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  [data-order-shortcut="alerts"] .ca-shortcut-value { font-size: 16px; }
+
+  body.teamApp .proAdmin .ca-order-shortcuts > button:hover:enabled,
+  body.teamApp .proAdmin .ca-order-shortcuts > button[aria-pressed="true"] {
+    border-color: #5c7eac;
+    box-shadow: inset 0 0 0 1px #5c7eac;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts > button:disabled { cursor: default; opacity: .65; }
+
+  body.teamApp .proAdmin .ca-order-shortcuts[data-alert-tone="near"] > [data-order-shortcut="alerts"] {
+    background: #fff3cc;
+    color: #664100;
+    border-color: #e8c66f;
+  }
+
+  body.teamApp .proAdmin .ca-order-shortcuts[data-alert-tone="late"] > [data-order-shortcut="alerts"] {
+    background: #ffeded;
+    color: #8e2929;
+    border-color: #eaa3a3;
+  }
+
+  body.teamApp .proAdmin .ca-shortcut-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+    padding: 4px 10px;
+    border: 1px solid #dce3ec;
+    border-radius: 9px;
+    background: var(--ca-panel, #f3f6fb);
+    color: var(--ca-panel-ink, #263342);
+    font-size: 13px;
+    font-weight: 700;
+    scroll-margin-top: 8px;
+  }
+
+  body.teamApp .proAdmin .ca-shortcut-filter > span { color: inherit !important; }
+
+  body.teamApp .proAdmin .ca-shortcut-filter > button {
+    min-height: 40px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-decoration: underline;
+    font-size: 12px;
+  }
+
+  body.teamApp .proAdmin :is(.ca-order-shortcuts button,.ca-shortcut-filter button):focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  body.teamApp .proAdmin .orderDetailed.ca-shortcut-hidden { display: none !important; }
+
+  @media (max-width: 700px) {
+    body.teamApp .proAdmin .ca-order-shortcuts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    body.teamApp .proAdmin .ca-order-shortcuts > button { padding: 8px; }
+  }
+
+  @media (max-width: 410px) {
+    body.teamApp .proAdmin .ca-order-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+}
