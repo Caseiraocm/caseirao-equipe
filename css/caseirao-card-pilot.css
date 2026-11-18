@@ -1,0 +1,119 @@
+body.teamApp .proAdmin .cardPilot {
+  max-width: 980px;
+}
+
+body.teamApp .proAdmin .cardPilotIntro {
+  margin-bottom: 20px;
+}
+
+body.teamApp .proAdmin .cardPilotIntro :is(h2, p) {
+  margin: 0 0 6px;
+  color: var(--ca-background-ink, #263342);
+}
+
+body.teamApp .proAdmin .cardPilotLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+body.teamApp .proAdmin .cardPilot :is(form, .cardPilotPreview) {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #dbe2eb;
+  border-radius: 14px;
+  background: var(--ca-panel, #fff);
+  color: var(--ca-panel-ink, #263342);
+}
+
+body.teamApp .proAdmin .cardPilot :is(form, .cardPilotPreview) :is(label, p, h3, dt, dd) {
+  color: inherit !important;
+}
+
+body.teamApp .proAdmin .cardPilotForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+body.teamApp .proAdmin .cardPilotForm label {
+  display: grid;
+  align-content: space-between;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.teamApp .proAdmin .cardPilotForm input {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+}
+
+body.teamApp .proAdmin .cardPilotForm p {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 13px;
+}
+
+body.teamApp .proAdmin .cardPilotPreview h3 {
+  margin: 0 0 12px;
+}
+
+body.teamApp .proAdmin .cardPilotPreview dl {
+  margin: 0;
+}
+
+body.teamApp .proAdmin .cardPilotPreview dl div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #dbe2eb;
+}
+
+body.teamApp .proAdmin .cardPilotPreview dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+body.teamApp .proAdmin .cardPilotTotal {
+  font-size: 18px;
+  font-weight: 750;
+}
+
+body.teamApp .proAdmin .cardPilotStatus {
+  margin: 14px 0 8px;
+}
+
+body.teamApp .proAdmin .cardPilotPreview .cardPilotStatus[data-tone="warning"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff1cc;
+  color: #634000 !important;
+}
+
+body.teamApp .proAdmin .cardPilotMethods {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 740px) {
+  body.teamApp .proAdmin .cardPilotLayout { grid-template-columns: 1fr; }
+}
+
+body.teamApp .admCardCaseirao { max-width:1160px; }
+body.teamApp .admCardActions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+body.teamApp .admCardPanel { border:1px solid #dbe2eb; border-radius:12px; background:var(--ca-panel,#fff); margin:0 0 14px; padding:14px; }
+body.teamApp .admCardPanel > summary { cursor:pointer; }
+body.teamApp .admCardPanel form { display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:12px; }
+body.teamApp .admCardPanel label { display:grid; gap:4px; font-weight:650; }
+body.teamApp .admCardWide { grid-column:1/-1; }
+body.teamApp .admCardSummary { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+body.teamApp .admCardSummary dd { margin:4px 0; font-weight:700; overflow-wrap:anywhere; }
+body.teamApp .admCardTable { overflow:auto; }
+body.teamApp .admCardTable table { width:100%; border-collapse:collapse; }
+body.teamApp .admCardTable :is(td,th) { padding:8px; text-align:left; border-bottom:1px solid #dbe2eb; }
