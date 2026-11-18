@@ -1,0 +1,19 @@
+CASEIRÃO BURGER — IMPRESSÃO RÁPIDA DOS RECIBOS
+
+INSTALAÇÃO
+Na Central ADM (repositório caseirao-equipe), copie index.html e sw.js
+para a raiz. Copie os cinco arquivos da pasta js/ para a pasta js/ do
+repositório, mantendo os nomes. Publique a atualização e reabra a Central
+com internet. A atualização usa as funções de recibo que já atendem o ADM.
+
+RECIBO DA VENDA
+Abra o pedido pago ou uma comanda da mesa quitada. Toque em “Recibo da
+venda”, informe o nome e o CNPJ do cliente, se solicitado, e selecione
+“Imprimir rápido · Bluetooth 80 mm”. O PDF de 80 mm também fica disponível.
+
+PAGAMENTOS DA EQUIPE
+Abra Gestão → Pagamentos da equipe e toque em “Abrir / imprimir recibo”
+no registro. Use “Imprimir rápido · Bluetooth 80 mm” para um recibo em pé
+com espaço para as assinaturas. Use “Baixar PDF A4 paisagem” para imprimir
+na impressora comum. “Imprimir deitado · Bluetooth 80 mm” usa imagem e
+pode levar mais tempo na térmica.
