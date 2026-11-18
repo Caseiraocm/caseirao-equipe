@@ -2,10 +2,10 @@
 
 (() => {
   const displayDate = iso => iso.split('-').reverse().join('/');
-  const report = reference => api('caseirao-driver-earnings', {
+  const report = (period = {}) => api('caseirao-driver-earnings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pin: sessionStorage.getItem('caseirao_admin_pin') || '', reference }),
+    body: JSON.stringify({ pin: sessionStorage.getItem('caseirao_admin_pin') || '', ...period }),
   });
 
   function showDriverEarnings() {
@@ -13,23 +13,37 @@
       <h2>Ganhos por entrega</h2><button type="button" class="x" data-close aria-label="Fechar">×</button>
       </div><p class="mini">Soma das taxas registradas nas entregas concluídas. Valores dos pedidos e ajuda de gasolina ficam fora desse total.</p>
       <form id="driverEarningsForm" class="finFilters">
-        <label>Data de referência<input type="date" class="in" id="driverEarningsDate" required></label>
+        <label>Data inicial<input type="date" class="in" id="driverEarningsStart" required></label>
+        <label>Data final<input type="date" class="in" id="driverEarningsEnd" required></label>
         <button type="submit" class="primary">Consultar</button>
       </form><div id="driverEarningsResults" aria-live="polite"></div>`);
     bindClose();
     const form = $('#driverEarningsForm');
-    const date = $('#driverEarningsDate');
+    const start = $('#driverEarningsStart');
+    const end = $('#driverEarningsEnd');
     const results = $('#driverEarningsResults');
     const button = form.querySelector('button');
 
-    async function load(reference) {
+    async function load(period) {
       button.disabled = true;
       results.innerHTML = '<div class="notice">Calculando as taxas…</div>';
       try {
-        const data = await report(reference);
+        const data = await report(period);
         if (!form.isConnected) return;
-        date.max = data.today;
-        date.value = data.reference;
+        start.max = end.max = data.today;
+        if (period) {
+          const span = displayDate(data.start) + ' a ' + displayDate(data.end);
+          const rows = data.drivers.map(driver => `<tr><td>${esc(driver.name)}</td>
+            <td><b>${driver.delivery_count}</b></td><td><b>${fmt(driver.amount)}</b></td></tr>`);
+          results.innerHTML = `<h3>${span}</h3>` + (rows.length
+            ? `<div class="financeTableScroll"><table class="financeTable">
+              <thead><tr><th>Entregador</th><th>Entregas</th><th>Total em taxas</th></tr></thead>
+              <tbody>${rows.join('')}</tbody></table></div>`
+            : '<div class="notice">Nenhum entregador no período.</div>');
+          return;
+        }
+        if (!start.value) start.value = data.month_start;
+        if (!end.value) end.value = data.today;
         const week = displayDate(data.week_start) + ' a ' + displayDate(data.week_end);
         const month = displayDate(data.month_start) + ' a ' + displayDate(data.month_end);
         const rows = data.drivers.map(driver => `<tr><td>${esc(driver.name)}</td>
@@ -47,9 +61,14 @@
 
     form.onsubmit = event => {
       event.preventDefault();
-      load(date.value || null);
+      if (button.disabled) return;
+      if (!start.value || !end.value || start.value > end.value) {
+        results.innerHTML = '<div class="err">Escolha uma data final igual ou posterior à inicial.</div>';
+        return;
+      }
+      load({ start: start.value, end: end.value });
     };
-    load(null);
+    load();
   }
 
   const renderHub = renderDeliveryHub;
