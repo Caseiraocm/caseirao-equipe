@@ -15,7 +15,9 @@
   const receipt=r=>{receipts.push(r);if(r.at&&inRange(r.at)){const d=dailyRow(day(r.at));d[r.kind==='refund'?'refunds':'receipts']+=(r.kind==='correction'?-1:1)*r.amount;}};
   for(const e of events){
    const value=cents(e.amount),o=orderMap.get(e.order_id);if(!o)continue;
-   if(!e.occurred_at||day(e.occurred_at)<=end)addNet(o.id,e.kind==='refund'?-value:value);
+   const cardReceipt=o.payment==='Cartão Caseirão'&&e.kind==='receipt'&&String(e.note||'').startsWith('Recebimento de fatura Cartão Caseirão');
+   const applied=cardReceipt?Math.min(value,cents(o.total)):value;
+   if(!e.occurred_at||day(e.occurred_at)<=end)addNet(o.id,e.kind==='refund'?-applied:applied);
    if(inRange(e.occurred_at)||(!e.occurred_at&&inRange(o.sale_date||o.created_at))){receipt({id:e.id,order:o.order_number,order_id:o.id,kind:e.kind,method:method(e.method),amount:value,at:e.occurred_at,historical:!!e.historical,note:e.note||'',source:'Comanda'});}
    if(e.note==='Pix recebido por QR anterior após troca de modalidade')issues.push({order:o.order_number,reason:'Pix do QR antigo foi recebido após troca: confira duplicidade ou devolução.'});
   }

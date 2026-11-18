@@ -140,7 +140,7 @@ function driverOrderCard(a){
     </div>
     <div class="driverQuickLine">
       <span class="driverQuickChip">📍 ${esc(hood)}</span>
-      <span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span>
+      <span class="driverQuickChip">💳 ${o.payment==='Cartão Caseirão'?'Cartão Caseirão · cobrado na fatura':esc(paymentLabel(o.payment))}</span>
     </div>
     <div class="driverNextAction">${nextAction}${!['delivered','returned'].includes(a.status)?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
     <details class="driverDetails">
