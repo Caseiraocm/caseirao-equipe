@@ -82,13 +82,22 @@
   ].filter(value=>value!=null).join('\n');
  }
  function thermalTextBytes(lines,width){
-  const content=lines.flatMap(line=>{
+  const normal='\x1d\x21\x00';
+  const tall='\x1d\x21\x01';
+  const doubleSize='\x1d\x21\x11';
+  const boldOn='\x1b\x45\x01';
+  const boldOff='\x1b\x45\x00';
+  const doubleWidth=Math.floor(width/2);
+  const content=lines.map(line=>{
    const text=stripAccents(line)
     .replace(/[×]/g,'x').replace(/[·•]/g,' - ').replace(/−/g,'-')
     .replace(/\s/g,' ').replace(/[^\x20-\x7e]/g,'?');
-   return wrapReceipt(text,width);
+   const emphasized=/^(RECIBO DE (VENDA|PAGAMENTO|ACERTO)$|TOTAL PAGO |LIQUIDO PAGO: )/.test(text);
+   const large=emphasized&&text.length<=doubleWidth;
+   const wrapped=wrapReceipt(text,large?doubleWidth:width).join('\n');
+   return emphasized?boldOn+(large?doubleSize:tall)+wrapped+'\n'+boldOff+tall:wrapped+'\n';
   });
-  return new TextEncoder().encode('\x1b@'+content.join('\n')+'\n\n\n\n');
+  return new TextEncoder().encode('\x1b@'+tall+content.join('')+normal+'\n\n\n');
  }
  function pdfPage(canvas,pageWidthMm,pageHeightMm,imageWidthMm,imageHeightMm){
   const binary=atob(canvas.toDataURL('image/jpeg',.97).split(',')[1]),image=Uint8Array.from(binary,c=>c.charCodeAt(0)),encoder=new TextEncoder();
