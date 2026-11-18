@@ -1,20 +1,15 @@
 CASEIRÃO BURGER — GANHOS POR ENTREGA
 
 INSTALAÇÃO
-No repositório Caseiraocm/caseirao-equipe, substitua index.html e sw.js.
-Adicione js/driver-earnings.js dentro da pasta js.
-A consulta do relatório já está ativa no banco. Não há SQL para executar.
-Após a publicação, feche e reabra a Central ADM com internet.
+No repositório Caseiraocm/caseirao-equipe, substitua index.html, sw.js
+e js/driver-earnings.js, preservando a pasta js.
+A consulta já está ativa no banco. Não há SQL para executar.
+Depois da publicação, feche e reabra a Central ADM com internet.
 
 USO
-Central ADM → Operação → Entregas → Ganhos por entrega.
-A tela abre com a semana e o mês atuais até hoje, por entregador.
-Escolha outra data para consultar a semana e o mês correspondentes.
-A semana começa na segunda-feira. O sistema usa o horário do Piauí.
-
-CRITÉRIO
-A soma inclui apenas a taxa registrada para o entregador em pedidos
-entregues e não cancelados. Cada pedido é contado uma vez.
-Valor dos lanches, troco e ajuda de gasolina ficam fora do total.
-O resultado mostra as taxas registradas, sem confirmar dinheiro recebido
-diretamente pelo entregador.
+Abra Central ADM → Operação → Entregas → Ganhos por entrega.
+A tela abre com os totais da semana e do mês atuais.
+Escolha a data inicial e a data final e toque em Consultar.
+O sistema conta as entregas concluídas nas duas datas e nos dias entre
+elas, mesmo quando o período atravessa meses. Mostra a quantidade de
+entregas e o total das taxas por entregador no horário do Piauí.
