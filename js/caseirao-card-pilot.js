@@ -8,7 +8,7 @@
     timeZone: 'America/Fortaleza', year: 'numeric', month: '2-digit', day: '2-digit'
   });
   const dayInMilliseconds = 86_400_000;
-  const draft = {amount: '100,00', limit: '150,00', rate: '', days: '30'};
+  const draft = {amount: '100,00', limit: '150,00', rate: '', days: '7'};
 
   function parseDecimal(value, decimalPlaces) {
     const pattern = new RegExp(`^\\d+(?:[,.]\\d{1,${decimalPlaces}})?$`);
@@ -34,8 +34,8 @@
     if (!Number.isInteger(days) || days < 1 || days > 30) {
       return {error: 'Informe um prazo de 1 a 30 dias.'};
     }
-    const denominator = 30_000_000n;
-    const extra = Number((BigInt(amount) * BigInt(rate * days) + denominator / 2n) / denominator);
+    const denominator = 1_000_000n;
+    const extra = Number((BigInt(amount) * BigInt(rate) + denominator / 2n) / denominator);
     const total = amount + extra;
     return {amount, extra, total, days, remaining: Math.max(0, limit - total), missing: Math.max(0, total - limit)};
   }
@@ -56,9 +56,9 @@
         <form class="cardPilotForm" novalidate>
           <label>Valor à vista (R$)<input class="in" name="amount" type="text" inputmode="decimal" maxlength="12"></label>
           <label>Limite disponível (R$)<input class="in" name="limit" type="text" inputmode="decimal" maxlength="12"></label>
-          <label>Taxa de simulação a cada 30 dias (%)<input class="in" name="rate" type="text" inputmode="decimal" maxlength="8" aria-describedby="cardPilotRateHelp"></label>
-          <label>Dias até o vencimento<input class="in" name="days" type="number" min="1" max="30" step="1"></label>
-          <p id="cardPilotRateHelp">Digite a taxa que deseja avaliar. O acréscimo é proporcional aos dias do prazo.</p>
+          <label>Juros para o prazo escolhido (%)<input class="in" name="rate" type="text" inputmode="decimal" maxlength="8" aria-describedby="cardPilotRateHelp"></label>
+          <label>Prazo da compra simulada, em dias<input class="in" name="days" type="number" min="1" max="30" step="1"></label>
+          <p id="cardPilotRateHelp">Para simular uma compra em 7 dias, digite o valor da compra, 7 no prazo e a taxa total desses 7 dias.</p>
         </form>
         <section class="cardPilotPreview" aria-label="Prévia para o cliente">
           <h3>Prévia para o cliente</h3>
