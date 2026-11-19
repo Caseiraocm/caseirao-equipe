@@ -54,14 +54,33 @@
 
   function syncCardSummary(card,order){
     const summary=card.querySelector(':scope > .orderSummary');
-    const customer=summary?.querySelector('.summaryCustomer');
-    if(!customer||!order)return;
-    let meta=customer.querySelector('.centralOrderMeta');
+    const main=summary?.querySelector('.summaryMain');
+    const total=summary?.querySelector('.summaryRight');
+    if(!main||!total||!order)return;
+    let info=summary.querySelector(':scope > .centralOrderInfo');
+    if(!info){
+      info=document.createElement('div');
+      info.className='centralOrderInfo';
+      main.before(info);
+      info.append(main,total);
+    }
+    let meta=info.querySelector('.centralOrderMeta');
     if(!meta){
       meta=document.createElement('div');
       meta.className='centralOrderMeta';
       meta.innerHTML='<span class="centralOrderType"></span><span class="centralStageTime"></span>';
-      customer.append(meta);
+      info.append(meta);
+    }
+    const timingNodes=[main.querySelector('.centralOrderDate'),main.querySelector('.opsSlaBadge'),total.querySelector('.orderChronometer')].filter(Boolean);
+    const body=card.querySelector(':scope > .orderBody');
+    if(timingNodes.length&&body){
+      let timing=body.querySelector(':scope > .centralOrderTiming');
+      if(!timing){
+        timing=document.createElement('div');
+        timing.className='centralOrderTiming';
+        body.prepend(timing);
+      }
+      timing.append(...timingNodes);
     }
     const type=operationalOrderTypeLabel(order);
     if(meta.firstElementChild.textContent!==type)meta.firstElementChild.textContent=type;
@@ -161,7 +180,7 @@
   function compactCard(card){
     const body=card.querySelector(':scope > .orderBody');
     if(!body)return;
-    const keep=new Set(['orderInfoGrid','orderItemsBox','orderTotalsBox','pixPendingWarning','smartOrderFlow','orderactions','statusFloatDock']);
+    const keep=new Set(['centralOrderTiming','orderInfoGrid','orderItemsBox','orderTotalsBox','pixPendingWarning','smartOrderFlow','orderactions','statusFloatDock']);
     let more=body.querySelector(':scope > .centralMore');
     let content=more?.querySelector(':scope > .centralMoreBody');
     const movable=[...body.children].filter(node=>{
