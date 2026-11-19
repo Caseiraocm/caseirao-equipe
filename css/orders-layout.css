@@ -37,7 +37,7 @@ body.teamApp .proAdmin.ca-orders-page :is(.proFilters button,#proManualOrder,#en
 @media screen {
 body.teamApp .proAdmin.ca-orders-page .proContent{min-width:0!important}
 body.teamApp .proAdmin.ca-orders-page .proFilters{position:static!important;inset:auto!important;z-index:auto!important}
-body.teamApp .proAdmin.ca-orders-page .ordersKanban{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;grid-template-columns:repeat(4,minmax(310px,1fr))!important;overflow-x:auto!important;scroll-snap-type:none!important;scrollbar-width:auto!important;scrollbar-color:#7c8ba0 #e4e9f0!important;padding-bottom:14px!important}
+body.teamApp .proAdmin.ca-orders-page .ordersKanban{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;scroll-snap-type:none!important}
 body.teamApp .proAdmin.ca-orders-page .ordersKanban::-webkit-scrollbar{height:14px}
 body.teamApp .proAdmin.ca-orders-page .ordersKanban::-webkit-scrollbar-track{background:#e4e9f0;border-radius:8px}
 body.teamApp .proAdmin.ca-orders-page .ordersKanban::-webkit-scrollbar-thumb{background:#7c8ba0;border:3px solid #e4e9f0;border-radius:8px}
@@ -191,7 +191,30 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
 
 /* Central no tablet: quatro etapas com espaço para tocar nos controles. */
 @media screen {
-  body.teamApp .proAdmin.ca-orders-page .proMain { padding: 16px 22px !important; }
+  body.teamApp .proAdmin.ca-orders-page {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  body.teamApp .proAdmin.ca-orders-page > .proMain {
+    grid-column: 1 !important;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding: 16px 18px !important;
+  }
+  body.teamApp .proAdmin.ca-orders-page .proHeader,
+  body.teamApp .proAdmin.ca-orders-page .proContent { min-width: 0; }
+  body.teamApp .proAdmin.ca-orders-page .proHeader .proBrand,
+  body.teamApp .proAdmin.ca-orders-page .proHeader .proBrand > div { min-width: 0; }
+  body.teamApp .proAdmin.ca-orders-page .proHeader .proBrand b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   body.teamApp .proAdmin.ca-orders-page .proPageTitle[hidden],
   body.teamApp .proAdmin.ca-orders-page .ca-board-scroll[hidden] { display: none !important; }
 
@@ -238,7 +261,7 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 9px;
     align-items: stretch;
-    overflow: visible !important;
+    overflow-x: clip !important;
     margin: 0 0 12px !important;
     padding: 0 !important;
   }
@@ -278,23 +301,66 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     overflow-wrap: anywhere;
   }
 
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderSummary {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-width: 0;
+  }
+  /* A seta fica no cabeçalho para não ocupar espaço no resumo. */
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderSummary::before,
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderSummary::after {
+    content: none !important;
+  }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .premiumCardHead {
     order: 0;
     padding: 8px 9px !important;
     gap: 4px !important;
   }
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryMain {
-    order: 1;
-    padding: 9px 3px 8px 9px !important;
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .premiumCardHead::after {
+    content: '';
+    flex: 0 0 5px;
+    height: 5px;
+    margin-left: 3px;
+    border: solid currentColor;
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
   }
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight {
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderDetailed[open] .premiumCardHead::after {
+    transform: rotate(225deg);
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderInfo {
     order: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 4px 6px;
+    min-width: 0;
+    padding: 9px 9px 8px;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderInfo > .summaryMain {
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0 !important;
-    padding: 10px 9px 7px 0 !important;
+    padding: 0 !important;
   }
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight::before { display: none; }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderInfo > .summaryRight {
+    grid-column: 2;
+    grid-row: 1;
+    flex-direction: column-reverse !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    text-align: right;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight::before { content: none; }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight > b {
     font-size: 14px !important;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight .trackingQuick {
+    max-width: 84px;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
   }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderNumber {
     font-size: clamp(21px, 2.05vw, 28px) !important;
@@ -306,11 +372,20 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     font-size: 9px !important;
   }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .statusSentence,
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderDetailed:not([open]) .orderChronometer,
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .orderDetailed:not([open]) .summaryCustomer > span:not(.statusSentence) {
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryCustomer > :is(.centralOrderDate,.opsSlaBadge),
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight > .orderChronometer {
     display: none !important;
   }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderTiming {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px 8px;
+    padding: 0 0 8px;
+    font-size: 11px;
+  }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderMeta {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -375,13 +450,15 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     outline-offset: 2px;
   }
 
-  @media (max-width: 839px) {
+  @media (max-width: 767px), (max-width: 900px) and (orientation: portrait) {
     body.teamApp .proAdmin.ca-orders-page .ordersKanban { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  }
+  @media (max-width: 839px) {
     body.teamApp .proAdmin.ca-orders-page .proToolbar { grid-template-columns: minmax(0, 1fr) auto auto; }
     body.teamApp .proAdmin.ca-orders-page .proToolbar > h1 { grid-column: 1 / -1; }
   }
   @media (max-width: 510px) {
-    body.teamApp .proAdmin.ca-orders-page .proMain { padding: 12px !important; }
+    body.teamApp .proAdmin.ca-orders-page > .proMain { padding: 12px !important; }
     body.teamApp .proAdmin.ca-orders-page .ordersKanban { grid-template-columns: minmax(0, 1fr) !important; }
     body.teamApp .proAdmin.ca-orders-page .proToolbar { grid-template-columns: minmax(0, 1fr) auto; }
     body.teamApp .proAdmin.ca-orders-page .proToolbar > #orderSearch { grid-column: 1 / -1; }
