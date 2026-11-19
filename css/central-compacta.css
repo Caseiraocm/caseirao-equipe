@@ -84,3 +84,92 @@
   .kanbanColumn{min-width:82vw;scroll-snap-align:start}
 }
 @media(min-width:601px) and (max-width:1180px){.ordersKanban{grid-template-columns:repeat(4,minmax(310px,1fr))}}
+
+/* Animação ilustrativa da etapa Em rota no resumo do pedido. */
+.orderSummary > .centralDeliveryRoute {
+  grid-column: 1 / -1;
+  width: auto;
+  min-width: 0;
+  margin: 4px 12px 10px;
+  padding: 5px 8px 7px;
+  box-sizing: border-box;
+  border: 1px solid #dbe9f5;
+  border-radius: 10px;
+  background: #f2f8fe;
+  color: #214f73;
+}
+
+.centralDeliveryRouteTrack {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  gap: 3px;
+  align-items: center;
+}
+
+.centralDeliveryRouteStop {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.centralDeliveryRouteLane {
+  position: relative;
+  height: 30px;
+  overflow: hidden;
+  background: repeating-linear-gradient(90deg, #a8c9e4 0 6px, transparent 6px 11px)
+    left bottom 5px / 100% 2px no-repeat;
+}
+
+.centralDeliveryRouteProgress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  height: 2px;
+  transform: scaleX(.07);
+  transform-origin: left;
+  background: repeating-linear-gradient(90deg, #3278ae 0 6px, transparent 6px 11px);
+  animation: centralDeliveryRouteProgress 5s ease-in-out infinite;
+}
+
+.centralDeliveryRouteMotion {
+  position: absolute;
+  left: 0;
+  right: 34px;
+  bottom: 5px;
+  animation: centralDeliveryRouteCross 5s ease-in-out infinite;
+}
+
+.centralDeliveryRouteBike {
+  display: block;
+  width: 34px;
+  height: 20px;
+}
+
+.centralDeliveryRouteLabels {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font: 700 10px/1.2 system-ui, sans-serif;
+}
+
+@keyframes centralDeliveryRouteCross {
+  0%, 5% { transform: translateX(0); opacity: 1; }
+  73%, 92% { transform: translateX(100%); opacity: 1; }
+  97%, 100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes centralDeliveryRouteProgress {
+  0%, 5% { transform: scaleX(.07); opacity: 1; }
+  73%, 92% { transform: scaleX(1); opacity: 1; }
+  97%, 100% { transform: scaleX(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .centralDeliveryRouteMotion, .centralDeliveryRouteProgress {
+    animation: none;
+  }
+  .centralDeliveryRouteMotion { transform: translateX(45%); }
+  .centralDeliveryRouteProgress { transform: scaleX(.48); }
+}
