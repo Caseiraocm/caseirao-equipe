@@ -14,6 +14,61 @@
     return String(card.querySelector('[data-oid]')?.dataset.oid||'');
   }
 
+  const deliveryRouteMarkup = `
+    <div class="centralDeliveryRoute" aria-hidden="true">
+      <div class="centralDeliveryRouteTrack">
+        <svg class="centralDeliveryRouteStop" viewBox="0 0 32 32" fill="none" focusable="false">
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="#dceffd"/>
+          <path d="M8 15v10h16V15M17 25v-6h4v6M11 19h3v3h-3z" stroke="#215980" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M7 15l2-6h14l2 6z" fill="#2e7db8" stroke="#215980" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M13 10l-1 4m7-4 1 4" stroke="#dceffd" stroke-width="1.5"/>
+        </svg>
+        <div class="centralDeliveryRouteLane">
+          <div class="centralDeliveryRouteProgress"></div>
+          <div class="centralDeliveryRouteMotion">
+            <svg class="centralDeliveryRouteBike" viewBox="0 0 44 26" fill="none" focusable="false">
+              <path d="M2 13h5m-7 4h4" stroke="#67a2c8" stroke-width="1.4" stroke-linecap="round"/>
+              <g stroke="#194e76" stroke-width="1.8" fill="#f3f9ff">
+                <circle cx="12" cy="19" r="4.5"/>
+                <circle cx="35" cy="19" r="4.5"/>
+              </g>
+              <g fill="#194e76">
+                <circle cx="12" cy="19" r="1.3"/>
+                <circle cx="35" cy="19" r="1.3"/>
+              </g>
+              <path d="M8 13h11l4 5h4l4-9 5 2-5 9H20l-4-3H8z" fill="#2e7db8" stroke="#194e76" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M14 11h8m8-5h3l2 4" stroke="#194e76" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="6" y="5" width="8" height="7" rx="1.5" fill="#2e7db8" stroke="#194e76" stroke-width="1.2"/>
+              <circle cx="35" cy="11" r="1.4" fill="#f0b940"/>
+            </svg>
+          </div>
+        </div>
+        <svg class="centralDeliveryRouteStop" viewBox="0 0 32 32" fill="none" focusable="false">
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="#dceffd"/>
+          <path d="M9 15v10h14V15M14 25v-7h4v7" fill="#fff" stroke="#215980" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M6 16l10-8 10 8z" fill="#215980" stroke="#215980" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="centralDeliveryRouteLabels"><span>Caseirão</span><span>Casa do cliente</span></div>
+    </div>`;
+
+  function syncDeliveryRoute(card,status){
+    const summary=card.querySelector(':scope > .orderSummary');
+    if(!summary)return;
+    const route=summary.querySelector(':scope > .centralDeliveryRoute');
+    const id=orderId(card);
+    const orders=typeof admin!=='undefined' ? admin?.orders : null;
+    const order=status==='em_rota' && id && orders?.find(item=>String(item.id)===id);
+    if(order?.type!=='delivery'){
+      route?.remove();
+      return;
+    }
+    if(route)return;
+    const quick=summary.querySelector(':scope > .premiumQuick');
+    if(quick)quick.insertAdjacentHTML('beforebegin',deliveryRouteMarkup);
+    else summary.insertAdjacentHTML('beforeend',deliveryRouteMarkup);
+  }
+
   function compactCard(card){
     const body=card.querySelector(':scope > .orderBody');
     if(!body)return;
@@ -167,6 +222,7 @@
     const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
     board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
     card.dataset.kanbanStatus=status;
+    syncDeliveryRoute(card,status);
     updateBoardCounts(board);
   }
 
@@ -187,6 +243,7 @@
       const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
       board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
       card.dataset.kanbanStatus=status;
+      syncDeliveryRoute(card,status);
     });
     updateBoardCounts(board);
   }
