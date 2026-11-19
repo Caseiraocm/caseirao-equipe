@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  let queued=false;
- let currentBox=null,cachedAlert=null,cachedSummary=null,cachedTools=null;
+ let currentBox=null,cachedAlert=null,cachedSummary=null,cachedTools=null,cachedTitle=null,cachedManual=null;
  let boardControl=null,boardResize=null;
  let selectedShortcut='';
  const queueStatuses=new Set(['novo','confirmado','preparando']);
@@ -68,7 +68,7 @@
   const selectedOrders=new Set((summary[selectedShortcut]||[]).map(order=>String(order.id)));
   const cards=[...box.querySelectorAll('details.orderDetailed')];
   cards.forEach(card=>{
-   const id=card.querySelector('[data-oid]')?.dataset.oid;
+   const id=card.dataset.orderId||card.querySelector('[data-oid]')?.dataset.oid;
    card.classList.toggle('ca-shortcut-hidden',Boolean(selectedShortcut)&&!selectedOrders.has(id));
   });
   box.querySelectorAll('.kanbanColumn').forEach(column=>{
@@ -144,7 +144,7 @@
   bar.innerHTML='<div class="ca-board-scroll-label"><b>Mover entre etapas</b><small>Arraste a barra ou use as setas</small></div><button type="button" data-ca-left aria-label="Rolar pedidos para a esquerda">‹</button><input type="range" min="0" max="1000" step="1" value="0" aria-label="Posição horizontal das colunas de pedidos"><button type="button" data-ca-right aria-label="Rolar pedidos para a direita">›</button>';
   const left=bar.querySelector('[data-ca-left]'),right=bar.querySelector('[data-ca-right]'),slider=bar.querySelector('input');
   const max=()=>Math.max(0,board.scrollWidth-board.clientWidth);
-  const sync=()=>{const limit=max(),offset=Math.max(0,Math.min(limit,board.scrollLeft));slider.value=limit?String(Math.round(offset/limit*1000)):'0';slider.disabled=limit<=1;left.disabled=offset<=1;right.disabled=offset>=limit-1;slider.setAttribute('aria-valuetext',Math.round(Number(slider.value)/10)+'% da rolagem horizontal');};
+  const sync=()=>{const limit=max(),offset=Math.max(0,Math.min(limit,board.scrollLeft));bar.hidden=limit<=1;slider.value=limit?String(Math.round(offset/limit*1000)):'0';slider.disabled=limit<=1;left.disabled=offset<=1;right.disabled=offset>=limit-1;slider.setAttribute('aria-valuetext',Math.round(Number(slider.value)/10)+'% da rolagem horizontal');};
   const step=()=>{const column=board.querySelector('.kanbanColumn');return (column?.getBoundingClientRect().width||310)+10;};
   const move=delta=>{board.scrollLeft=Math.max(0,Math.min(max(),board.scrollLeft+delta));sync();};
   slider.addEventListener('input',()=>{board.scrollLeft=Number(slider.value)/1000*max();sync();});
@@ -162,19 +162,27 @@
   root.classList.toggle('ca-orders-page',active);
   if(!active){boardResize?.disconnect();boardControl=null;return;}
   const box=root.querySelector('#admContent');if(!box)return;
-  if(currentBox!==box){currentBox=box;cachedAlert=null;cachedSummary=null;cachedTools=null;selectedShortcut='';}
+  if(currentBox!==box){currentBox=box;cachedAlert=null;cachedSummary=null;cachedTools=null;cachedTitle=null;cachedManual=null;selectedShortcut='';}
   cachedAlert=box.querySelector('.alertControl')||cachedAlert;
   cachedSummary=box.querySelector('.ordersSummary')||cachedSummary;
   cachedTools=box.querySelector('.ordersTools')||cachedTools;
   const toolbar=box.querySelector('.proToolbar');
   const alert=box.querySelector('.alertControl')||cachedAlert;
   if(toolbar&&alert&&!toolbar.contains(alert))toolbar.append(alert);
+  const heading=root.querySelector('.proPageTitle');
+  const title=heading?.querySelector('h1')||cachedTitle;
+  const manual=root.querySelector('#proManualOrder')||cachedManual;
+  cachedTitle=title;cachedManual=manual;
+  if(toolbar&&title&&title.parentElement!==toolbar)toolbar.prepend(title);
+  if(toolbar&&manual&&manual.parentElement!==toolbar)toolbar.append(manual);
+  if(heading)heading.hidden=Boolean(toolbar);
   const input=box.querySelector('#orderSearch');
   if(input&&!input.hasAttribute('aria-label')){input.setAttribute('aria-label','Buscar pedido por número, nome ou telefone');input.placeholder='Buscar por número, nome ou telefone';}
   const folder=box.querySelector('#caseiraoV11Settings');
   const target=folder?.querySelector('.caseiraoV11SettingsBody');
   if(cachedSummary&&!box.contains(cachedSummary))box.insertBefore(cachedSummary,folder||null);
   if(target){
+   if(cachedSummary&&!target.contains(cachedSummary))target.prepend(cachedSummary);
    const tools=box.querySelector('.ordersTools')||cachedTools;if(tools&&!target.contains(tools))target.prepend(tools);
    const hint=box.querySelector('.operationHint');if(hint&&!target.contains(hint))target.append(hint);
    const summary=folder.querySelector(':scope > summary');
@@ -186,7 +194,7 @@
   if(cachedSummary)refreshShortcuts(box,cachedSummary,orders);
   box.querySelectorAll('[data-ofilter]').forEach(button=>{
    const key=button.dataset.ofilter;
-   const count=orders.filter(o=>key==='all'||(key==='active'?!['entregue','cancelado'].includes(o.status):o.status===key)).length;
+   const count=orders.filter(order=>orderMatchesBoardFilter(order,key)).length;
    let badge=button.querySelector('.ca-filter-count');
    if(!badge){badge=document.createElement('span');badge.className='ca-filter-count';button.append(badge);}
    if(badge.textContent!==String(count))badge.textContent=String(count);
@@ -203,7 +211,7 @@
   }
  },true);
  window.addEventListener('input',event=>{
-  if(selectedShortcut&&event.target.id==='orderSearch')requestAnimationFrame(organize);
+  if(event.target.id==='orderSearch')requestAnimationFrame(organize);
  },true);
  setInterval(()=>{
   if(!document.hidden&&currentBox?.isConnected&&adminTab==='pedidos'&&cachedSummary?.isConnected){

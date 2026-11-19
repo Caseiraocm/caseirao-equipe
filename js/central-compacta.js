@@ -7,11 +7,102 @@
     {key:'received',title:'Recebidos',hint:'Novos pedidos',statuses:['novo','confirmado']},
     {key:'preparing',title:'Em preparo',hint:'Na cozinha',statuses:['preparando']},
     {key:'ready',title:'Prontos',hint:'Aguardando saída',statuses:['pronto']},
-    {key:'delivery',title:'Entrega / final',hint:'Rota e concluídos',statuses:['em_rota','entregue','cancelado']}
+    {key:'delivery',title:'Em rota',statuses:['em_rota']}
   ];
 
+  const historyColumn={key:'finished',title:'Finalizados',statuses:['entregue','cancelado']};
+  const pendingUpdates=new Set();
+  const stageStarts=new Map();
+
   function orderId(card){
-    return String(card.querySelector('[data-oid]')?.dataset.oid||'');
+    return card.dataset.orderId || String(card.querySelector('[data-oid]')?.dataset.oid||'');
+  }
+
+  function orderForCard(card){
+    const orders=typeof admin!=='undefined' ? admin?.orders : null;
+    return orders?.find(order=>String(order.id)===orderId(card));
+  }
+
+  function stageTiming(order,now){
+    const status=order.status;
+    if(status==='novo'||status==='confirmado'){
+      return {start:Date.parse(order.created_at),label:'aguardando'};
+    }
+    const labels={preparando:'em preparo',pronto:'aguardando saída',em_rota:'em rota'};
+    if(!labels[status])return null;
+    const entries=Array.isArray(order.order_status_history)?order.order_status_history:[];
+    const since=entries.reduce((latest,entry)=>{
+      if(entry.status!==status)return latest;
+      const time=Date.parse(entry.created_at||entry.changed_at);
+      return time<=now&&time>latest?time:latest;
+    },0);
+    const observed=stageStarts.get(String(order.id));
+    const change=observed?.status===status?observed.time:0;
+    const start=Math.max(since,change);
+    return start
+      ? {start,label:status==='pronto'&&operationalOrderType(order)==='pickup'?'aguardando retirada':labels[status]}
+      : {start:Date.parse(order.created_at),label:'desde o pedido'};
+  }
+
+  function updateStageTimer(timer,order,now){
+    const timing=stageTiming(order,now);
+    const label=Number.isFinite(timing?.start)
+      ? Math.max(0,Math.floor((now-timing.start)/60000))+' min '+timing.label
+      : '';
+    if(timer.textContent!==label)timer.textContent=label;
+  }
+
+  function syncCardSummary(card,order){
+    const summary=card.querySelector(':scope > .orderSummary');
+    const customer=summary?.querySelector('.summaryCustomer');
+    if(!customer||!order)return;
+    let meta=customer.querySelector('.centralOrderMeta');
+    if(!meta){
+      meta=document.createElement('div');
+      meta.className='centralOrderMeta';
+      meta.innerHTML='<span class="centralOrderType"></span><span class="centralStageTime"></span>';
+      customer.append(meta);
+    }
+    const type=operationalOrderTypeLabel(order);
+    if(meta.firstElementChild.textContent!==type)meta.firstElementChild.textContent=type;
+    updateStageTimer(meta.lastElementChild,order,Date.now());
+
+    const status=order.status;
+    const canPay=orderPaymentConfirmed(order);
+    const progress={
+      novo:['confirmado','Aceitar pedido'],
+      confirmado:['preparando','Iniciar preparo'],
+      preparando:['pronto','Marcar pronto'],
+      pronto:order.type==='delivery'?['em_rota','Enviar para entrega']:['entregue',operationalOrderType(order)==='pickup'?'Finalizar retirada':'Finalizar pedido'],
+      em_rota:['entregue','Finalizar entrega']
+    };
+    const next=canPay && progress[status];
+    let action=summary.querySelector(':scope > .centralOrderNext');
+    if(!next)action?.remove();
+    else {
+      if(!action){
+        action=document.createElement('button');
+        action.type='button';
+        action.className='centralOrderNext';
+        const quick=summary.querySelector(':scope > .premiumQuick');
+        if(quick)quick.before(action);
+        else summary.append(action);
+        action.onclick=event=>{
+          event.preventDefault();
+          event.stopPropagation();
+          updateStatusInPlace(card,action.dataset.next,action);
+        };
+      }
+      action.dataset.next=next[0];
+      action.disabled=pendingUpdates.has(orderId(card));
+      if(action.textContent!==next[1])action.textContent=next[1];
+    }
+    const printer=summary.querySelector('.premiumPrint');
+    if(printer){
+      if(printer.textContent!=='Imprimir')printer.textContent='Imprimir';
+      if(!canPay)printer.disabled=true;
+    }
+    card.classList.toggle('centralPaymentPending',!canPay);
   }
 
   const deliveryRouteMarkup = `
@@ -56,15 +147,13 @@
     const summary=card.querySelector(':scope > .orderSummary');
     if(!summary)return;
     const route=summary.querySelector(':scope > .centralDeliveryRoute');
-    const id=orderId(card);
-    const orders=typeof admin!=='undefined' ? admin?.orders : null;
-    const order=status==='em_rota' && id && orders?.find(item=>String(item.id)===id);
+    const order=status==='em_rota' && orderForCard(card);
     if(order?.type!=='delivery'){
       route?.remove();
       return;
     }
     if(route)return;
-    const quick=summary.querySelector(':scope > .premiumQuick');
+    const quick=summary.querySelector(':scope > .centralOrderNext, :scope > .premiumQuick');
     if(quick)quick.insertAdjacentHTML('beforebegin',deliveryRouteMarkup);
     else summary.insertAdjacentHTML('beforeend',deliveryRouteMarkup);
   }
@@ -153,25 +242,33 @@
 
   async function updateStatusInPlace(card,next,trigger){
     const id=orderId(card),target=statusButton(card,next);
-    const currentOrder=(admin?.orders||[]).find(o=>String(o.id)===id);
-    if(next==='pronto'&&currentOrder?.type==='delivery')next='em_rota';
-    if(!id||!target||target.disabled)return;
+    const currentOrder=orderForCard(card);
+    if(!currentOrder||pendingUpdates.has(id)||next===currentOrder.status)return;
+    if(next!=='confirmado'&&(!target||target.disabled))return;
+    if(next!=='cancelado'&&!orderPaymentConfirmed(currentOrder))return;
+    if(next==='pronto'&&currentOrder.type==='delivery')next='em_rota';
+    if(next==='entregue'&&!confirm(completionConfirmText(id)))return;
     let reason='';
     if(next==='cancelado'){
       reason=String(prompt('Informe o motivo do cancelamento:')||'').trim();
       if(!reason)return;
     }
+    const before=currentOrder.status;
     const dock=card.querySelector(':scope > .orderBody > .statusFloatDock');
     const scrollHost=document.querySelector('.admWorkspaceMain')||document.querySelector('.sheet.full');
     const scrollTop=scrollHost?.scrollTop||0;
+    pendingUpdates.add(id);
     try{
-      trigger.disabled=true;dock?.classList.add('updating');
+      trigger.disabled=true;
+      dock?.classList.add('updating');
       await adminCall('update_status',{order_id:id,status:next,reason});
-      if(['entregue','cancelado'].includes(next))await deliveryApi('admin_stop',{order_id:id},true).catch(()=>{});
-      const order=(typeof admin!=='undefined'&&admin?.orders||[]).find(item=>String(item.id)===id);
-      if(order){order.status=next;order.cancel_reason=next==='cancelado'?reason:null;order.updated_at=new Date().toISOString()}
+      const time=Date.now(),order=orderForCard(card);
+      stageStarts.set(id,{status:next,time});
+      if(order){order.status=next;order.cancel_reason=next==='cancelado'?reason:null;order.updated_at=new Date(time).toISOString()}
       if(typeof knownOrderStatuses!=='undefined')knownOrderStatuses.set(id,next);
-      target.closest('.orderactions')?.querySelectorAll('[data-st]').forEach(button=>{
+      if((next==='pronto'||next==='em_rota')&&before==='preparando')savePreparationStop(id,time);
+      if(['entregue','cancelado'].includes(next))deliveryApi('admin_stop',{order_id:id},true).catch(()=>{});
+      card.querySelectorAll('.orderactions [data-st]').forEach(button=>{
         const active=button.dataset.st===next;
         button.classList.toggle('selected',active);
         button.setAttribute('aria-pressed',String(active));
@@ -179,14 +276,22 @@
       const badge=card.querySelector('.orderSummary .statusBadge');
       if(badge){badge.className=`statusBadge ${statusTone(next)}`;badge.textContent=statusMeta[next]?.label||next}
       dock?.remove();installStatusDock(card);card.open=false;
-      moveCardToColumn(card,next);
+      if(card.isConnected)moveCardToColumn(card,next);
+      else if(adminTab==='pedidos'){
+        const box=document.querySelector('#admContent');
+        if(box)renderOrders(box);
+      }
       card.classList.add('recentlyUpdated');
       setTimeout(()=>card.classList.remove('recentlyUpdated'),3500);
       if(scrollHost)scrollHost.scrollTop=scrollTop;
       if(typeof showAppToast==='function')showAppToast(`Pedido atualizado: ${statusMeta[next]?.label||next}.`,'ok');
     }catch(error){
-      trigger.disabled=false;dock?.classList.remove('updating');
+      dock?.classList.remove('updating');
       alert(error?.message||String(error));
+    }finally{
+      pendingUpdates.delete(id);
+      trigger.disabled=false;
+      syncCardSummary(card,orderForCard(card));
     }
   }
 
@@ -201,17 +306,16 @@
   }
 
   function cardStatus(card){
-    const id=orderId(card);
-    const order=(typeof admin!=='undefined'&&admin?.orders||[]).find(item=>String(item.id)===id);
+    const order=orderForCard(card);
     if(order?.status)return String(order.status);
     return [...card.querySelectorAll('.orderactions [data-st]')].find(button=>button.classList.contains('selected'))?.dataset.st||'novo';
   }
 
   function updateBoardCounts(board){
     board.querySelectorAll('.kanbanColumn').forEach(column=>{
-      const cards=[...column.querySelectorAll(':scope > .kanbanCards > .orderDetailed')].filter(card=>!card.classList.contains('hide'));
+      const cards=[...column.querySelectorAll(':scope > .kanbanCards > .orderDetailed')].filter(card=>!card.matches('.hide,.ca-shortcut-hidden'));
       const count=column.querySelector('.kanbanCount');
-      if(count)count.textContent=String(cards.length);
+      if(count&&count.textContent!==String(cards.length))count.textContent=String(cards.length);
       column.classList.toggle('isEmpty',cards.length===0);
     });
   }
@@ -219,38 +323,58 @@
   function moveCardToColumn(card,status){
     const board=card.closest('.ordersKanban');
     if(!board)return;
-    const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
-    board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
-    card.dataset.kanbanStatus=status;
-    syncDeliveryRoute(card,status);
+    const content=board.closest('#admContent');
+    const filter=content?.dataset.orderFilter||'active';
+    if(!orderMatchesBoardFilter({status},filter)){
+      card.remove();
+    }else{
+      const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
+      board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
+      card.dataset.kanbanStatus=status;
+      card.dataset.premiumTone={novo:'received',confirmado:'received',preparando:'preparing',pronto:'ready',em_rota:'route'}[status]||'received';
+      syncDeliveryRoute(card,status);
+      syncCardSummary(card,orderForCard(card));
+    }
     updateBoardCounts(board);
   }
 
   function organizeKanban(content){
+    const filters=content.querySelector(':scope > .proFilters');
+    if(!filters)return;
+    const history=content.dataset.orderFilter==='finished';
     const cards=[...content.querySelectorAll(':scope > details.orderDetailed')];
-    if(!cards.length)return;
     let board=content.querySelector(':scope > .ordersKanban');
+    if(!board&&!history){
+      content.querySelector(':scope > .cleanEmpty')?.remove();
+    }
     if(!board){
+      if(history&&!cards.length)return;
       board=document.createElement('section');
-      board.className='ordersKanban';
-      board.setAttribute('aria-label','Fluxo dos pedidos');
-      board.innerHTML=boardColumns.map(column=>`<section class="kanbanColumn kanban-${column.key}" data-kanban="${column.key}"><header><div><b>${column.title}</b><small>${column.hint}</small></div><span class="kanbanCount">0</span></header><div class="kanbanCards"></div></section>`).join('');
-      const filters=content.querySelector(':scope > .proFilters');
-      (filters||content.querySelector(':scope > .proToolbar'))?.after(board);
+      board.className='ordersKanban'+(history?' centralOrderHistory':'');
+      board.setAttribute('aria-label',history?'Pedidos finalizados do expediente':'Fluxo dos pedidos');
+      board.innerHTML=(history?[historyColumn]:boardColumns).map(column=>`
+        <section class="kanbanColumn kanban-${column.key}" data-kanban="${column.key}">
+          <header><b>${column.title}</b><span class="kanbanCount">0</span></header>
+          <div class="kanbanCards"></div>
+        </section>`).join('');
+      filters.after(board);
     }
     cards.forEach(card=>{
       const status=cardStatus(card);
-      const definition=boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
+      const definition=history?historyColumn:boardColumns.find(column=>column.statuses.includes(status))||boardColumns[0];
       board.querySelector(`[data-kanban="${definition.key}"] .kanbanCards`)?.appendChild(card);
       card.dataset.kanbanStatus=status;
-      syncDeliveryRoute(card,status);
+    });
+    board.querySelectorAll('details.orderDetailed').forEach(card=>{
+      syncDeliveryRoute(card,cardStatus(card));
+      syncCardSummary(card,orderForCard(card));
     });
     updateBoardCounts(board);
   }
 
   function enhance(root=document){
     const content=root.matches?.('#admContent')?root:root.querySelector?.('#admContent');
-    if(!content)return;
+    if(!content||typeof adminTab!=='undefined'&&adminTab!=='pedidos')return;
     content.querySelectorAll('details.orderDetailed').forEach(compactCard);
     organizeKanban(content);
     foldPrinter(content);
@@ -272,7 +396,7 @@
     lastAction={id:String(button.dataset.oid||''),at:Date.now()};
   },true);
 
-  document.addEventListener('input',event=>{
+  window.addEventListener('input',event=>{
     if(event.target?.id!=='orderSearch')return;
     requestAnimationFrame(()=>{
       const board=event.target.closest('#admContent')?.querySelector('.ordersKanban');
@@ -284,5 +408,13 @@
     if(records.some(record=>record.addedNodes.length))requestAnimationFrame(()=>enhance(document));
   });
   observer.observe(document.documentElement,{childList:true,subtree:true});
+  setInterval(()=>{
+    if(document.hidden)return;
+    const now=Date.now();
+    document.querySelectorAll('.ordersKanban .centralStageTime').forEach(timer=>{
+      const order=orderForCard(timer.closest('.orderDetailed'));
+      if(order)updateStageTimer(timer,order,now);
+    });
+  },10000);
   enhance(document);
 })();
