@@ -247,56 +247,178 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
     const products=(admin?.products||data.products||[]).filter(product=>product.active!==false&&!product.sold_out);
     const quantities=new Map(),unitNotes=new Map(),addonSelections=new Map();
     const addonsFor=id=>allowedManualAddons(id);
-    const estimatedTotal=()=>products.reduce((sum,product)=>{
-      const id=String(product.id),quantity=quantities.get(id)||0,selected=addonSelections.get(id)||new Set();
-      const addonPrice=addonsFor(id).filter(addon=>selected.has(String(addon.id))).reduce((value,addon)=>value+Number(addon.price||0),0);
-      return sum+quantity*(priceOf(product)+addonPrice);
-    },0);
-    const drawTotal=()=>{const output=$('#manualTotal');if(output)output.textContent=fmt(estimatedTotal())};
-    const drawAddress=()=>{const box=$('#manualAddress');if(!box)return;box.innerHTML=manualType==='delivery'?`<div class="manualSectionTitle">ENDEREÇO DA ENTREGA</div><div class="row"><div class="field"><label>Rua / Avenida</label><input id="mStreet" class="in"></div><div class="field"><label>Número</label><input id="mNumber" class="in"></div></div><div class="field"><label>Bairro</label><select id="mNeighborhood" class="sel"><option value="">Selecione</option>${(admin.neighborhoods||[]).filter(n=>n.active!==false).map(n=>`<option value="${n.id}">${esc(n.name)} • ${fmt(n.fee)}</option>`).join('')}</select></div><div class="row"><div class="field"><label>Complemento</label><input id="mComplement" class="in"></div><div class="field"><label>Referência</label><input id="mReference" class="in"></div></div>`:''};
+    const itemPrice=product=>{
+      const id=String(product.id),selected=addonSelections.get(id)||new Set();
+      return priceOf(product)+addonsFor(id).filter(addon=>selected.has(String(addon.id)))
+        .reduce((sum,addon)=>sum+Number(addon.price||0),0);
+    };
 
-    modal(`<div class="sheeth"><div><h2>Novo pedido manual</h2><div class="adminSub">Balcão, telefone ou consumo no local</div></div><button class="x" id="backToAdmin">←</button></div><div class="seg manualOrderTypes"><button data-mtype="delivery">Entrega</button><button data-counter-order>Balcão</button><button data-mtype="pickup" class="on">Retirada</button><button data-mtype="local">No local</button></div><div id="counterNotice" class="counterNotice hide">Pedido presencial no balcão — telefone opcional.</div><div class="manualSectionTitle">DADOS DO CLIENTE</div><div class="row"><div class="field" id="manualNameField"><label>Nome do cliente</label><input id="mName" class="in"></div><div class="field" id="manualPhoneField"><label>Telefone</label><input id="mPhone" class="in" inputmode="tel" placeholder="(86) 99999-9999"></div></div><div id="manualAddress"></div><div class="row"><div class="field"><label>Pagamento</label><select id="mPayment" class="sel"><option>Pix</option><option>Dinheiro</option><option>Cartão</option></select></div><div class="field"><label>Troco para</label><input id="mChange" class="in" inputmode="decimal"></div></div><div class="manualSectionTitle">ESCOLHA OS PRODUTOS E ADICIONAIS</div><div class="employeeProductSearch manualProductSearch"><span>⌕</span><input id="manualProductSearch" class="in" placeholder="Buscar lanche, combo, bebida..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="field"><label>Observação geral do pedido</label><textarea id="mNotes" class="ta" placeholder="Opcional: recado que vale para o pedido inteiro"></textarea></div><div class="manualFooter"><div><span>Total estimado</span><b id="manualTotal">${fmt(0)}</b></div><button id="saveManual" class="primary">CRIAR PEDIDO</button></div>`,true);
+    modal(`
+      <section class="manualOrderWorkspace" aria-labelledby="manualOrderTitle">
+        <header class="manualOrderHeader">
+          <button type="button" id="backToAdmin" aria-label="Voltar à Central">← <span>Voltar</span></button>
+          <h2 id="manualOrderTitle">Novo pedido manual</h2>
+        </header>
+        <div class="manualOrderColumns">
+          <section class="manualCatalogPane" aria-labelledby="manualCatalogTitle">
+            <div class="manualCatalogHead">
+              <h3 id="manualCatalogTitle">Produtos</h3>
+              <input id="manualProductSearch" class="in" type="search" aria-label="Buscar produtos" placeholder="Buscar lanche, combo, bebida...">
+            </div>
+            <div class="manualCatalogScroll">
+              <div class="employeeCatalog">${operationalCatalogHtml(products)}</div>
+              <p class="manualCatalogEmpty" hidden>Nenhum produto encontrado.</p>
+            </div>
+          </section>
+          <section class="manualDetailsPane" aria-labelledby="manualDetailsTitle">
+            <h3 id="manualDetailsTitle">Dados do pedido</h3>
+            <div class="manualOrderTypes" role="group" aria-label="Tipo do pedido">
+              <button type="button" data-mtype="delivery" aria-pressed="false">Entrega</button>
+              <button type="button" data-counter-order aria-pressed="false">Balcão</button>
+              <button type="button" data-mtype="pickup" class="on" aria-pressed="true">Retirada</button>
+              <button type="button" data-mtype="local" aria-pressed="false">No local</button>
+            </div>
+            <div class="manualFields">
+              <div class="field" id="manualNameField"><label for="mName">Nome do cliente</label><input id="mName" class="in" autocomplete="off"></div>
+              <div class="field" id="manualPhoneField"><label for="mPhone">Telefone</label><input id="mPhone" class="in" inputmode="tel" placeholder="(86) 99999-9999"></div>
+            </div>
+            <div id="manualAddress" hidden>
+              <h4>Endereço da entrega</h4>
+              <div class="manualFields">
+                <div class="field"><label for="mStreet">Rua / Avenida</label><input id="mStreet" class="in"></div>
+                <div class="field"><label for="mNumber">Número</label><input id="mNumber" class="in"></div>
+                <div class="field manualFullField"><label for="mNeighborhood">Bairro</label><select id="mNeighborhood" class="sel"><option value="">Selecione</option>${(admin?.neighborhoods||[]).filter(n=>n.active!==false).map(n=>`<option value="${esc(n.id)}">${esc(n.name)} • ${fmt(n.fee)}</option>`).join('')}</select></div>
+                <div class="field"><label for="mComplement">Complemento</label><input id="mComplement" class="in"></div>
+                <div class="field"><label for="mReference">Referência</label><input id="mReference" class="in"></div>
+              </div>
+            </div>
+            <div class="manualFields">
+              <div class="field"><label for="mPayment">Pagamento</label><select id="mPayment" class="sel"><option>Pix</option><option>Dinheiro</option><option>Cartão</option></select></div>
+              <div class="field" id="manualChangeField" hidden><label for="mChange">Troco para</label><input id="mChange" class="in" inputmode="decimal" placeholder="R$ 0,00" disabled></div>
+            </div>
+            <section class="manualBasket" aria-labelledby="manualBasketTitle">
+              <h4 id="manualBasketTitle">Itens do pedido</h4>
+              <div id="manualBasketItems" aria-live="polite"></div>
+            </section>
+            <details class="manualNotes">
+              <summary>Observação geral</summary>
+              <textarea id="mNotes" class="ta" aria-label="Observação geral do pedido" placeholder="Recado para toda a comanda"></textarea>
+            </details>
+          </section>
+        </div>
+        <footer class="manualOrderSubmit">
+          <div id="manualOrderError" class="manualOrderError" role="alert" tabindex="-1" hidden></div>
+          <div class="manualOrderTotal"><span id="manualTotalLabel">Total estimado</span><b id="manualTotal">${fmt(0)}</b></div>
+          <button type="button" id="saveManual" class="primary">Criar pedido</button>
+        </footer>
+      </section>`,true);
 
+    const workspace=$('.manualOrderWorkspace');
+    const types=[...workspace.querySelectorAll('.manualOrderTypes button')];
+    function drawBasket(){
+      const rows=products.filter(product=>quantities.get(String(product.id))>0);
+      $('#manualBasketItems').innerHTML=rows.length?`<ul>${rows.map(product=>{
+        const id=String(product.id),quantity=quantities.get(id);
+        const selected=addonSelections.get(id)||new Set();
+        const additions=addonsFor(id).filter(addon=>selected.has(String(addon.id))).map(addon=>esc(addon.name));
+        return `<li><span><b>${quantity} × ${esc(product.name)}</b>${additions.length?`<small>${additions.join(', ')}</small>`:''}</span><strong>${fmt(quantity*itemPrice(product))}</strong></li>`;
+      }).join('')}</ul>`:'<p>Nenhum item adicionado.</p>';
+      $('#manualTotal').textContent=fmt(rows.reduce((sum,product)=>sum+quantities.get(String(product.id))*itemPrice(product),0));
+    }
+    function syncType(){
+      const isCounter=manualType==='counter',isDelivery=manualType==='delivery';
+      $('#manualPhoneField').hidden=isCounter;
+      $('#manualNameField').classList.toggle('manualFullField',isCounter);
+      $('#mPhone').disabled=isCounter;
+      $('#manualAddress').hidden=!isDelivery;
+      $('#manualTotalLabel').textContent=isDelivery?'Total dos itens':'Total estimado';
+    }
+    function syncPayment(){
+      const cash=$('#mPayment').value==='Dinheiro';
+      $('#manualChangeField').hidden=!cash;
+      $('#mChange').disabled=!cash;
+    }
+    $('#backToAdmin').onclick=renderAdmin;
+    types.forEach(button=>button.onclick=()=>{
+      manualType=button.dataset.mtype||'counter';
+      types.forEach(option=>{
+        option.classList.toggle('on',option===button);
+        option.setAttribute('aria-pressed',String(option===button));
+      });
+      syncType();
+    });
+    $('#mPayment').onchange=syncPayment;
+    $('#mPhone').oninput=event=>event.target.value=phoneMask(event.target.value);
+    const empty=workspace.querySelector('.manualCatalogEmpty');
+    $('#manualProductSearch').oninput=event=>{
+      filterOperationalCatalog(event.target.value);
+      empty.hidden=Boolean(workspace.querySelector('[data-rprow]:not(.hide)'));
+    };
+    empty.hidden=products.length>0;
+    syncType();
+    syncPayment();
+    drawBasket();
     products.forEach(product=>{
       const id=String(product.id),card=$(`[data-rqty="${CSS.escape(id)}"]`)?.closest('.employeeProductCard'),addons=addonsFor(id);
       if(!card||!addons.length)return;
       card.insertAdjacentHTML('beforeend',`<div class="manualAddonBox" data-manual-addons="${esc(id)}"><b>ADICIONAIS</b><div>${addons.map(addon=>`<label><input type="checkbox" data-manual-addon="${esc(id)}" value="${esc(addon.id)}"><span>${esc(addon.name)}</span><strong>+ ${fmt(addon.price)}</strong></label>`).join('')}</div><small>Os adicionais selecionados valem para todas as unidades deste item.</small></div>`);
     });
 
-    const syncType=()=>{
-      const counter=manualType==='counter',phone=$('#mPhone'),phoneField=$('#manualPhoneField'),nameField=$('#manualNameField');
-      if(phoneField)phoneField.hidden=counter;if(nameField)nameField.style.gridColumn=counter?'1 / -1':'';
-      if(phone){if(counter)phone.value='';phone.disabled=counter;phone.required=!counter}
-      $('#counterNotice')?.classList.toggle('hide',!counter);drawAddress();
-    };
-    const selectType=(type,button)=>{manualType=type;document.querySelectorAll('.manualOrderTypes button').forEach(node=>node.classList.toggle('on',node===button));syncType()};
-    $('#backToAdmin').onclick=renderAdmin;
-    document.querySelectorAll('[data-mtype]').forEach(button=>button.onclick=()=>selectType(button.dataset.mtype,button));
-    const counterButton=document.querySelector('[data-counter-order]');if(counterButton)counterButton.onclick=()=>selectType('counter',counterButton);
-    $('#mPhone').oninput=event=>event.target.value=phoneMask(event.target.value);
-    $('#manualProductSearch').oninput=event=>filterOperationalCatalog(event.target.value);
-    document.querySelectorAll('[data-rproduct]').forEach(button=>button.onclick=()=>{
+    workspace.querySelectorAll('[data-rproduct]').forEach(button=>button.onclick=()=>{
       const id=String(button.dataset.rproduct),quantity=Math.max(0,(quantities.get(id)||0)+Number(button.dataset.d)),product=products.find(item=>String(item.id)===id);
       quantities.set(id,quantity);const counter=$(`[data-rqty="${CSS.escape(id)}"]`),card=counter?.closest('.employeeProductCard');
       if(counter)counter.textContent=quantity;card?.classList.toggle('selected',quantity>0);card?.querySelector('.manualAddonBox')?.classList.toggle('visible',quantity>0);
-      renderUnitNotes(id,product?.name||'Item',quantity,unitNotes);drawTotal();
+      renderUnitNotes(id,product?.name||'Item',quantity,unitNotes);drawBasket();
     });
-    document.querySelectorAll('[data-manual-addon]').forEach(input=>input.onchange=()=>{
+    workspace.querySelectorAll('[data-manual-addon]').forEach(input=>input.onchange=()=>{
       const id=String(input.dataset.manualAddon),selected=addonSelections.get(id)||new Set(),addonId=String(input.value);
       if(input.checked){if(selected.size>=10){input.checked=false;return alert('Escolha no máximo 10 adicionais por item.')}selected.add(addonId)}else selected.delete(addonId);
-      addonSelections.set(id,selected);drawTotal();
+      addonSelections.set(id,selected);drawBasket();
     });
-    syncType();
-
-    $('#saveManual').onclick=async()=>{const button=$('#saveManual');try{
-      const name=$('#mName').value.trim(),phone=$('#mPhone').value.trim(),items=manualItems(products,quantities,unitNotes,addonSelections);
-      if(name.length<2)throw new Error('Informe o nome do cliente.');
-      if(manualType!=='counter'&&!validPhone(phone))throw new Error('Informe um telefone válido com DDD.');
-      if(!items.length)throw new Error('Adicione pelo menos um item.');
-      const payload={customer:{name,phone:manualType==='counter'?'':phone},type:manualType,payment:$('#mPayment').value,change_for:$('#mChange').value.trim(),coupon_code:'',notes:$('#mNotes').value.trim(),items,source:'manual'};
-      if(manualType==='delivery'){const neighborhood=$('#mNeighborhood').value;if(!$('#mStreet').value.trim()||!$('#mNumber').value.trim()||!neighborhood)throw new Error('Preencha rua, número e bairro.');payload.address={street:$('#mStreet').value.trim(),number:$('#mNumber').value.trim(),neighborhood_id:neighborhood,complement:$('#mComplement').value.trim(),reference:$('#mReference').value.trim()}}
-      button.disabled=true;button.textContent='CRIANDO...';const made=await adminCall('create_manual_order',payload);admin=await adminCall('snapshot');knownOrderIds=new Set((admin.orders||[]).map(order=>order.id));knownOrderStatuses=new Map((admin.orders||[]).map(order=>[String(order.id),String(order.status||'')]));adminTab='pedidos';renderAdmin();showAppToast(`Pedido #${made.order_number} criado com sucesso.`,'ok');
-    }catch(error){alert(error.message||String(error));button.disabled=false;button.textContent='CRIAR PEDIDO'}};
+    const button=$('#saveManual'),errorBox=$('#manualOrderError');
+    button.onclick=async()=>{
+      if(button.disabled)return;
+      errorBox.hidden=true;
+      let made;
+      try{
+        const name=$('#mName').value.trim(),phone=$('#mPhone').value.trim();
+        const items=manualItems(products,quantities,unitNotes,addonSelections);
+        if(name.length<2)throw new Error('Informe o nome do cliente.');
+        if(manualType!=='counter'&&!validPhone(phone))throw new Error('Informe um telefone válido com DDD.');
+        if(!items.length)throw new Error('Adicione pelo menos um item.');
+        const payment=$('#mPayment').value;
+        const payload={customer:{name,phone:manualType==='counter'?'':phone},type:manualType,payment,
+          change_for:payment==='Dinheiro'?$('#mChange').value.trim():'',coupon_code:'',
+          notes:$('#mNotes').value.trim(),items,source:'manual'};
+        if(manualType==='delivery'){
+          const street=$('#mStreet').value.trim(),number=$('#mNumber').value.trim(),neighborhood=$('#mNeighborhood').value;
+          if(!street||!number||!neighborhood)throw new Error('Preencha rua, número e bairro.');
+          payload.address={street,number,neighborhood_id:neighborhood,complement:$('#mComplement').value.trim(),reference:$('#mReference').value.trim()};
+        }
+        button.disabled=true;
+        button.textContent='Criando…';
+        made=await adminCall('create_manual_order',payload);
+      }catch(error){
+        errorBox.textContent=error.message||String(error);
+        errorBox.hidden=false;
+        errorBox.focus();
+        button.disabled=false;
+        button.textContent='Criar pedido';
+        return;
+      }
+      let refreshed=false;
+      try{
+        const snapshot=await adminCall('snapshot');
+        if(workspace.isConnected){
+          admin=snapshot;
+          knownOrderIds=new Set((admin.orders||[]).map(order=>order.id));
+          knownOrderStatuses=new Map((admin.orders||[]).map(order=>[String(order.id),String(order.status||'')]));
+          refreshed=true;
+        }
+      }catch(error){console.warn('Caseirão: pedido criado, atualização da Central pendente.',error);}
+      if(workspace.isConnected){adminTab='pedidos';renderAdmin();}
+      showAppToast(refreshed?`Pedido #${made.order_number} criado com sucesso.`:`Pedido #${made.order_number} criado. Atualize a Central se ele ainda não aparecer.`,'ok');
+    };
   };
 })();
 
