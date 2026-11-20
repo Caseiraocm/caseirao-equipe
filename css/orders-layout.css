@@ -701,3 +701,240 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     .proCaseiraoHeader .proBrand svg { display: none; }
   }
 }
+
+/* Entregas na Central ADM. */
+@media screen {
+  body.teamApp .proAdmin[data-pro-section="entregas"],
+  body.teamApp .proAdmin[data-pro-section="entregas"] > .proMain,
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent {
+    background: #fff !important;
+    color: #17262c !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] > .proMain {
+    padding: 18px clamp(12px, 2vw, 26px) !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] .proPageTitle {
+    flex-wrap: wrap;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] .proPageTitle small {
+    display: none !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] .proPageTitle h1 {
+    margin: 0 !important;
+    color: #07383b !important;
+  }
+
+  .deliveryTitleActions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] :is(#driverEarningsButton, #proManualOrder) {
+    width: auto !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 13px !important;
+    border: 1px solid #c9d6d8 !important;
+    border-radius: 9px !important;
+    background: #f3faf9 !important;
+    color: #07383b !important;
+    box-shadow: none !important;
+    white-space: nowrap;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #proManualOrder {
+    background: #07383b !important;
+    border-color: #07383b !important;
+    color: #fff !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .deliveryProHero {
+    margin: 0 0 10px;
+    padding: 0;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .deliveryProHero::after { content: none; }
+
+  .proAdmin[data-pro-section="entregas"] :is(.deliveryHeroMetrics, .cashControlTotals) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryHeroMetric, .cashControlTotal) {
+    min-width: 0;
+    padding: clamp(10px, 1.5vw, 16px);
+    border: 1px solid #dde5e6 !important;
+    border-radius: 12px;
+    background: #fff !important;
+    color: #07383b !important;
+    box-shadow: none !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .deliveryHeroMetric:last-child {
+    border-color: #e8d5ac !important;
+    background: #fff9ed !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .cashControlTotal.return {
+    grid-column: auto;
+    border-color: #c4dfd2 !important;
+    background: #f1faf5 !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryHeroMetric, .cashControlTotal) small {
+    display: block;
+    color: #475960 !important;
+    font: 650 12px/1.3 system-ui, sans-serif;
+    text-transform: none;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryHeroMetric, .cashControlTotal) b {
+    display: block;
+    margin-top: 6px;
+    color: inherit !important;
+    font-size: clamp(17px, 2.5vw, 29px);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .cashControlTotal.return b {
+    color: #166044 !important;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .cashControlTotals { margin: 0 0 14px; }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryPanel, .deliveryClosingFold, .deliveryControlPanel) {
+    min-width: 0;
+    margin: 0 0 12px;
+    border: 1px solid #dde5e6 !important;
+    border-radius: 12px;
+    background: #fff !important;
+    color: #17262c !important;
+    box-shadow: none !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryClosingFold, .deliveryManageFold, .deliveryControlPanel) {
+    padding: 0;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent :is(.deliveryClosingFold, .deliveryManageFold, .deliveryControlPanel) > summary {
+    display: flex;
+    min-height: 57px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #f7faf9 !important;
+    color: #17262c !important;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .proAdmin[data-pro-section="entregas"] details > summary::-webkit-details-marker { display: none; }
+  .proAdmin[data-pro-section="entregas"] details[open] > summary { border-radius: 12px 12px 0 0; }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent summary > span:first-child > small {
+    display: block;
+    margin-top: 2px;
+    color: #475960 !important;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .deliveryClosingChevron {
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    border: solid #405b60;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .proAdmin[data-pro-section="entregas"] details[open] > summary .deliveryClosingChevron { transform: rotate(225deg); }
+
+  .proAdmin[data-pro-section="entregas"] :is(.deliveryClosingBody, .deliveryManageBody, .deliverySettingsActions) {
+    padding: 12px 14px;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .deliverySettingsActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] :is(.deliverySettingsActions button, #refreshDriverDeliveries, [data-delivery-retry]) {
+    width: auto;
+    min-height: 44px;
+    margin: 0;
+    padding: 8px 12px;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .deliveryControlDanger {
+    background: #fff4f3 !important;
+    color: #8d282c !important;
+    border-color: #ebcccd !important;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .deliveryHubGrid { align-items: start; gap: 12px; }
+
+  .proAdmin[data-pro-section="entregas"] .deliveryPanel h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    color: #07383b !important;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .proAdmin[data-pro-section="entregas"] .deliveryCount {
+    min-width: 25px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: #eaf4f3;
+    color: #07383b;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="entregas"] #admContent .deliveryPanel > .empty {
+    margin: 0;
+    padding: 16px 12px;
+    border: 1px dashed #d4dedf;
+    border-radius: 10px;
+    background: #f8faf9;
+    color: #475960;
+  }
+
+  .proAdmin[data-pro-section="entregas"] :is(.deliveryTitleActions button, #admContent button, #admContent summary):focus-visible {
+    outline: 2px solid #117575;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 760px) {
+    .proAdmin[data-pro-section="entregas"] .deliveryHubGrid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 520px) {
+    .proAdmin[data-pro-section="entregas"] :is(.deliveryHeroMetrics, .cashControlTotals) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .proAdmin[data-pro-section="entregas"] :is(.deliveryHeroMetric, .cashControlTotal):last-child { grid-column: 1 / -1; }
+  }
+}
