@@ -80,6 +80,45 @@ function openDriverEditor(d={}){modal(`<div class="sheeth"><div><h2>${d.id?'Edit
 
 function openDriverLogin(){modal(`<div class="sheeth"><div><h2>Área do entregador</h2><div class="adminSub">Entregas, GPS e pagamentos</div></div><button class="x" data-close>×</button></div><div class="deliveryLogin"><div class="field"><label>Login</label><input id="driverLoginUser" class="in" autocapitalize="none"></div><div class="field"><label>Senha</label><input id="driverLoginPassword" class="in" type="password"></div><button id="driverLoginButton" class="primary">ENTRAR</button><div id="driverLoginError"></div></div>`,true);bindClose();$('#driverLoginButton').onclick=async()=>{const b=$('#driverLoginButton');try{b.disabled=true;b.textContent='ENTRANDO...';const r=await api('driver-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',payload:{username:$('#driverLoginUser').value,password:$('#driverLoginPassword').value}})});localStorage.setItem(driverTokenKey,r.token);renderDriverArea()}catch(e){$('#driverLoginError').innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message)}</div>`;b.disabled=false;b.textContent='ENTRAR'}}}
 
+function driverDeliveryTimerHtml(readyAt, finishedAt){
+  const start=Date.parse(readyAt);
+  const end=finishedAt===undefined?Date.now():Date.parse(finishedAt);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||(finishedAt!==undefined&&end<start))return '';
+  const {time,late}=driverDeliveryElapsed(start,end);
+  return `<span class="driverDeliveryTimer${late?' is-late':''}"${finishedAt===undefined?` data-driver-ready-at="${start}"`:''}>
+    <span class="driverDeliveryTimerValue"><span class="driverTimerIcon" aria-hidden="true"></span><time>${time}</time></span>
+    <small>Acima de 25 min</small>
+  </span>`;
+}
+
+function driverDeliveryElapsed(start,end){
+  const seconds=Math.max(0,Math.floor((end-start)/1000));
+  const minutes=String(Math.floor(seconds/60)).padStart(2,'0');
+  return {time:`${minutes}:${String(seconds%60).padStart(2,'0')}`,late:seconds>25*60};
+}
+
+let driverClockInterval=null;
+function startDriverDeliveryClock(){
+  if(driverClockInterval!==null)return;
+  const tick=()=>{
+    const timers=document.querySelectorAll('.driverDashboard [data-driver-ready-at]');
+    if(!timers.length){
+      clearInterval(driverClockInterval);
+      driverClockInterval=null;
+      return;
+    }
+    const now=Date.now();
+    timers.forEach(timer=>{
+      const {time,late}=driverDeliveryElapsed(Number(timer.dataset.driverReadyAt),now);
+      const display=timer.querySelector('time');
+      if(display.textContent!==time)display.textContent=time;
+      timer.classList.toggle('is-late',late);
+    });
+  };
+  driverClockInterval=setInterval(tick,1000);
+  tick();
+}
+
 function driverDailySummaryHtml(assignments){
   const completed=assignments.filter(a=>['delivered','returned','settled'].includes(a.status));
   const hoods=new Map();let fees=0;
@@ -91,12 +130,22 @@ function driverDailySummaryHtml(assignments){
   }
   const gas=completed.length?Number(driverSnapshot?.driver_gas_allowance??driverSnapshot?.gas_allowance??10):0;
   const total=fees+gas;
+  const deliveryTimes=completed.filter(a=>a.delivered_at&&localDay(a.delivered_at)===todayKey())
+    .sort((a,b)=>Date.parse(b.delivered_at)-Date.parse(a.delivered_at))
+    .map(a=>{
+      const timer=driverDeliveryTimerHtml(a.orders?.ready_at,a.delivered_at);
+      return timer?`<li><span>Pedido #${esc(a.orders?.order_number||'—')}</span>${timer}</li>`:'';
+    }).join('');
   return `<details class="driverOverview" data-driver-detail="overview">
     <summary>Resumo do dia <span>${fmt(total)}</span></summary>
     <dl class="driverOverviewStats">
       <div><dt>Concluídas</dt><dd>${completed.length}</dd></div>
       <div><dt>A receber</dt><dd>${fmt(total)}</dd></div>
     </dl>
+    ${deliveryTimes?`<details class="driverBreakdown" data-driver-detail="delivery-times">
+      <summary>Tempos das entregas</summary>
+      <ul class="driverCompletedTimes">${deliveryTimes}</ul>
+    </details>`:''}
     ${completed.length?`<details class="driverBreakdown" data-driver-detail="breakdown">
       <summary>Ver valores por bairro</summary>
       <div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} ${h.count===1?'entrega':'entregas'}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div>
@@ -193,6 +242,7 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       closeModal();
     };
     screen.querySelectorAll('details').forEach(item=>{item.open=details.has(item.dataset.driverDetail)});
+    startDriverDeliveryClock();
     if(oldSheet&&scrollTop)screen.closest('.sheet')?.scrollTo({top:scrollTop});
     $('#driverLogout').onclick=async()=>{
       await driverAppApi('logout').catch(()=>{});
@@ -228,7 +278,7 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
 }
 
 function driverAssignmentSignature(snapshot){
-  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at])]);
+  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.delivered_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at,a.orders?.ready_at])]);
 }
 async function refreshAutomaticDriver(){
   if(driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
@@ -291,15 +341,17 @@ function driverOrderCard(a){
   const phone=String(order.customer_phone||'').replace(/\D/g,'');
   const ready=driverReadyForPickup(a);
   const pending=a.status==='assigned'&&!ready;
+  const timer=pending?'':driverDeliveryTimerHtml(order.ready_at);
   const action=ready
     ? `<button type="button" class="primary" data-driver-status="route" data-driver-assignment="${id}">Retirei · iniciar rota</button>`
     : pending
       ? ''
       : `<button type="button" class="primary driverDeliverButton" data-driver-deliver="${id}">Marcar como entregue</button>`;
   return `<details class="driverOrder driverQueueOrder" name="caseirao-driver-order" data-driver-detail="${id}">
-    <summary>
+    <summary${timer?' class="has-driver-timer"':''}>
       <span class="driverOrderMarker" aria-hidden="true"></span>
       <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small></span>
+      ${timer}
       <span class="driverOrderChevron" aria-hidden="true"></span>
     </summary>
     <div class="driverOrderExpanded">
