@@ -71,8 +71,22 @@
       meta.innerHTML='<span class="centralOrderType"></span><span class="centralStageTime"></span>';
       info.append(meta);
     }
-    const timingNodes=[main.querySelector('.centralOrderDate'),main.querySelector('.opsSlaBadge'),total.querySelector('.orderChronometer')].filter(Boolean);
     const body=card.querySelector(':scope > .orderBody');
+    const chronometer=card.querySelector('[data-order-chronometer]');
+    if(chronometer){
+      // Reuse the live timer and keep it visible while the card is collapsed.
+      if(chronometer.nextElementSibling!==info)info.before(chronometer);
+      chronometer.classList.add('centralCardChronometer');
+      const stop=preparationStop(order);
+      const stopValue=stop?String(stop):'';
+      if(chronometer.dataset.stop!==stopValue){
+        chronometer.dataset.stop=stopValue;
+        chronometer.classList.toggle('stopped',Boolean(stop));
+        chronometer.querySelector('small').textContent=stop?'TEMPO FINAL':'TEMPO DO PEDIDO';
+        chronometer.querySelector('b').textContent=chronometerText(Number(chronometer.dataset.start),stop);
+      }
+    }
+    const timingNodes=[main.querySelector('.centralOrderDate'),main.querySelector('.opsSlaBadge')].filter(Boolean);
     if(timingNodes.length&&body){
       let timing=body.querySelector(':scope > .centralOrderTiming');
       if(!timing){
