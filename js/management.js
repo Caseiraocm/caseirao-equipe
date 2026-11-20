@@ -246,7 +246,19 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
     let manualType='pickup';
     const products=(admin?.products||data.products||[]).filter(product=>product.active!==false&&!product.sold_out);
     const quantities=new Map(),unitNotes=new Map(),addonSelections=new Map();
-    const addonsFor=id=>allowedManualAddons(id);
+    const combo=window.CaseiraoComboDrinks;
+    const catalog={
+      products:admin?.products||data.products||[],
+      addons:admin?.addons||data.addons||[],
+      product_addons:admin?.product_addons||data.product_addons||[]
+    };
+    const drinkOptions=new Map(products.map(product=>[String(product.id),combo.options(catalog,product.id)]));
+    const drinkDraft=new Map();
+    const addonsFor=id=>allowedManualAddons(id).filter(addon=>!combo.includes(addon.id));
+    const selectedDrinks=id=>{
+      const drinkBox=workspace.querySelector(`[data-manual-drinks="${CSS.escape(id)}"]`);
+      return Array.from(drinkBox?.querySelectorAll('[data-combo-drink]')||[],select=>select.value);
+    };
     const itemPrice=product=>{
       const id=String(product.id),selected=addonSelections.get(id)||new Set();
       return priceOf(product)+addonsFor(id).filter(addon=>selected.has(String(addon.id)))
@@ -321,7 +333,9 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
         const id=String(product.id),quantity=quantities.get(id);
         const selected=addonSelections.get(id)||new Set();
         const additions=addonsFor(id).filter(addon=>selected.has(String(addon.id))).map(addon=>esc(addon.name));
-        return `<li><span><b>${quantity} × ${esc(product.name)}</b>${additions.length?`<small>${additions.join(', ')}</small>`:''}</span><strong>${fmt(quantity*itemPrice(product))}</strong></li>`;
+        const drinks=selectedDrinks(id).map(value=>drinkOptions.get(id).find(option=>option.id===value)?.name||'Refrigerante a escolher');
+        const details=[...drinks,...additions];
+        return `<li><span><b>${quantity} × ${esc(product.name)}</b>${details.length?`<small>${details.join(', ')}</small>`:''}</span><strong>${fmt(quantity*itemPrice(product))}</strong></li>`;
       }).join('')}</ul>`:'<p>Nenhum item adicionado.</p>';
       $('#manualTotal').textContent=fmt(rows.reduce((sum,product)=>sum+quantities.get(String(product.id))*itemPrice(product),0));
     }
@@ -360,7 +374,16 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
     drawBasket();
     products.forEach(product=>{
       const id=String(product.id),card=$(`[data-rqty="${CSS.escape(id)}"]`)?.closest('.employeeProductCard'),addons=addonsFor(id);
-      if(!card||!addons.length)return;
+      if(!card)return;
+      if(drinkOptions.get(id).length){
+        card.insertAdjacentHTML('beforeend',`<div class="comboDrinkGroup" data-manual-drinks="${esc(id)}" hidden></div>`);
+        const drinkBox=card.querySelector('[data-manual-drinks]');
+        drinkBox.addEventListener('change',()=>{
+          drinkDraft.set(id,selectedDrinks(id));
+          drawBasket();
+        });
+      }
+      if(!addons.length)return;
       card.insertAdjacentHTML('beforeend',`<div class="manualAddonBox" data-manual-addons="${esc(id)}"><b>ADICIONAIS</b><div>${addons.map(addon=>`<label><input type="checkbox" data-manual-addon="${esc(id)}" value="${esc(addon.id)}"><span>${esc(addon.name)}</span><strong>+ ${fmt(addon.price)}</strong></label>`).join('')}</div><small>Os adicionais selecionados valem para todas as unidades deste item.</small></div>`);
     });
 
@@ -368,11 +391,19 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
       const id=String(button.dataset.rproduct),quantity=Math.max(0,(quantities.get(id)||0)+Number(button.dataset.d)),product=products.find(item=>String(item.id)===id);
       quantities.set(id,quantity);const counter=$(`[data-rqty="${CSS.escape(id)}"]`),card=counter?.closest('.employeeProductCard');
       if(counter)counter.textContent=quantity;card?.classList.toggle('selected',quantity>0);card?.querySelector('.manualAddonBox')?.classList.toggle('visible',quantity>0);
+      const drinkBox=card?.querySelector('[data-manual-drinks]');
+      if(drinkBox){
+        const saved=drinkDraft.get(id)||[];
+        selectedDrinks(id).forEach((value,index)=>{saved[index]=value;});
+        drinkDraft.set(id,saved);
+        drinkBox.innerHTML=combo.fields(drinkOptions.get(id),quantity,saved);
+        drinkBox.hidden=quantity===0;
+      }
       renderUnitNotes(id,product?.name||'Item',quantity,unitNotes);drawBasket();
     });
     workspace.querySelectorAll('[data-manual-addon]').forEach(input=>input.onchange=()=>{
       const id=String(input.dataset.manualAddon),selected=addonSelections.get(id)||new Set(),addonId=String(input.value);
-      if(input.checked){if(selected.size>=10){input.checked=false;return alert('Escolha no máximo 10 adicionais por item.')}selected.add(addonId)}else selected.delete(addonId);
+      if(input.checked){const maxAddons=drinkOptions.get(id).length?9:10;if(selected.size>=maxAddons){input.checked=false;return alert(`Escolha no máximo ${maxAddons} adicionais por item.`)}selected.add(addonId)}else selected.delete(addonId);
       addonSelections.set(id,selected);drawBasket();
     });
     const button=$('#saveManual'),errorBox=$('#manualOrderError');
@@ -383,6 +414,19 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
       try{
         const name=$('#mName').value.trim(),phone=$('#mPhone').value.trim();
         const items=manualItems(products,quantities,unitNotes,addonSelections);
+        const perProduct=new Map();
+        for(const item of items){
+          const id=String(item.product_id);
+          const options=drinkOptions.get(id);
+          if(!options.length)continue;
+          const index=perProduct.get(id)||0;
+          const selected=selectedDrinks(id)[index];
+          if(!options.some(option=>option.id===selected&&option.available)){
+            throw new Error('Escolha o refrigerante de cada combo.');
+          }
+          item.addon_ids=[...item.addon_ids,selected];
+          perProduct.set(id,index+1);
+        }
         if(name.length<2)throw new Error('Informe o nome do cliente.');
         if(manualType!=='counter'&&!validPhone(phone))throw new Error('Informe um telefone válido com DDD.');
         if(!items.length)throw new Error('Adicione pelo menos um item.');
