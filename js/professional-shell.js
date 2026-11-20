@@ -22,7 +22,24 @@
     if(!admin)return;
     const opened=!!admin.settings?.store_open;
     const title=sections.flatMap(x=>x.items).find(x=>x[0]===adminTab)?.[2]||'Central';
-    modal(`<div class="proAdmin" data-pro-section="${adminTab}"><header class="proHeader"><button type="button" id="proMenu" class="proMenu" aria-label="Abrir menu" aria-controls="proSidebar" aria-expanded="false">☰</button><div class="proBrand"><span>CB</span><div><b>Central Caseirão</b><small>Operação e gestão</small></div></div><div class="proHeaderStatus ${opened?'open':'closed'}"><i></i>${opened?'Loja aberta':'Loja fechada'}</div><button type="button" id="proRefresh" class="proHeaderButton">↻ Atualizar</button><button type="button" id="adminLogout" class="proHeaderButton">Sair</button><button type="button" class="proHeaderClose" data-close aria-label="Fechar">×</button></header><aside class="proSidebar" id="proSidebar" hidden><div class="proSidebarHead"><b>MENU PRINCIPAL</b><button type="button" id="proMenuClose" aria-label="Fechar menu">×</button></div><nav aria-label="Menu principal">${navHtml()}</nav><div class="proSidebarFoot"><span class="${opened?'on':'off'}"></span><div><b>${opened?'Expediente aberto':'Expediente fechado'}</b><small>O Caseirão Burger</small></div></div></aside><button type="button" class="proBackdrop" id="proBackdrop" aria-label="Fechar menu" tabindex="-1" hidden></button><main class="proMain"><section class="proPageTitle"><div><small>PAINEL ADMINISTRATIVO</small><h1 tabindex="-1">${title}</h1></div>${['estoque','cartao_caseirao'].includes(adminTab)?'':'<button type="button" id="proManualOrder">＋ Novo pedido</button>'}</section>${adminTab==='caixa'?cashMetrics():''}<section class="proContent" id="admContent" aria-live="polite"></section></main></div>`,true);
+    modal(`<div class="proAdmin proCaseiraoHeader" data-pro-section="${adminTab}"><header class="proHeader">
+      <button type="button" id="proMenu" class="proMenu" aria-label="Abrir menu" aria-controls="proSidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18"/></svg>
+      </button>
+      <div class="proBrand">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 15a14 11 0 0 1 28 0z"/><rect x="2" y="20" width="28" height="6" rx="3"/></svg>
+        <b>Caseirão <em>Burger</em></b>
+      </div>
+      <span class="proHeaderSection" aria-current="page">${title}</span>
+      <div class="proHeaderStatus ${opened?'open':'closed'}"><i aria-hidden="true"></i>${opened?'Loja aberta':'Loja fechada'}</div>
+      <button type="button" id="proRefresh" class="proHeaderButton" aria-label="Atualizar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4v6h-6M21 10a9 9 0 1 0 0 5"/></svg>
+        <span>Atualizar</span>
+      </button>
+    </header><aside class="proSidebar" id="proSidebar" hidden><div class="proSidebarHead"><b>MENU PRINCIPAL</b><button type="button" id="proMenuClose" aria-label="Fechar menu">×</button></div><nav class="proSectionNav" aria-label="Menu principal">${navHtml()}</nav><section class="proNavGroup proSessionActions" aria-label="Sessão">
+      <button type="button" id="proHome" class="proNavButton"><span aria-hidden="true">⌂</span><b>Início</b></button>
+      <button type="button" id="adminLogout" class="proNavButton"><span aria-hidden="true">↪</span><b>Sair</b></button>
+    </section><div class="proSidebarFoot"><span class="${opened?'on':'off'}"></span><div><b>${opened?'Expediente aberto':'Expediente fechado'}</b><small>O Caseirão Burger</small></div></div></aside><button type="button" class="proBackdrop" id="proBackdrop" aria-label="Fechar menu" tabindex="-1" hidden></button><main class="proMain"><section class="proPageTitle"><div><small>PAINEL ADMINISTRATIVO</small><h1 tabindex="-1">${title}</h1></div>${['estoque','cartao_caseirao'].includes(adminTab)?'':'<button type="button" id="proManualOrder">＋ Novo pedido</button>'}</section>${adminTab==='caixa'?cashMetrics():''}<section class="proContent" id="admContent" aria-live="polite"></section></main></div>`,true);
     bindClose();
     const menu = $('#proMenu');
     const closeMenu = $('#proMenuClose');
@@ -53,8 +70,28 @@
         $('.proPageTitle h1')?.focus({preventScroll: true});
       };
     });
-    $('#adminLogout').onclick=()=>{sessionStorage.removeItem('caseirao_admin_pin');if(orderWatcher)clearInterval(orderWatcher);admin=null;openAdmin()};
-    $('#proRefresh').onclick=async()=>{const button=$('#proRefresh');try{button.disabled=true;button.textContent='Atualizando…';admin=await adminCall('snapshot');renderAdmin()}catch(error){button.disabled=false;button.textContent='↻ Tentar novamente';alert(error.message||String(error))}};
+    $('#proHome').onclick=()=>{clearInternalResume();leaveOperationalMode()};
+    $('#adminLogout').onclick=()=>{sessionStorage.removeItem('caseirao_admin_pin');clearInternalResume();if(orderWatcher)clearInterval(orderWatcher);admin=null;openAdmin()};
+    $('#proRefresh').onclick=async()=>{
+      const button=$('#proRefresh');
+      const label=button.querySelector('span');
+      button.disabled=true;
+      button.setAttribute('aria-label','Atualizando');
+      label.textContent='Atualizando…';
+      try{
+        const snapshot=await adminCall('snapshot');
+        if(!button.isConnected)return;
+        admin=snapshot;
+        renderAdmin();
+        $('#proRefresh')?.focus({preventScroll:true});
+      }catch(error){
+        if(!button.isConnected)return;
+        button.disabled=false;
+        button.setAttribute('aria-label','Atualizar');
+        label.textContent='Atualizar';
+        alert(error.message||String(error));
+      }
+    };
     const manualOrder=$('#proManualOrder');
     if(manualOrder)manualOrder.onclick=()=>openManualOrder();
     renderAdminTab();
