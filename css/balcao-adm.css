@@ -1,0 +1,28 @@
+.balcao-admin { color: #202623; display: grid; gap: 14px; }
+.balcao-admin-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; }
+.balcao-admin-panel { padding: 16px; border-radius: 12px; border: 1px solid #e4e7e2; background: #fff; min-width: 0; }
+.balcao-admin-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 9px; }
+.balcao-admin h2, .balcao-admin h3 { margin: 0; letter-spacing: -.02em; }
+.balcao-admin-head .primary { width: fit-content; }
+.balcao-admin-panel > h3 { margin-bottom: 13px; }
+.balcao-admin label { display: grid; gap: 5px; font-weight: 650; font-size: 13px; min-width: 0; }
+.balcao-admin select, .balcao-admin input:not([type=checkbox]) { min-height: 44px; width: 100%; min-width: 0; border: 1px solid #d8ddd9; border-radius: 8px; padding: 6px 9px; background: white; color: #202623; font: inherit; }
+.balcao-admin input[type=file] { font-weight: 400; font-size: 12px; }
+.balcao-admin .balcao-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-block: 10px; }
+.balcao-admin .balcao-check { display: flex; align-items: center; min-height: 40px; }
+.balcao-admin input[type=checkbox] { accent-color: #0b302b; margin: 0; width: 18px; height: 18px; }
+.balcao-admin-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-block: 8px; }
+.balcao-admin-actions button { min-height: 42px; background: white; color: #202623; border: 1px solid #d8ddd9; padding: 5px 10px; border-radius: 8px; font-weight: 650; cursor: pointer; }
+.balcao-admin-actions button[aria-pressed="true"] { background: #0b302b; border-color: #0b302b; color: white; }
+.balcao-admin-actions button:disabled { opacity: .5; }
+.balcao-admin [data-preview] { max-width: 850px; margin: 6px auto 0; }
+.balcao-admin [data-preview][data-layout=mobile] { max-width: 370px; }
+.balcao-admin .balcao-admin-message { position: sticky; bottom: 0; z-index: 2; margin: 0; }
+.balcao-admin-message:not(:empty) { padding: 9px; border-radius: 8px; background: #e9f6ef; color: #145635; }
+.balcao-admin-message.balcao-error { background: #fff0eb; color: #922d19; }
+@media (max-width: 760px) {
+  .balcao-admin-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .balcao-admin .balcao-fields { grid-template-columns: minmax(0, 1fr); }
+}
