@@ -13,6 +13,7 @@
     if(!/^\d+(?:\.\d{1,4})?$/.test(rate)||Number(rate)<=0||Number(rate)>100||!Number.isInteger(days)||days<1||days>30)return null;
     return {rate:Number(rate),days,rate_per_term:true};
   };
+  const codeField=(required=false)=>`<label class="admCardWide">${required?'Novo código de acesso':'Código de acesso (opcional)'}<input class="in" name="access_code" type="password" inputmode="numeric" pattern="[0-9]{8,10}" maxlength="10" autocomplete="new-password" placeholder="8 a 10 dígitos" ${required?'required':''}></label>`;
   const termFields=(days=7,rate='')=>`
     <label>Prazo por compra, em dias<input class="in" name="days" type="number" min="1" max="30" value="${days}" required></label>
     <label>Juros para o prazo escolhido (%)<input class="in" name="rate" inputmode="decimal" value="${esc(rate)}" required></label>
@@ -55,6 +56,7 @@
             <label class="admCardWide">Endereço residencial<input class="in" name="address" maxlength="350" placeholder="Rua, número, bairro, cidade e complemento" required></label>
             <label>Limite em reais<input class="in" name="limit" inputmode="decimal" required></label>
             ${termFields()}
+            ${codeField()}
             <p class="admCardWide">A taxa informada vale para o prazo escolhido acima.</p>
             <button class="primary">Liberar cartão</button>
           </form>
@@ -170,6 +172,11 @@
         renderClients();
         form.hidden=true;
         showCode(status,result.token);
+        if(data.access_code){
+          const message=document.createElement('p');
+          message.textContent='Código de acesso salvo. O cliente entra com o WhatsApp cadastrado e o código escolhido.';
+          status.append(message);
+        }
         close.disabled=false;
         close.focus();
         loadDetail();
@@ -253,6 +260,13 @@
         <div class="admCardActions"><button type="button" class="secondary" data-card-toggle>${account.active?'Bloquear novas compras':'Reativar compras'}</button>
           <button type="button" class="secondary" data-card-code>Gerar novo link privado</button></div>
         <div data-card-feedback role="status"></div>
+        <h3>Código de acesso do cliente</h3>
+        <form data-card-access-code>
+          ${codeField(true)}
+          <p class="admCardWide">Informe ao cliente o código escolhido. Ele vai usar o mesmo WhatsApp cadastrado neste cartão.</p>
+          <button class="primary">Salvar código</button>
+          <p class="admCardWide" role="status"></p>
+        </form>
         <h3>Editar prazo e juros reais</h3>
         <form data-card-terms>
           ${termFields(account.term_days,account.rate_per_term?formatPercent(account.rate):'')}
@@ -262,6 +276,27 @@
         </form>
       </details>`;
     const feedback=detail.querySelector('[data-card-feedback]');
+    const codeForm=detail.querySelector('[data-card-access-code]');
+    if(codeForm)codeForm.onsubmit=async event=>{
+      event.preventDefault();
+      const input=codeForm.elements.namedItem('access_code');
+      const button=codeForm.querySelector('button');
+      const status=codeForm.querySelector('[role="status"]');
+      if(button.disabled)return;
+      if(!/^[0-9]{8,10}$/.test(input.value)){
+        status.textContent='Informe um código de 8 a 10 dígitos.';
+        return;
+      }
+      button.disabled=true;
+      input.disabled=true;
+      status.textContent='Salvando código…';
+      try{
+        await call('set_access_code',{account:account.id,access_code:input.value});
+        input.value='';
+        status.textContent='Código salvo. Passe o novo código ao cliente.';
+      }catch(error){status.textContent=error.message;}
+      finally{button.disabled=false;input.disabled=false;}
+    };
     const termsForm=detail.querySelector('[data-card-terms]');
     termsForm.onsubmit=async event=>{
       event.preventDefault();
@@ -289,7 +324,7 @@
     };
     const reset=detail.querySelector('[data-card-code]');
     reset.onclick=async()=>{
-      if(!confirm('Gerar um novo link e invalidar o acesso anterior deste cliente?'))return;
+      if(!confirm('Gerar um novo link? O link anterior e o código personalizado deste cliente serão invalidados.'))return;
       reset.disabled=true;
       try{const result=await call('reset_code',{account:account.id});showCode(feedback,result.token);}
       catch(error){feedback.textContent=error.message;}
@@ -329,3 +364,4 @@
     if(box)draw(box);
   };
 })();
+
