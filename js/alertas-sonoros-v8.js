@@ -1,14 +1,12 @@
 'use strict';
-/* Caseirão V10 — alertas por evento + anúncio falado adaptado ao destino.
-   Opera sobre os fluxos existentes e não altera o envio nem o estado dos pedidos. */
+/* Caseirão — toques por etapa do pedido. */
 (function () {
   const key = 'caseirao_alertas_v8';
-  const defaults = {volume:100, voice:true};
+  const defaults = {volume:100};
   let pref = {...defaults};
   try {pref={...defaults,...JSON.parse(localStorage.getItem(key)||'{}')};}catch{}
   const save=()=>{try{localStorage.setItem(key,JSON.stringify(pref));}catch{}};
   let soundsContext=null;
-  let lastSpeech=null;
   const emitted=new Map();
   let queue=Promise.resolve();
   // Começa fechado para liberar espaço dos cartões; mantém estado ao atualizar pedidos.
@@ -93,81 +91,6 @@
     }catch(e){console.warn('Caseirão: áudio indisponível',e)}
     return 0;
   }
-  function cleanName(name){
-    const raw=String(name||'').replace(/[\n\r]/g,' ').replace(/[^\p{L}\p{M} .'-]/gu,' ').replace(/\s+/g,' ').trim();
-    return /^(cliente|pedido manual|não informado)$/i.test(raw)||raw.length<2?'':raw.slice(0,70);
-  }
-  function readyOrderCategory(order){
-    const type=String(order?.type||'').trim().toLowerCase();
-    const notes=String(order?.notes||'');
-    const recordedMesa=Number(order?.table_number);
-    const mesaTag=notes.match(/\[MESA\s*(\d{1,3})\]/i);
-    const mesa=Number.isSafeInteger(recordedMesa)&&recordedMesa>0?recordedMesa:(mesaTag?Number(mesaTag[1]):0);
-    if(mesa>0)return {kind:'mesa',mesa};
-    if(type==='counter'||type==='balcao'||/^\s*\[BALC[AÃ]O\]/i.test(notes))return {kind:'balcao',mesa:0};
-    if(type==='delivery'||type==='entrega')return {kind:'entrega',mesa:0};
-    if(type==='pickup'||type==='retirada')return {kind:'retirada',mesa:0};
-    if(type==='local'||type==='mesa'||type==='table')return {kind:'local',mesa:0};
-    return {kind:'outro',mesa:0};
-  }
-  function voiceCustomer(order){
-    let raw=String(order?.customer_name||'').trim();
-    // As comandas de mesa trazem "Mesa 04 • Maria" no nome; não ler "Mesa" como se fosse uma pessoa.
-    if(readyOrderCategory(order).kind==='mesa')raw=raw.replace(/^mesa\s*\d+\s*(?:[•|:;,.\-–—]\s*)?/i,'').trim();
-    const name=cleanName(raw);
-    return /^(mesa|cliente da mesa|respons[aá]vel da mesa)$/i.test(name)?'':name;
-  }
-  function makeReadyText(order){
-    const name=voiceCustomer(order);
-    const number=Number(order?.order_number);
-    const numberPart=Number.isSafeInteger(number)&&number>0?`, número ${number},`:'';
-    const customerPart=name?` de ${name}`:'';
-    const {kind,mesa}=readyOrderCategory(order);
-    if(kind==='entrega')return `Pedido para entrega${customerPart}${numberPart} está pronto. Atenção, entregador! Pode buscar o pedido no Caseirão para sair em rota.`;
-    if(kind==='retirada')return `Pedido para retirada${customerPart}${numberPart} está pronto. Pode avisar o cliente para vir retirar aqui no Caseirão.`;
-    if(kind==='mesa')return `Pedido para consumo no local, mesa ${mesa}${name?`, de ${name}`:''}${numberPart} está pronto. Atendimento, pode levar o pedido para a mesa ${mesa}.`;
-    if(kind==='balcao')return `Pedido de balcão${customerPart}${numberPart} está pronto. Pode chamar o cliente para retirar no balcão.`;
-    if(kind==='local')return `Pedido para consumo no local${customerPart}${numberPart} está pronto. Atendimento, pode servir o pedido no salão.`;
-    // Não direcionar um pedido sem tipo conhecido para o entregador ou para o cliente errado.
-    return `Pedido${customerPart}${numberPart} está pronto. Confira o destino do pedido na Central.`;
-  }
-  const voiceExamples={
-    entrega:{type:'delivery',customer_name:'Maria Eduarda',order_number:123},
-    retirada:{type:'pickup',customer_name:'João Pedro',order_number:124},
-    mesa:{type:'local',table_number:4,customer_name:'Mesa 04 • Ana Clara',order_number:125},
-    balcao:{type:'counter',customer_name:'Lucas',order_number:126}
-  };
-  function previewVoice(kind){prepare();return speak(makeReadyText(voiceExamples[kind]||voiceExamples.entrega),true)}
-  // Prefere Francisca quando disponibilizada pelo sistema. A voz Neural da
-  // Microsoft não é distribuída pela Web Speech API do Chrome Android;
-  // para garantia de voz Neural é necessária integração segura com Azure TTS.
-  function selectNaturalVoice(voices){
-    const pt=voices.filter(v=>/^pt(?:[-_]BR)?$/i.test(v.lang));
-    const score=v=>{
-      const n=String(v.name||'').toLowerCase();
-      return (/francisca/.test(n)?1000:0)+(/neural|natural|online/.test(n)?200:0)+
-        (/microsoft/.test(n)?100:0)+(/google/.test(n)?40:0)+
-        (/female|feminina|woman/.test(n)?15:0)-(v.localService?5:0);
-    };
-    return pt.sort((a,b)=>score(b)-score(a))[0]||voices.find(v=>/^pt/i.test(v.lang));
-  }
-  function speak(text,force=false){
-    if(!force&&!pref.voice)return false;
-    const speech=window.speechSynthesis;
-    if(!speech||typeof window.SpeechSynthesisUtterance!=='function')return false;
-    try{
-      speech.cancel();
-      const u=new SpeechSynthesisUtterance(String(text));
-      const voice=selectNaturalVoice(speech.getVoices()||[]);
-      if(voice)u.voice=voice;
-      u.lang='pt-BR';u.rate=.91;u.pitch=1.04;u.volume=Math.min(1,Number(pref.volume)/100);
-      lastSpeech=u;
-      speech.speak(u);
-      return true;
-    }catch(e){console.warn('Caseirão: leitura por voz indisponível',e);return false;}
-  }
-  // Em alguns navegadores as vozes só aparecem após o carregamento inicial.
-  try{window.speechSynthesis?.getVoices();}catch{}
   function eventId(order,status){return `${String(order?.id||'')}:${status}`;}
   function recentlyNotified(order,status){
     const k=eventId(order,status);
@@ -176,13 +99,11 @@
     if(emitted.size>400){for(const [id,time] of emitted){if(Date.now()-time>60*60*1000)emitted.delete(id);}}
     return false;
   }
-  function dispatch(kind,order,withSpeech=false){
+  function dispatch(kind,order){
     if(recentlyNotified(order,kind))return;
     queue=queue.catch(()=>{}).then(async()=>{
       const duration=play(kind);
-      if(withSpeech&&pref.voice){await sleep(Math.max(800,Math.min(duration,1500)));speak(makeReadyText(order));}
-      // Evita que vários estados e vozes se sobreponham ao mesmo tempo.
-      await sleep(withSpeech&&pref.voice?3000:duration+180);
+      await sleep(duration+180);
     });
   }
   // Mantém o botão antigo Testar toque / Ativar alertas funcional.
@@ -216,9 +137,8 @@
       for(const order of changed){
         const status=String(order.status||'').toLowerCase();
         if(!validTypes.has(status))continue;
-        dispatch(status,order,status==='pronto');
-        if(status==='pronto'||(status==='em_rota'&&['confirmado','preparando'].includes(old.get(String(order.id))))){
-          if(status==='em_rota')dispatch('pronto',order,true);
+        dispatch(status,order);
+        if(status==='pronto'){
           try{savePreparationStop(order.id,Date.parse(order.updated_at)||Date.now())}catch{}
           showReadyToast(order);showReadyCentralAlert(order);
         }else if(status==='entregue'){
@@ -266,13 +186,13 @@
         const status=String(payload.status).toLowerCase();
         if(validTypes.has(status)){
           const current={...order,status,updated_at:new Date().toISOString()};
-          dispatch(status,current,status==='pronto');
+          dispatch(status,current);
         }
       }
       return response;
     };
   }
-  // A despachante recebe confirmação por voz no próprio tablet, APENAS depois do retorno da API.
+  // A despachante recebe o toque de confirmação depois do retorno da API.
   if(typeof employeeApi==='function'){
     const originalEmployeeApi=employeeApi;
     employeeApi=async function(action,payload,...other){
@@ -280,7 +200,6 @@
       const result=await originalEmployeeApi(action,payload,...other);
       if(action==='mark_order_ready'&&result&&result.success!==false&&result.ok!==false&&order){
         play('pronto');
-        if(pref.voice)setTimeout(()=>speak(makeReadyText(order)),870);
       }
       return result;
     };
@@ -290,7 +209,7 @@
     const panel=document.createElement('details');panel.id='caseiraoV8SoundPanel';panel.className='caseiraoV8SoundPanel';
     // <details> ocupa apenas uma linha enquanto fechado. O som continua funcionando sempre.
     panel.open=soundPanelExpanded;
-    panel.innerHTML=`<summary class="caseiraoV8SoundToggle"><span>🔔 Alertas sonoros e voz</span><span class="caseiraoV8SoundHint"><span class="caseiraoV8SoundHintText">Configurar</span><span class="caseiraoV8SoundChevron" aria-hidden="true">⌄</span></span></summary>
+    panel.innerHTML=`<summary class="caseiraoV8SoundToggle"><span>🔔 Alertas sonoros</span><span class="caseiraoV8SoundHint"><span class="caseiraoV8SoundHintText">Configurar</span><span class="caseiraoV8SoundChevron" aria-hidden="true">⌄</span></span></summary>
     <div class="caseiraoV8SoundBody"><div class="caseiraoV8SoundTitle">🔔 ALERTAS POR ETAPA <small>Campainha forte exclusiva do pedido novo</small></div>
     <div class="caseiraoV8SoundActions">
       <button type="button" data-caseirao-sound="novo">🔔 Pedido novo</button>
@@ -298,27 +217,20 @@
       <button type="button" data-caseirao-sound="pronto">📦 No ponto</button>
       <button type="button" data-caseirao-sound="em_rota">🛵 Saiu</button>
       <button type="button" data-caseirao-sound="entregue">✅ Entregue</button>
-      <button type="button" data-caseirao-voice="entrega">🔊 Voz entrega</button>
-      <button type="button" data-caseirao-voice="retirada">🔊 Voz retirada</button>
-      <button type="button" data-caseirao-voice="mesa">🔊 Voz mesa</button>
-      <button type="button" data-caseirao-voice="balcao">🔊 Voz balcão</button>
     </div>
-    <div class="caseiraoV8SoundPrefs"><label>Volume <input type="range" id="caseiraoV8Volume" min="0" max="100" value="${Math.max(0,Math.min(100,Number(pref.volume)||0))}"></label><output id="caseiraoV8VolumeLabel">${Math.max(0,Math.min(100,Number(pref.volume)||0))}%</output><label class="caseiraoV8Voice"><input type="checkbox" id="caseiraoV8Voice" ${pref.voice?'checked':''}> Voz ao ficar pronto</label></div>
-    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app. A voz prioriza Francisca, quando disponível no aparelho; caso contrário usa a melhor voz em português instalada.</small></div>`;
+    <div class="caseiraoV8SoundPrefs"><label>Volume <input type="range" id="caseiraoV8Volume" min="0" max="100" value="${Math.max(0,Math.min(100,Number(pref.volume)||0))}"></label><output id="caseiraoV8VolumeLabel">${Math.max(0,Math.min(100,Number(pref.volume)||0))}%</output></div>
+    <small class="caseiraoV8Disclaimer">Para tocar automaticamente no Chrome, mantenha a Central aberta e ative os alertas após abrir o app.</small></div>`;
     panel.addEventListener('toggle',()=>{soundPanelExpanded=panel.open});
     // Não troca a posição nem as ações dos cartões de pedidos.
     const alertControl=box.querySelector('.alertControl');
     if(alertControl)alertControl.after(panel);else box.prepend(panel);
     panel.querySelectorAll('[data-caseirao-sound]').forEach(b=>b.addEventListener('click',()=>play(b.dataset.caseiraoSound)));
-    panel.querySelectorAll('[data-caseirao-voice]').forEach(b=>b.addEventListener('click',()=>previewVoice(b.dataset.caseiraoVoice)));
     panel.querySelector('#caseiraoV8Volume').addEventListener('input',event=>{pref.volume=Math.max(0,Math.min(100,Number(event.target.value)));panel.querySelector('#caseiraoV8VolumeLabel').textContent=pref.volume+'%';save()});
-    panel.querySelector('#caseiraoV8Voice').addEventListener('change',event=>{pref.voice=event.target.checked;save()});
   }
   if(typeof renderOrders==='function'){
     const originalRenderOrders=renderOrders;
     renderOrders=function(box){const result=originalRenderOrders(box);injectControls(box);return result};
   }
-  // Botão de prévia de voz também na área da despachante (não depende do ADM).
   if(typeof renderPackagingPanel==='function'){
     const originalRenderPackagingPanel=renderPackagingPanel;
     renderPackagingPanel=function(){
@@ -326,15 +238,8 @@
       const queue=document.querySelector('.packQueue');
       // Desbloqueia o áudio durante o toque do operador, antes da resposta de rede.
       queue?.querySelectorAll('[data-pack-ready]').forEach(button=>button.addEventListener('click',prepare,{capture:true}));
-      if(queue&&!document.querySelector('#caseiraoV8DispatcherVoice')){
-        const hint=document.createElement('div');hint.id='caseiraoV8DispatcherVoice';hint.className='caseiraoV8DispatcherVoice';
-        hint.innerHTML=`<b>🔊 Confirmação por voz</b><span>Ao marcar NO PONTO, a voz fala o nome, número e destino: entrega, retirada ou consumo no local.</span><label class="caseiraoV8DispatcherToggle"><input type="checkbox" ${pref.voice?'checked':''}> Voz ativa</label><div class="caseiraoV10VoiceSamples"><button type="button" data-caseirao-voice="entrega">▶ Entrega</button><button type="button" data-caseirao-voice="retirada">▶ Retirada</button><button type="button" data-caseirao-voice="mesa">▶ Mesa</button><button type="button" data-caseirao-voice="balcao">▶ Balcão</button></div>`;
-        queue.before(hint);
-        hint.querySelectorAll('[data-caseirao-voice]').forEach(b=>b.addEventListener('click',()=>previewVoice(b.dataset.caseiraoVoice)));
-        hint.querySelector('input').onchange=(ev)=>{pref.voice=ev.target.checked;save()};
-      }
       return result;
     };
   }
-  window.CaseiraoSoundV8={play,makeReadyText,readyOrderCategory,speak,previewReady:()=>previewVoice('entrega'),previewType:previewVoice};
+  window.CaseiraoSoundV8={play};
 })();

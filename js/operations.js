@@ -97,29 +97,35 @@
   driverOrderCard=function(a){
     if(isDriverAssignmentFinished(a))return '';
     const o=driverFullOrder(a),hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
-    const finished=['delivered','returned','settled'].includes(a.status);
     const rawPhone=String(o.customer_phone||'').replace(/\D/g,'');
     const phoneHref=rawPhone?`tel:${rawPhone}`:'';
     const change=o.change_for?String(o.change_for):'';
     const street=[o.address_street,o.address_number].filter(Boolean).join(', ')||'Endereço não informado';
     const complement=o.address_complement?`Complemento: ${o.address_complement}`:'';
     const reference=o.address_reference?`Referência: ${o.address_reference}`:'';
-    const action=finished
-      ? `<button class="primary" disabled>✓ ENTREGA CONCLUÍDA</button>`
-      : `<button class="primary driverDeliverButton" data-driver-deliver="${a.id}">✓ MARCAR COMO ENTREGUE</button><div class="driverOneTapHint">Um toque confirma a entrega, registra o horário e atualiza o fechamento.</div>`;
-    return `<div class="driverOrder ${finished?'driverFinishedCard':''}">
+    const ready=driverReadyForPickup(a);
+    const action=a.status==='assigned'
+      ? ready
+        ? `<button type="button" class="primary" data-driver-status="route" data-driver-assignment="${esc(a.id)}">Retirei · iniciar rota</button>`
+        : ''
+      : `<button type="button" class="primary driverDeliverButton" data-driver-deliver="${esc(a.id)}">Marcar como entregue</button>`;
+    return `<div class="driverOrder">
       <div class="driverQuickTop">
-        <div class="grow"><h3>Pedido #${esc(o.order_number||'—')}</h3><div class="driverStatus">${esc(deliveryStatusLabel(a.status))}</div></div>
-        <b class="driverFee">${fee?fmt(fee):'—'}</b>
+        <div class="grow"><h3>#${esc(o.order_number||'—')}</h3>${a.status==='route'?'':`<div class="driverStatus">${ready?'Pronta para retirada':esc(deliveryStatusLabel(a.status))}</div>`}</div>
       </div>
-      <div class="driverQuickLine"><span class="driverQuickChip">📍 ${esc(hood)}</span><span class="driverQuickChip">💳 ${esc(paymentLabel(o.payment))}</span></div>
-      <div class="driverNextAction">${action}${!finished?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
-      <details class="driverDetails" open><summary>Endereço e detalhes do pedido</summary><div class="driverDetailsContent">${deliveryTimesHtml(a)}
+      <div class="driverCardLocation">📍 ${esc(hood)}</div>
+      ${ready?`<div class="driverNextAction">${action}</div>`:''}
+      <details class="driverDetails" data-driver-detail="${esc(a.id)}">
+        <summary>Ver entrega</summary>
+        <div class="driverDetailsContent">
+        ${!ready&&action?`<div class="driverNextAction">${action}</div>`:''}
+        ${a.status!=='assigned'?`<button type="button" class="secondary danger" data-driver-status="problem" data-driver-assignment="${esc(a.id)}">Problema na entrega</button>`:''}
+        ${deliveryTimesHtml(a)}
         <div class="driverDeliveryInfo">
           <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
           <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
           <div class="driverInfoBlock"><small>👤 Cliente</small><strong>${esc(o.customer_name||'Não informado')}</strong>${phoneHref?`<a class="driverPhoneLink" href="${esc(phoneHref)}">📞 LIGAR PARA ${esc(o.customer_phone)}</a>`:`<span class="driverReference">Telefone não informado</span>`}</div>
-          <div class="driverPayGrid"><div class="driverInfoBlock driverPaymentBlock"><small>💳 Pagamento atual</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span>${!finished?`<button type="button" class="driverChangePaymentBtn" data-driver-payment="${a.id}">ALTERAR PAGAMENTO</button>`:''}</div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
+          <div class="driverPayGrid"><div class="driverInfoBlock driverPaymentBlock"><small>💳 Pagamento atual</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span><button type="button" class="driverChangePaymentBtn" data-driver-payment="${esc(a.id)}">ALTERAR PAGAMENTO</button></div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
         </div>
         <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
         ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
@@ -153,9 +159,7 @@
         await driverAppApi('status',payload);
       }
       stopDriverAreaGps();
-      showAppToast('Entrega confirmada e contabilizada.','ok');
-      button.closest('.driverOrder')?.remove();
-      await renderDriverArea();
+      await renderDriverArea(null,{returnedFromDelivery:true});
     }catch(e){
       button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';
       alert(e.message||'Não foi possível confirmar a entrega.');
@@ -163,8 +167,8 @@
   }
 
   const baseRenderDriverArea=renderDriverArea;
-  renderDriverArea=async function(){
-    const result=await baseRenderDriverArea();
+  renderDriverArea=async function(...args){
+    const result=await baseRenderDriverArea(...args);
     document.querySelectorAll('[data-driver-deliver]').forEach(button=>{
       button.onclick=()=>deliverInOneTap(button.dataset.driverDeliver,button);
     });

@@ -6,7 +6,7 @@
   const boardColumns=[
     {key:'received',title:'Recebidos',hint:'Novos pedidos',statuses:['novo','confirmado']},
     {key:'preparing',title:'Em preparo',hint:'Na cozinha',statuses:['preparando']},
-    {key:'ready',title:'Prontos',hint:'Aguardando saída',statuses:['pronto']},
+    {key:'ready',title:'Prontos',hint:'Aguardando entrega ou retirada',statuses:['pronto']},
     {key:'delivery',title:'Em rota',statuses:['em_rota']}
   ];
 
@@ -242,6 +242,7 @@
     const selected=original.querySelector('[data-st].selected');
     const current=String(order?.status||selected?.dataset.st||'novo');
     const isDelivery=String(order?.type||'')==='delivery';
+    const isPickup=operationalOrderType(order)==='pickup';
     const operationalFlow=isDelivery?flow:flow.filter(status=>status!=='em_rota');
     const index=operationalFlow.indexOf(current);
     const next=index>=0?operationalFlow[index+1]:null;
@@ -249,7 +250,7 @@
     dock.className=`statusFloatDock tone-${current}`;
     dock.setAttribute('aria-label','Controle rápido do status do pedido');
     const nextCopy={confirmado:'ACEITAR PEDIDO',preparando:'INICIAR PREPARO',pronto:'MARCAR COMO PRONTO',em_rota:'ENVIAR PARA ENTREGA',entregue:isDelivery?'FINALIZAR ENTREGA':'FINALIZAR PEDIDO'};
-    dock.innerHTML=`<div class="statusDockTop"><div class="statusNow"><small>STATUS ATUAL</small><b><i>${statusMeta[current]?.icon||'●'}</i>${statusMeta[current]?.label||current}</b></div><button type="button" class="statusDockMenu" aria-expanded="false" aria-label="Outras ações">•••</button></div><div class="statusProgress">${operationalFlow.map((status,i)=>`<span class="${i<index?'done':i===index?'current':''}" title="${statusMeta[status].label}"><i>${statusMeta[status].icon}</i><small>${statusMeta[status].label}</small></span>`).join('')}</div>${next?`<button type="button" class="statusNext" data-status-proxy="${next}"><span>PRÓXIMA AÇÃO</span><b>${statusMeta[next].icon} ${nextCopy[next]||statusMeta[next].label.toUpperCase()}</b></button>`:`<div class="statusCompleted">✓ PEDIDO FINALIZADO</div>`}<div class="statusDockOptions" hidden><b>OUTRAS AÇÕES</b><label class="statusCorrection"><span>Corrigir etapa do pedido</span><select>${operationalFlow.filter(status=>status!==current).map(status=>`<option value="${status}">${statusMeta[status].label}</option>`).join('')}</select></label><button type="button" class="statusApplyCorrection">APLICAR CORREÇÃO</button>${current!=='cancelado'&&current!=='entregue'?'<button type="button" class="statusCancel">× CANCELAR PEDIDO</button>':''}</div>`;
+    dock.innerHTML=`<div class="statusDockTop"><div class="statusNow"><small>STATUS ATUAL</small><b><i>${statusMeta[current]?.icon||'●'}</i>${statusMeta[current]?.label||current}</b></div><button type="button" class="statusDockMenu" aria-expanded="false" aria-label="Outras ações">•••</button></div><div class="statusProgress">${operationalFlow.map((status,i)=>`<span class="${i<index?'done':i===index?'current':''}" title="${statusMeta[status].label}"><i>${statusMeta[status].icon}</i><small>${statusMeta[status].label}</small></span>`).join('')}</div>${next?`<button type="button" class="statusNext" data-status-proxy="${next}"><span>PRÓXIMA AÇÃO</span><b>${statusMeta[next].icon} ${nextCopy[next]||statusMeta[next].label.toUpperCase()}</b></button>`:`<div class="statusCompleted">✓ PEDIDO FINALIZADO</div>`}<div class="statusDockOptions" hidden><b>OUTRAS AÇÕES</b>${!isDelivery&&!isPickup?`<label class="statusCorrection"><span>Corrigir etapa do pedido</span><select>${operationalFlow.filter(status=>status!==current).map(status=>`<option value="${status}">${statusMeta[status].label}</option>`).join('')}</select></label><button type="button" class="statusApplyCorrection">APLICAR CORREÇÃO</button>`:''}${current!=='cancelado'&&current!=='entregue'?'<button type="button" class="statusCancel">× CANCELAR PEDIDO</button>':''}</div>`;
     original.hidden=true;
     body.appendChild(dock);
     dock.querySelector('.statusDockMenu').onclick=event=>{
@@ -279,7 +280,12 @@
     if(!currentOrder||pendingUpdates.has(id)||next===currentOrder.status)return;
     if(next!=='confirmado'&&(!target||target.disabled))return;
     if(next!=='cancelado'&&!orderPaymentConfirmed(currentOrder))return;
-    if(next==='pronto'&&currentOrder.type==='delivery')next='em_rota';
+    const type=operationalOrderType(currentOrder);
+    if(next!=='cancelado'&&['delivery','pickup'].includes(type)){
+      const sequence=type==='delivery'?flow:flow.filter(status=>status!=='em_rota');
+      const stage=sequence.indexOf(currentOrder.status);
+      if(stage<0||next!==sequence[stage+1])return;
+    }
     if(next==='entregue'&&!confirm(completionConfirmText(id)))return;
     let reason='';
     if(next==='cancelado'){
@@ -299,7 +305,7 @@
       stageStarts.set(id,{status:next,time});
       if(order){order.status=next;order.cancel_reason=next==='cancelado'?reason:null;order.updated_at=new Date(time).toISOString()}
       if(typeof knownOrderStatuses!=='undefined')knownOrderStatuses.set(id,next);
-      if((next==='pronto'||next==='em_rota')&&before==='preparando')savePreparationStop(id,time);
+      if(next==='pronto'&&before==='preparando')savePreparationStop(id,time);
       if(['entregue','cancelado'].includes(next))deliveryApi('admin_stop',{order_id:id},true).catch(()=>{});
       card.querySelectorAll('.orderactions [data-st]').forEach(button=>{
         const active=button.dataset.st===next;

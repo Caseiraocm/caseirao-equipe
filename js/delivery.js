@@ -1,15 +1,6 @@
 'use strict';
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
-.driverPickup{margin:0 0 12px;padding:12px;border:1px solid #dbe5df;border-radius:14px;background:#f6f8f7;color:#16342d}
-.driverPickupPending{border-color:#aacdbb;background:#eaf5ef}
-.driverPickupHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.driverPickupHead h3{margin:0;font-size:16px;color:#16342d}
-.driverPickupHead button.secondary{width:auto;min-height:44px;padding:5px 8px;margin:0;background:#fff;color:#16342d;border:1px solid #b4cdbf}
-.driverPickupHead button[aria-pressed="true"].secondary{background:#164436;color:#fff}
-.driverPickup p{margin:8px 0 0;font-size:13px;line-height:1.4}
-.driverPickup p span{display:block;margin-top:3px}
-.driverPickup .driverOrder{margin-top:10px}
 .driverPreparing{font-size:13px;color:#565b59}
 
 .driverAccessChoice{border-color:#b8d9ee!important;background:#f1f9ff!important;color:#175f8f!important}.deliveryHubGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.deliveryPanel,.deliveryCard{border:1px solid #dfe3e7;background:#fff;border-radius:17px;padding:14px;color:#25292e}.deliveryPanel h3,.deliveryCard h3{margin:0 0 8px}.deliveryCard{margin:10px 0}.deliveryMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.deliveryMeta>div{border:1px solid #e3e6e9;background:#f7f8f9;border-radius:11px;padding:9px}.deliveryMeta small{display:block;color:#717981}.deliveryActions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.deliveryActions button{min-height:46px}.driverScreenNew{max-width:680px;margin:auto}.driverOrder{border:1px solid #dfe3e7;background:#fff;color:#24282d;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 5px 16px rgba(28,34,41,.05)}.driverOrder .addressBoxAdmin{background:#f6f8fa;color:#25292e;border-color:#dfe3e7}.driverMoney{border:1px solid #cce5d4;background:#effaf2;border-radius:13px;padding:12px;margin:10px 0;color:#176b3b}.driverPremiumHero{position:relative;overflow:hidden;border-radius:22px;padding:18px;margin:0 0 13px;background:linear-gradient(135deg,#20252a,#343a40);color:#fff;box-shadow:0 12px 30px rgba(20,24,28,.18);border:1px solid rgba(255,255,255,.06)}.driverPremiumHero:after{content:'🛵';position:absolute;right:12px;top:7px;font-size:58px;opacity:.12;transform:rotate(-7deg)}.driverPremiumHead{display:flex;align-items:center;gap:11px;position:relative;z-index:1}.driverPremiumIcon{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:23px}.driverPremiumHead h2{margin:0;font-size:18px}.driverPremiumHead small{display:block;margin-top:2px;color:#cfd4d9}.driverPremiumStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px;position:relative;z-index:1}.driverPremiumStat{background:rgba(255,255,255,.095);border:1px solid rgba(255,255,255,.11);border-radius:13px;padding:10px}.driverPremiumStat small{display:block;font-size:9px;text-transform:uppercase;font-weight:850;color:#cfd4d9}.driverPremiumStat b{display:block;margin-top:3px;font-size:15px}.driverPremiumStat.total b{color:#ffd2b9}.driverSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 7px}.driverSectionHead h3{margin:0;font-size:15px;color:#2d3238}.driverSectionHead span{font-size:10px;font-weight:900;color:#8a4a27;background:#fff1e8;border:1px solid #f0cfbd;border-radius:999px;padding:5px 8px}.driverQuickTop{display:flex;align-items:flex-start;gap:10px}.driverQuickTop .grow{min-width:0}.driverQuickTop h3{margin:0;font-size:17px}.driverQuickTop .driverFee{font-size:18px;color:#b94716;white-space:nowrap}.driverQuickLine{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}.driverQuickChip{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#f4f6f8;border:1px solid #e3e6e9;font-size:11px;font-weight:800;color:#4a5159}.driverNextAction{margin-top:8px}.driverNextAction .primary,.driverNextAction .secondary{min-height:48px}.driverDetails{margin-top:9px;border-top:1px solid #eceff1;padding-top:8px}.driverDetails>summary{list-style:none;cursor:pointer;font-size:12px;font-weight:900;color:#6a7179;padding:8px 0}.driverDetails>summary::-webkit-details-marker{display:none}.driverDetails>summary:after{content:'＋';float:right;color:#a64a1c}.driverDetails[open]>summary:after{content:'−'}.driverDetailsContent{padding-top:4px}.driverMiniMapBtn{display:block;text-align:center;text-decoration:none;margin:8px 0;padding:11px 12px!important;min-height:auto!important;font-size:12px}.driverCompactMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 0}.driverCompactMeta>div{background:#f6f7f8;border:1px solid #e5e8eb;border-radius:10px;padding:8px}.driverCompactMeta small{display:block;color:#7a8188;font-size:9px;text-transform:uppercase;font-weight:850}.driverCompactMeta b{display:block;margin-top:3px;font-size:12px}.driverStatus{font-size:12px;font-weight:900;color:#b24b18;text-transform:uppercase}.deliveryLogin{max-width:430px;margin:25px auto}.gpsActive{background:#157347!important;color:#fff!important}.settled{opacity:.7}.deliveryPanel .in,.deliveryPanel .sel,.deliveryCard .in,.deliveryCard .sel,.driverOrder .in{color:#20242a!important;background:#fff!important}
@@ -89,37 +80,30 @@ function openDriverEditor(d={}){modal(`<div class="sheeth"><div><h2>${d.id?'Edit
 
 function openDriverLogin(){modal(`<div class="sheeth"><div><h2>Área do entregador</h2><div class="adminSub">Entregas, GPS e pagamentos</div></div><button class="x" data-close>×</button></div><div class="deliveryLogin"><div class="field"><label>Login</label><input id="driverLoginUser" class="in" autocapitalize="none"></div><div class="field"><label>Senha</label><input id="driverLoginPassword" class="in" type="password"></div><button id="driverLoginButton" class="primary">ENTRAR</button><div id="driverLoginError"></div></div>`,true);bindClose();$('#driverLoginButton').onclick=async()=>{const b=$('#driverLoginButton');try{b.disabled=true;b.textContent='ENTRANDO...';const r=await api('driver-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',payload:{username:$('#driverLoginUser').value,password:$('#driverLoginPassword').value}})});localStorage.setItem(driverTokenKey,r.token);renderDriverArea()}catch(e){$('#driverLoginError').innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message)}</div>`;b.disabled=false;b.textContent='ENTRAR'}}}
 
-function driverPremiumHeroHtml(){
-  const all=driverSnapshot?.assignments||[];
-  const completed=all.filter(a=>['delivered','returned','settled'].includes(a.status));
-  const active=all.filter(a=>['assigned','route','arrived','problem'].includes(a.status)).length;
-  const fees=completed.reduce((sum,a)=>sum+Number(a.driver_fee||0),0);
-  const gas=completed.length?Number(driverSnapshot?.driver_gas_allowance??driverSnapshot?.gas_allowance??10):0;
-  const total=fees+gas;
-  const name=driverSnapshot?.driver?.name||driverSnapshot?.name||'Entregador';
-  return `<section class="driverPremiumHero">
-    <div class="driverPremiumHead"><div class="driverPremiumIcon">🛵</div><div><h2>${esc(name)}</h2><small>Painel do Entregador • Hoje</small></div></div>
-    <div class="driverPremiumStats">
-      <div class="driverPremiumStat"><small>Concluídas</small><b>${completed.length}</b></div>
-      <div class="driverPremiumStat"><small>Em andamento</small><b>${active}</b></div>
-      <div class="driverPremiumStat total"><small>A receber</small><b>${fmt(total)}</b></div>
-    </div>
-  </section>`;
-}
-
-function driverDailySummaryHtml(){
-  const all=driverSnapshot?.assignments||[];
-  const completed=all.filter(a=>['delivered','returned','settled'].includes(a.status));
+function driverDailySummaryHtml(assignments, enRouteCount){
+  const completed=assignments.filter(a=>['delivered','returned','settled'].includes(a.status));
   const hoods=new Map();let fees=0;
   for(const a of completed){
     const hood=(a.neighborhood_name||a.orders?.neighborhood_name||'Bairro não informado').trim()||'Bairro não informado';
     const fee=Number(a.driver_fee||0);fees+=fee;
-    if(!hoods.has(hood))hoods.set(hood,{count:0,fee,total:0});
-    const h=hoods.get(hood);h.count++;h.total+=fee;if(!h.fee&&fee)h.fee=fee;
+    if(!hoods.has(hood))hoods.set(hood,{count:0,total:0});
+    const h=hoods.get(hood);h.count++;h.total+=fee;
   }
   const gas=completed.length?Number(driverSnapshot?.driver_gas_allowance??driverSnapshot?.gas_allowance??10):0;
   const total=fees+gas;
-  return `<section class="driverDaySummary"><div class="driverDaySummaryHead"><div><h3>🛵 Resumo de hoje</h3><div class="mini">${completed.length} ${completed.length===1?'entrega concluída':'entregas concluídas'}</div></div><strong>${fmt(total)}</strong></div>${completed.length?`<div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} × ${fmt(h.fee)}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div><div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>`:'<div class="mini" style="margin-top:10px">Nenhuma entrega concluída ainda.</div>'}</section>`;
+  return `<section class="driverOverview" aria-labelledby="driverOverviewTitle">
+    <h2 id="driverOverviewTitle">Resumo de hoje</h2>
+    <dl class="driverOverviewStats">
+      <div><dt>Concluídas</dt><dd>${completed.length}</dd></div>
+      <div><dt>Em rota</dt><dd>${enRouteCount}</dd></div>
+      <div><dt>A receber</dt><dd>${fmt(total)}</dd></div>
+    </dl>
+    ${completed.length?`<details class="driverBreakdown" data-driver-detail="breakdown">
+      <summary>Ver valores por bairro</summary>
+      <div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} ${h.count===1?'entrega':'entregas'}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div>
+      <div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>
+    </details>`:''}
+  </section>`;
 }
 const driverReadySoundKey='caseirao_driver_ready_sound';
 let automaticDriverSyncTimer=null;
@@ -135,14 +119,17 @@ function driverReadyNotice(count){
   return count===1?'1 entrega pronta para retirada.':`${count} entregas prontas para retirada.`;
 }
 function driverPickupHtml(ready){
-  const front=ready.length?driverReadyNotice(ready.length):'Nenhuma entrega pronta no momento.';
-  return `<section class="driverPickup ${ready.length?'driverPickupPending':''}">
-    <div class="driverPickupHead">
-      <h3>Retirada no Caseirão</h3>
-      <button type="button" id="driverReadySound" class="secondary" aria-pressed="${localStorage.getItem(driverReadySoundKey)==='on'}">Alerta sonoro</button>
+  const count=ready.length;
+  const title=count===1?'1 entrega pronta':`${count} entregas prontas`;
+  return `<section class="driverPickupBanner${count?' has-ready':''}" aria-label="Retirada no Caseirão">
+    <div class="driverPickupHeadline" role="status">
+      <span class="driverPickupIcon" aria-hidden="true">📦</span>
+      <div><h2>${title}</h2><p>${count?'Aguardando retirada no Caseirão':'Nenhuma entrega esperando na loja.'}</p></div>
     </div>
-    <p role="status"><strong>${front}</strong>${ready.length?'<span>A equipe do Caseirão está esperando por você.</span>':''}</p>
-    ${ready.map(driverOrderCard).filter(Boolean).join('')}
+    ${count?`<details class="driverPickupList" data-driver-detail="pickup">
+      <summary><span class="driverPickupOpen">Ver entregas prontas</span><span class="driverPickupClose">Ocultar entregas prontas</span></summary>
+      <div class="driverDashboardList">${ready.map(driverOrderCard).join('')}</div>
+    </details>`:''}
   </section>`;
 }
 
@@ -157,16 +144,33 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       && ['assigned','route','arrived','problem'].includes(a.status));
     const ready=active.filter(driverReadyForPickup)
       .sort((a,b)=>Number(a.orders?.order_number)-Number(b.orders?.order_number));
-    const other=active.filter(a=>!driverReadyForPickup(a));
+    const enRoute=active.filter(a=>['route','arrived'].includes(a.status));
+    const other=active.filter(a=>['assigned','problem'].includes(a.status)&&!driverReadyForPickup(a));
     const oldScreen=document.querySelector('.driverScreenNew');
     const oldSheet=oldScreen?.closest('.sheet');
     const scrollTop=oldSheet?.scrollTop||0;
     const details=new Set([...oldScreen?.querySelectorAll('details[open]')||[]].map(item=>item.dataset.driverDetail));
-    modal(`<div class="sheeth"><div><h2>Olá, ${esc(fresh.driver.name)}</h2><div class="adminSub">Suas entregas de hoje</div></div><button id="driverLogout" class="secondary adminLogout">Sair</button></div>
-      <div class="driverScreenNew">${driverPickupHtml(ready)}${driverPremiumHeroHtml()}${driverDailySummaryHtml()}
-      <div class="driverSectionHead"><h3>Demais entregas ativas</h3><span>${other.length} ATIVAS</span></div>
-      ${other.map(driverOrderCard).filter(Boolean).join('')||'<div class="empty"><b>Nenhuma outra entrega pendente.</b></div>'}</div>`,true);
-    const screen=document.querySelector('.driverScreenNew');
+    modal(`<header class="driverDashboardBar">
+      <button type="button" id="driverBack" aria-label="Voltar aos acessos">‹</button>
+      <strong>CASEIRÃO BURGER</strong>
+      <button type="button" id="driverLogout">Sair</button>
+    </header>
+    <div class="driverScreenNew driverDashboard">
+      <div class="driverGreeting"><h1>Olá, ${esc(fresh.driver.name)}</h1><p>Suas entregas de hoje</p></div>
+      ${driverPickupHtml(ready)}
+      <section aria-labelledby="driverRouteTitle">
+        <div class="driverRouteHeading"><h2 id="driverRouteTitle">Em rota</h2>${enRoute.length?`<span>${enRoute.length} em rota</span>`:''}</div>
+        <div class="driverDashboardList">${enRoute.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">Nenhuma entrega em rota.</p>'}</div>
+      </section>
+      ${other.length?`<section aria-labelledby="driverOtherTitle"><h2 id="driverOtherTitle">Outras entregas ativas</h2><div class="driverDashboardList">${other.map(driverOrderCard).join('')}</div></section>`:''}
+      ${driverDailySummaryHtml(fresh.assignments||[],enRoute.length)}
+      <button type="button" id="driverReadySound" aria-pressed="${localStorage.getItem(driverReadySoundKey)==='on'}">Alerta sonoro <span aria-hidden="true"></span></button>
+    </div>`,true);
+    const screen=document.querySelector('.driverDashboard');
+    const sheet=screen.closest('.sheet');
+    sheet.classList.add('driverDashboardSheet');
+    sheet.querySelector('.modalNav')?.remove();
+    $('#driverBack').onclick=()=>closeModal();
     screen.querySelectorAll('details').forEach(item=>{item.open=details.has(item.dataset.driverDetail)});
     if(oldSheet&&scrollTop)screen.closest('.sheet')?.scrollTo({top:scrollTop});
     $('#driverLogout').onclick=async()=>{
@@ -202,7 +206,7 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
 }
 
 function driverAssignmentSignature(snapshot){
-  return JSON.stringify((snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.orders?.status,a.orders?.archived_at]));
+  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at])]);
 }
 async function refreshAutomaticDriver(){
   if(driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;

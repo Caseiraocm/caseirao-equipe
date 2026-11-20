@@ -105,15 +105,13 @@
         await driverAppApi('status',payload);
       }
       stopDriverAreaGps();
-      showAppToast('Entrega e dinheiro registrados.','ok');
-      button.closest('.driverOrder')?.remove();
-      await renderDriverArea();
+      await renderDriverArea(null,{returnedFromDelivery:true});
     }catch(error){button.disabled=false;button.textContent='✓ MARCAR COMO ENTREGUE';alert(error.message||'Não foi possível confirmar a entrega.')}
   }
 
   const driverCashBase=renderDriverArea;
-  renderDriverArea=async function(){
-    const result=await driverCashBase();
+  renderDriverArea=async function(...args){
+    const result=await driverCashBase(...args);
     document.querySelectorAll('[data-driver-deliver]').forEach(button=>{
       const id=button.dataset.driverDeliver;
       const assignment=(driverSnapshot?.assignments||[]).find(item=>String(item.id)===String(id));
