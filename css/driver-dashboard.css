@@ -1,0 +1,232 @@
+body.teamApp .sheet.driverDashboardSheet {
+  --driver-paper: #f7f5f1;
+  --driver-ink: #211d19;
+  --driver-muted: #59524b;
+  --driver-border: #ddd7ce;
+  width: min(100%, 720px) !important;
+  max-width: 720px !important;
+  min-height: min(100dvh, 780px);
+  padding: 0 !important;
+  background: var(--driver-paper) !important;
+  color: var(--driver-ink) !important;
+}
+
+.driverDashboardBar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px clamp(16px, 5vw, 28px);
+  background: #211d19;
+  color: #fff;
+}
+
+.driverDashboardBar strong {
+  color: inherit;
+  font-size: clamp(15px, 4.4vw, 22px);
+  font-weight: 850;
+  letter-spacing: .015em;
+}
+
+.driverDashboardBar button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #fff9;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.driverDashboardBar #driverBack {
+  padding: 0;
+  border-color: transparent;
+  font-size: 34px;
+  line-height: 1;
+}
+
+body.teamApp .driverDashboard {
+  display: grid;
+  gap: 24px;
+  padding: 22px clamp(16px, 5vw, 28px) 28px;
+  color: var(--driver-ink) !important;
+}
+
+.driverDashboard h1,
+.driverDashboard h2,
+.driverDashboard p,
+.driverDashboard dl,
+.driverDashboard dd {
+  margin: 0;
+}
+
+.driverDashboard h1 {
+  font-size: clamp(30px, 8.8vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.driverDashboard h2 {
+  font-size: clamp(21px, 5.6vw, 28px);
+  line-height: 1.16;
+  letter-spacing: -.025em;
+}
+
+.driverDashboard p { color: var(--driver-muted); }
+.driverGreeting p { margin-top: 4px; font-size: 16px; }
+
+.driverPickupBanner {
+  padding: 16px;
+  border: 1px solid var(--driver-border);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.driverPickupBanner.has-ready {
+  border-color: #f3d39b;
+  background: #ffebc8;
+}
+
+.driverPickupHeadline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.driverPickupHeadline p { margin-top: 4px; }
+.driverPickupIcon { font-size: 26px; }
+
+.driverDashboard .driverPickupList { margin-top: 14px; }
+.driverDashboard .driverPickupClose,
+.driverDashboard .driverPickupList[open] .driverPickupOpen { display: none; }
+.driverDashboard .driverPickupList[open] .driverPickupClose { display: inline; }
+.driverPickupList .driverDashboardList { margin-top: 12px; }
+
+.driverDashboard .driverPickupList > summary,
+.driverDashboard .driverDetails > summary,
+.driverDashboard .driverBreakdown > summary {
+  display: grid;
+  min-height: 46px;
+  place-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--driver-ink) !important;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--driver-ink) !important;
+  font-size: 15px;
+  font-weight: 750;
+  text-align: center;
+  cursor: pointer;
+}
+
+.driverDashboard .driverPickupList > summary {
+  background: var(--driver-ink);
+  color: #fff !important;
+}
+
+.driverDashboard summary::-webkit-details-marker { display: none; }
+.driverDashboard .driverDetails > summary::after { content: none; }
+
+.driverRouteHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.driverRouteHeading span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #dff3df;
+  color: #1b542a;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.driverDashboardList { display: grid; gap: 10px; margin-top: 10px; }
+body.teamApp .driverDashboard .driverOrder,
+.driverDashboard .driverRouteEmpty {
+  margin: 0;
+  padding: 14px !important;
+  border: 1px solid var(--driver-border) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.driverDashboard .driverCardLocation { margin: 5px 0 10px; color: var(--driver-muted); }
+.driverDashboard .driverDetails { margin-top: 8px; border: 0 !important; }
+.driverDashboard .driverDetailsContent { padding: 12px 0 0; }
+.driverDashboard .driverNextAction:empty { display: none; }
+.driverDashboard .driverDetailsContent > .danger { margin-top: 8px; }
+
+.driverDashboard .driverOverviewStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.driverOverviewStats > div {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 8px;
+  border: 1px solid var(--driver-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.driverOverviewStats dt { color: var(--driver-muted); font-size: 13px; }
+.driverOverviewStats dd { font-size: clamp(17px, 5.3vw, 28px); font-weight: 850; overflow-wrap: anywhere; }
+.driverOverviewStats > :last-child dd { color: #9c5609; }
+.driverDashboard .driverBreakdown { margin-top: 10px; }
+
+.driverDashboard #driverReadySound {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--driver-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--driver-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.driverDashboard #driverReadySound span {
+  display: grid;
+  align-items: center;
+  width: 32px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #6a625b;
+}
+
+.driverDashboard #driverReadySound span::after {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  content: '';
+}
+
+.driverDashboard #driverReadySound[aria-pressed="true"] span { background: #25743b; }
+.driverDashboard #driverReadySound[aria-pressed="true"] span::after { justify-self: end; }
+
+@media (max-width: 600px) {
+  body.teamApp .sheet.driverDashboardSheet {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+}
