@@ -27,86 +27,167 @@
     return [order.address_street,order.address_number,order.address_complement,order.neighborhood_name].filter(Boolean).join(', ');
   };
 
+  const searchKey=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const phoneDigits=value=>String(value??'').replace(/\D/g,'');
+  const shortDate=value=>value?new Date(value).toLocaleDateString('pt-BR',{timeZone:'America/Fortaleza',day:'2-digit',month:'2-digit'}):'—';
+
   async function draw(box){
     box.innerHTML=`<section class="admCardCaseirao">
-      <div class="admCardActions"><button type="button" class="secondary" data-card-manage>Cartões reais e compras</button>
-      <button type="button" class="secondary" data-card-simulator>Simular taxa</button></div>
-      <div data-card-body></div>
+      <div class="admCardActions admCardToolbar">
+        <button type="button" class="secondary" data-card-manage>Cartões e compras</button>
+        <button type="button" class="secondary" data-card-simulator>Simular taxa</button>
+        <button type="button" class="primary" data-card-release>+ Liberar cartão</button>
+      </div>
+      <div class="admCardWorkspace">
+        <section class="admCardPanel admCardClients" aria-labelledby="admCardClientsTitle">
+          <h2 id="admCardClientsTitle">Clientes</h2>
+          <input type="search" class="in admCardSearch" aria-label="Buscar por nome ou telefone" placeholder="Buscar por nome ou telefone">
+          <div class="admCardClientList" data-card-clients><p role="status">Consultando cartões…</p></div>
+        </section>
+        <section class="admCardPanel admCardClientDetail" data-card-detail></section>
+      </div>
+      <dialog class="admCardDialog" data-card-dialog aria-labelledby="admCardReleaseTitle">
+        <section class="admCardPanel">
+          <div class="admCardDialogHead"><h2 id="admCardReleaseTitle">Liberar cartão</h2><button type="button" class="secondary" data-card-close>Fechar</button></div>
+          <form data-card-approve>
+            <label>Nome completo<input class="in" name="name" maxlength="150" required></label>
+            <label>WhatsApp com DDD<input class="in" name="phone" type="tel" required></label>
+            <label class="admCardWide">Endereço residencial<input class="in" name="address" maxlength="350" placeholder="Rua, número, bairro, cidade e complemento" required></label>
+            <label>Limite em reais<input class="in" name="limit" inputmode="decimal" required></label>
+            ${termFields()}
+            <p class="admCardWide">A taxa informada vale para o prazo escolhido acima.</p>
+            <button class="primary">Liberar cartão</button>
+          </form>
+          <div data-card-approve-status role="status"></div>
+        </section>
+      </dialog>
     </section>`;
-    const body=box.querySelector('[data-card-body]');
-    box.querySelector('[data-card-simulator]').onclick=()=>{
-      const scaffold=body.cloneNode(false);
-      body.replaceWith(scaffold);
-      // The simulator is also available as an independent returnable view.
+    const root=box.querySelector('.admCardCaseirao');
+    const clients=root.querySelector('[data-card-clients]');
+    const search=root.querySelector('.admCardSearch');
+    const detail=root.querySelector('[data-card-detail]');
+    const toolbar=root.querySelector('.admCardToolbar');
+    const title=box.closest('.proAdmin')?.querySelector('.proPageTitle');
+    if(title){
+      title.querySelector('.admCardToolbar')?.remove();
+      title.append(toolbar);
+    }
+    const dialog=root.querySelector('[data-card-dialog]');
+    const form=root.querySelector('[data-card-approve]');
+    const close=dialog.querySelector('[data-card-close]');
+    const status=dialog.querySelector('[data-card-approve-status]');
+    const approve=form.querySelector('button');
+    const release=toolbar.querySelector('[data-card-release]');
+    const manage=toolbar.querySelector('[data-card-manage]');
+    const simulate=toolbar.querySelector('[data-card-simulator]');
+    let accounts=[];
+    let detailRequest=0;
+
+    manage.onclick=()=>search.focus();
+    simulate.onclick=()=>{
+      toolbar.remove();
       simulator();
       const back=document.createElement('button');
-      back.type='button';back.className='secondary';back.textContent='Voltar a clientes e compras';
-      back.onclick=()=>draw(box);box.prepend(back);
+      back.type='button';
+      back.className='secondary admCardSimulatorBack';
+      back.textContent='← Cartões e compras';
+      back.onclick=()=>draw(box);
+      box.prepend(back);
     };
-    box.querySelector('[data-card-manage]').onclick=()=>draw(box);
-    body.innerHTML='<p role="status">Consultando cartões…</p>';
-    try{
-      const {accounts}=await call('accounts');
-      if(!body.isConnected)return;
-      body.innerHTML=`<details class="admCardPanel" ${accounts.length?"":"open"}><summary><b>Liberar cartão para um cliente</b></summary>
-        <form data-card-approve>
-          <label>Nome completo<input class="in" name="name" maxlength="150" required></label>
-          <label>WhatsApp com DDD<input class="in" name="phone" type="tel" required></label>
-          <label class="admCardWide">Endereço residencial<input class="in" name="address" maxlength="350" placeholder="Rua, número, bairro, cidade e complemento" required></label>
-          <label>Limite em reais<input class="in" name="limit" inputmode="decimal" required></label>
-          ${termFields()}
-          <p class="admCardWide">A taxa informada vale para o prazo escolhido acima.</p>
-          <button class="primary">Liberar cartão</button>
-          <p class="admCardWide" data-card-approve-status role="status"></p>
-        </form></details>
-        <div class="admCardPanel">
-          <label>Cliente<select class="in" data-card-client><option value="">Escolher cliente</option>${accounts.map(item=>`<option value="${esc(item.id)}">${esc(item.name)} · ${esc(item.phone)}</option>`).join('')}</select></label>
-          <div data-card-detail></div>
-        </div>`;
+    release.disabled=true;
+    release.onclick=()=>{
+      form.reset();
+      form.hidden=false;
+      status.replaceChildren();
+      dialog.showModal();
+    };
+    close.onclick=()=>dialog.close();
+    dialog.addEventListener('cancel',event=>{if(approve.disabled)event.preventDefault();});
 
-      const chooser=body.querySelector('[data-card-client]');
-      const detail=body.querySelector('[data-card-detail]');
-      const form=body.querySelector('[data-card-approve]');
-      chooser.value=selected;
-      form.onsubmit=async event=>{
-        event.preventDefault();
-        const button=form.querySelector('button');
-        const status=form.querySelector('[data-card-approve-status]');
-        const data=Object.fromEntries(new FormData(form));
-        const terms=readTerms(data);
-        if(!/^\d+([.,]\d{1,2})?$/.test(data.limit.trim())||!terms){
-          status.textContent='Confira o limite, o prazo e os juros para o prazo escolhido.';
-          return;
-        }
-        button.disabled=true;
-        try{
-          const result=await call('approve',{...data,limit:Math.round(Number(number(data.limit))*100),...terms});
-          selected=result.account.id;
-          accounts.push(result.account);
-          chooser.add(new Option(result.account.name+' · '+result.account.phone,selected));
-          chooser.value=selected;
-          form.reset();
-          showCode(status,result.token);
-          await loadDetail();
-        }catch(error){status.textContent=error.message;}
-        finally{button.disabled=false;}
-      };
-      chooser.onchange=loadDetail;
-      await loadDetail();
+    function reflectSelection(){
+      clients.querySelectorAll('[data-card-client]').forEach(button=>{
+        button.setAttribute('aria-pressed',String(button.dataset.cardClient===selected));
+      });
+    }
 
-      async function loadDetail(){
-        const id=chooser.value;
-        selected=id;
-        const account=accounts.find(item=>item.id===id);
-        if(!account){detail.replaceChildren();return;}
-        detail.textContent='Consultando compras…';
-        try{
-          const result=await call('detail',{account:id});
-          if(!detail.isConnected||chooser.value!==id)return;
-          renderDetail(detail,account,result.charges,loadDetail);
-        }catch(error){if(chooser.value===id)detail.textContent=error.message;}
+    function renderClients(){
+      const query=searchKey(search.value.trim());
+      const digits=phoneDigits(query);
+      const searchesPhone=digits&&/^[+()\d\s.-]+$/.test(query);
+      const visible=accounts.filter(account=>searchKey(account.name).includes(query)
+        ||(searchesPhone&&phoneDigits(account.phone).includes(digits)));
+      clients.innerHTML=visible.length?visible.map(account=>{
+        const initials=String(account.name||'').trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toLocaleUpperCase('pt-BR');
+        return `<button type="button" data-card-client="${esc(account.id)}" aria-pressed="${String(account.id)===selected}">
+          <span class="admCardAvatar" aria-hidden="true">${esc(initials)}</span>
+          <span><b>${esc(account.name)}</b><small>${esc(account.phone||'')}</small></span>
+        </button>`;
+      }).join(''):`<p>${accounts.length?'Nenhum cliente encontrado.':'Nenhum cartão cadastrado.'}</p>`;
+      clients.querySelectorAll('[data-card-client]').forEach(button=>button.onclick=()=>{
+        if(selected===button.dataset.cardClient&&detail.querySelector('.admCardIdentity'))return;
+        selected=button.dataset.cardClient;
+        reflectSelection();
+        loadDetail();
+      });
+    }
+
+    async function loadDetail(){
+      const request=++detailRequest;
+      const id=selected,account=accounts.find(item=>String(item.id)===id);
+      if(!account){
+        detail.innerHTML='<p class="admCardEmpty">Selecione um cliente para consultar o cartão.</p>';
+        return;
       }
-    }catch(error){body.textContent=error.message;}
+      detail.innerHTML='<p role="status">Consultando compras…</p>';
+      try{
+        const {charges}=await call('detail',{account:account.id});
+        if(!detail.isConnected||request!==detailRequest)return;
+        renderDetail(detail,account,charges,()=>selected===id?loadDetail():undefined);
+      }catch(error){
+        if(detail.isConnected&&request===detailRequest)detail.textContent=error.message;
+      }
+    }
+
+    form.onsubmit=async event=>{
+      event.preventDefault();
+      if(approve.disabled||form.hidden)return;
+      const data=Object.fromEntries(new FormData(form));
+      const terms=readTerms(data);
+      if(!/^\d+([.,]\d{1,2})?$/.test(data.limit.trim())||!terms){
+        status.textContent='Confira o limite, o prazo e os juros para o prazo escolhido.';
+        return;
+      }
+      approve.disabled=close.disabled=true;
+      status.textContent='Liberando cartão…';
+      try{
+        const result=await call('approve',{...data,limit:Math.round(Number(number(data.limit))*100),...terms});
+        if(!root.isConnected)return;
+        selected=String(result.account.id);
+        const existing=accounts.findIndex(account=>String(account.id)===selected);
+        if(existing<0)accounts.push(result.account);
+        else accounts[existing]=result.account;
+        search.value='';
+        renderClients();
+        form.hidden=true;
+        showCode(status,result.token);
+        close.disabled=false;
+        close.focus();
+        loadDetail();
+      }catch(error){status.textContent=error.message;}
+      finally{approve.disabled=close.disabled=false;}
+    };
+    search.oninput=renderClients;
+    try{
+      const result=await call('accounts');
+      if(!root.isConnected)return;
+      accounts=result.accounts;
+      selected=String((accounts.find(account=>String(account.id)===selected)||accounts[0])?.id??'');
+      release.disabled=false;
+      renderClients();
+      await loadDetail();
+    }catch(error){
+      if(root.isConnected)clients.textContent=error.message;
+    }
   }
 
   function showCode(container,token){
@@ -127,37 +208,59 @@
     const balance=active.reduce((sum,c)=>sum+c.principal+c.interest,0);
     const invoices=Array.from(new Set(active.map(c=>c.due_date))).sort();
     const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Fortaleza',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    detail.innerHTML=`<dl class="admCardSummary">
-      <div><dt>Nome</dt><dd>${esc(account.name)}</dd></div>
-      <div><dt>WhatsApp</dt><dd>${esc(account.phone)}</dd></div>
-      <div><dt>Endereço residencial cadastrado</dt><dd>${esc(account.address)}</dd></div>
-      <div><dt>Limite disponível</dt><dd>${money(Math.max(0,account.credit_limit-balance))} de ${money(account.credit_limit)}</dd></div>
-      <div><dt>Prazo atual</dt><dd>${account.term_days} dias por compra</dd></div>
-      <div><dt>Juros atuais</dt><dd>${formatPercent(account.rate)}% ${account.rate_per_term?'no prazo acima':'por 30 dias, proporcional ao prazo'}</dd></div>
-      <div><dt>A receber</dt><dd>${money(balance)}</dd></div>
-      <div><dt>Situação</dt><dd>${account.active?'Ativo':'Bloqueado'}${invoices.some(day=>day<today)?' · fatura vencida':''}</dd></div>
-    </dl>
-    <div class="admCardActions"><button type="button" class="secondary" data-card-toggle>${account.active?'Bloquear novas compras':'Reativar compras'}</button>
-    <button type="button" class="secondary" data-card-code>Gerar novo link privado</button></div>
-    <div data-card-feedback role="status"></div>
-    <section class="admCardPanel">
-      <h3>Editar prazo e juros reais</h3>
-      <form data-card-terms>
-        ${termFields(account.term_days,account.rate_per_term?formatPercent(account.rate):'')}
-        <p class="admCardWide">O prazo e os juros salvos valem para as próximas compras.</p>
-        <button class="primary">Salvar prazo e juros</button>
-        <p class="admCardWide" role="status"></p>
-      </form>
-    </section>
-    <h3>Faturas em aberto</h3>
-    <div class="admCardActions">${invoices.map(due=>`<button type="button" class="secondary" data-card-invoice="${esc(due)}">${due<today?'Vencida · ':''}${date(due)}</button>`).join('')||'<p>Nenhuma fatura em aberto.</p>'}</div>
-    <div data-card-settlement></div>
-    <h3>Histórico de compras</h3>
-    <div class="admCardTable"><table><thead><tr><th>Pedido e data</th><th>Valor usado</th><th>Vencimento</th><th>Endereço da entrega</th><th>Situação</th></tr></thead><tbody>
-      ${charges.map(c=>`<tr><td>#${esc(c.order_number)}<br>${esc(timestamp(c.purchased_at))}</td><td>${money(c.principal+c.interest)}<br><small>${money(c.interest)} de acréscimo</small></td><td>${date(c.due_date)}</td><td>${esc(profileAddress(c)||'Retirada ou consumo local')}</td>
-      <td>${c.cancelled_at?'Estornado':c.payment_id?`Pago · ${esc(c.caseirao_card_payments?.method||'')}<br>${esc(timestamp(c.caseirao_card_payments?.paid_at))}`:c.due_date<today?'Vencido':'A receber'}</td></tr>`).join('')}
-      ${charges.length?'':'<tr><td colspan="5">Nenhuma compra registrada.</td></tr>'}
-    </tbody></table></div>`;
+    const recent=[...charges].sort((first,second)=>String(second.purchased_at||'').localeCompare(String(first.purchased_at||'')));
+    detail.innerHTML=`
+      <header class="admCardIdentity">
+        <h2>${esc(account.name)}</h2>
+        <span class="admCardBadge ${account.active?'is-active':'is-closed'}">${account.active?'Cartão ativo':'Cartão bloqueado'}</span>
+        ${invoices.some(day=>day<today)?'<span class="admCardBadge is-overdue">Fatura vencida</span>':''}
+      </header>
+      <dl class="admCardSummary admCardBalances">
+        <div><dt>Limite disponível</dt><dd>${money(Math.max(0,account.credit_limit-balance))}</dd><small>Limite total ${money(account.credit_limit)}</small></div>
+        <div><dt>Valor em aberto</dt><dd>${money(balance)}</dd></div>
+      </dl>
+      <section class="admCardPurchases">
+        <h3>Compras recentes</h3>
+        <div class="admCardTable"><table>
+          <thead><tr><th scope="col">Pedido</th><th scope="col">Data</th><th scope="col">Valor</th><th scope="col">Situação</th></tr></thead>
+          <tbody>${recent.map(charge=>{
+            const state=charge.cancelled_at?'Estornado':charge.payment_id?'Pago':charge.due_date<today?'Vencido':'Em aberto';
+            const tone=charge.cancelled_at?'is-closed':charge.payment_id?'is-active':charge.due_date<today?'is-overdue':'is-open';
+            return `<tr><td><details class="admCardPurchaseInfo"><summary>#${esc(charge.order_number)}</summary>
+              <small>${esc(timestamp(charge.purchased_at))}</small>
+              <small>Vencimento ${esc(date(charge.due_date))}</small>
+              <small>${esc(profileAddress(charge)||'Retirada ou consumo local')}</small>
+              ${charge.payment_id?`<small>${esc(charge.caseirao_card_payments?.method||'')} ${esc(timestamp(charge.caseirao_card_payments?.paid_at))}</small>`:''}
+              </details></td><td>${esc(shortDate(charge.purchased_at))}</td>
+              <td class="admCardAmount">${money(charge.principal+charge.interest)}${charge.interest?`<small>${money(charge.interest)} de acréscimo</small>`:''}</td>
+              <td><span class="admCardBadge ${tone}">${state}</span></td></tr>`;
+          }).join('')||'<tr><td colspan="4">Nenhuma compra registrada.</td></tr>'}</tbody>
+        </table></div>
+      </section>
+      <section class="admCardInvoices">
+        <h3>Faturas em aberto</h3>
+        <div class="admCardActions">${invoices.map(due=>`<button type="button" class="secondary" data-card-invoice="${esc(due)}">${due<today?'Vencida · ':''}${esc(date(due))}</button>`).join('')||'<p>Nenhuma fatura em aberto.</p>'}</div>
+        <div data-card-settlement></div>
+      </section>
+      <details class="admCardPanel admCardAccountSettings">
+        <summary>Gerenciar cartão</summary>
+        <dl class="admCardSummary">
+          <div><dt>WhatsApp</dt><dd>${esc(account.phone)}</dd></div>
+          <div><dt>Endereço residencial</dt><dd>${esc(account.address)}</dd></div>
+          <div><dt>Prazo atual</dt><dd>${account.term_days} dias por compra</dd></div>
+          <div><dt>Juros atuais</dt><dd>${formatPercent(account.rate)}% ${account.rate_per_term?'no prazo acima':'por 30 dias, proporcional ao prazo'}</dd></div>
+        </dl>
+        <div class="admCardActions"><button type="button" class="secondary" data-card-toggle>${account.active?'Bloquear novas compras':'Reativar compras'}</button>
+          <button type="button" class="secondary" data-card-code>Gerar novo link privado</button></div>
+        <div data-card-feedback role="status"></div>
+        <h3>Editar prazo e juros reais</h3>
+        <form data-card-terms>
+          ${termFields(account.term_days,account.rate_per_term?formatPercent(account.rate):'')}
+          <p class="admCardWide">O prazo e os juros salvos valem para as próximas compras.</p>
+          <button class="primary">Salvar prazo e juros</button>
+          <p class="admCardWide" role="status"></p>
+        </form>
+      </details>`;
     const feedback=detail.querySelector('[data-card-feedback]');
     const termsForm=detail.querySelector('[data-card-terms]');
     termsForm.onsubmit=async event=>{
@@ -172,6 +275,7 @@
         Object.assign(account,result.account);
         if(detail.isConnected&&detail.contains(termsForm)){
           renderDetail(detail,account,charges,refresh);
+          detail.querySelector('.admCardAccountSettings').open=true;
           detail.querySelector('[data-card-terms] [role="status"]').textContent='Prazo e juros salvos para as próximas compras.';
         }
       }catch(error){status.textContent=error.message;}
