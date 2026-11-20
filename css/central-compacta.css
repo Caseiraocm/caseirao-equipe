@@ -173,3 +173,29 @@
   .centralDeliveryRouteMotion { transform: translateX(45%); }
   .centralDeliveryRouteProgress { transform: scaleX(.48); }
 }
+
+/* Ícone do chapeiro ao lado do status Em preparo. */
+.admWorkspaceMain .orderDetailed .orderSummary .statusBadge.st-preparando {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.admWorkspaceMain .orderDetailed .orderSummary .statusBadge.st-preparando::after {
+  content: '';
+  flex: none;
+  width: 34px;
+  height: 26px;
+  background: url('../assets/chapeiro-preparo.webp') no-repeat 0 0 / 1360px 26px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admWorkspaceMain .orderDetailed .orderSummary .statusBadge.st-preparando::after {
+    animation: centralChapeiroPreparo 2.6s steps(40, end) infinite;
+  }
+}
+
+@keyframes centralChapeiroPreparo {
+  to { background-position-x: -1360px; }
+}
