@@ -1,0 +1,21 @@
+.comboDrinkGroup { display: grid; gap: 8px; margin: 10px 0; }
+.comboDrinkGroup[hidden] { display: none !important; }
+.manualOrderWorkspace .comboDrinkGroup {
+  grid-column: 1 / -1;
+  padding: 8px 10px;
+  border: 1px solid #cce1dc;
+  border-radius: 9px;
+  background: #f0f8f6;
+}
+.comboDrinkGroup .comboDrinkField { display: grid; gap: 4px; margin: 0; }
+.comboDrinkGroup .comboDrinkField > span { font-weight: 700; }
+.comboDrinkGroup .comboDrinkSelect {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #9fbabe;
+  border-radius: 8px;
+  background: #fff;
+  color: #173539;
+}
