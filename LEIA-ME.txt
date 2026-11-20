@@ -1,13 +1,15 @@
-CASEIRÃO BURGER — AVISO DE ENTREGAS PRONTAS
+CASEIRÃO EQUIPE | FLUXO DE PEDIDOS
 
-O servidor já foi atualizado. Publique index.html, sw.js e js/delivery.js
-nas pastas correspondentes do repositório caseirao-equipe.
-A pasta backend guarda uma cópia das mudanças aplicadas ao Supabase.
+Publique index.html, sw.js e os arquivos das pastas js e css nas mesmas
+pastas do repositório Caseiraocm/caseirao-equipe. O pacote já inclui o
+painel do entregador aprovado na atualização anterior.
 
-Ao abrir a Área do entregador, as entregas prontas atribuídas a ele aparecem
-primeiro em Retirada no Caseirão. Quando confirmar uma entrega, o app avisa
-se outra está esperando na loja. O aviso sonoro pode ser ativado na mesma tela.
+Aplique backend/fluxo-pedidos.sql no SQL Editor do projeto Supabase do
+Caseirão na mesma atualização. Esse arquivo substitui a regra que
+mudava Pronto para Em rota. A tela e o banco precisam da correção.
+A pasta backend e este guia ficam fora da publicação no GitHub Pages.
 
-O entregador toca em Retirei · iniciar rota só depois de pegar o pedido.
-Com o aplicativo aberto, a lista se atualiza automaticamente.
-Entregas em rota antes da atualização seguem o fluxo já registrado.
+Entrega segue Recebido, Em preparo, Pronto, Em rota e Entregue.
+Retirada segue Recebido, Em preparo, Pronto e Retirado.
+O status interno Confirmado continua na etapa Recebidos.
+O sistema mantém o toque e os avisos visuais sem a locução de pronto.
