@@ -465,3 +465,213 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     body.teamApp .proAdmin.ca-orders-page .proToolbar > .alertControl { justify-self: start; }
   }
 }
+
+/* Identidade da Central e fundo branco do quadro de pedidos. */
+@media screen {
+  body.teamApp .sheet:has(> .proCaseiraoHeader) > .modalNav {
+    display: none !important;
+  }
+
+  body.teamApp .proAdmin.proCaseiraoHeader {
+    --caseirao-petroleo: #07383b;
+    --caseirao-dourado: #ffb322;
+    grid-template-rows: 64px minmax(0, 1fr) !important;
+  }
+
+  body.teamApp .proCaseiraoHeader > .proHeader {
+    box-sizing: border-box;
+    height: 64px !important;
+    min-height: 64px !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(6px, 1.3vw, 20px) !important;
+    padding: 0 clamp(6px, 1.6vw, 24px) !important;
+    border-bottom: 3px solid var(--caseirao-dourado) !important;
+    background: var(--caseirao-petroleo) !important;
+    color: #fff !important;
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader :is(.proMenu, #proRefresh) {
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 44px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: #fff !important;
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader :is(.proMenu, #proRefresh):focus-visible {
+    outline: 2px solid var(--caseirao-dourado);
+    outline-offset: 2px;
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader :is(.proMenu, #proRefresh):hover {
+    background: #ffffff18 !important;
+  }
+
+  .proCaseiraoHeader .proHeader svg {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader .proBrand {
+    gap: 9px !important;
+    min-width: 0;
+    margin: 0;
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader .proBrand b {
+    font-size: clamp(15px, 2.25vw, 28px) !important;
+    color: #fff !important;
+    white-space: nowrap;
+  }
+
+  .proCaseiraoHeader .proBrand em {
+    color: var(--caseirao-dourado);
+    font-style: normal;
+  }
+
+  .proCaseiraoHeader .proBrand svg {
+    width: clamp(21px, 2.9vw, 36px);
+    height: auto;
+    color: var(--caseirao-dourado);
+  }
+
+  .proCaseiraoHeader .proHeaderSection {
+    position: relative;
+    max-width: 26vw;
+    overflow: hidden;
+    padding: 4px 0 7px 19px;
+    border-left: 1px solid #ffffff55;
+    color: #fff;
+    font-size: clamp(13px, 1.65vw, 20px);
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .proCaseiraoHeader .proHeaderSection::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 19px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--caseirao-dourado);
+    content: '';
+  }
+
+  body.teamApp .proCaseiraoHeader .proHeader .proHeaderStatus {
+    display: flex !important;
+    gap: 7px;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #fff !important;
+    font-size: clamp(11px, 1.4vw, 16px) !important;
+    white-space: nowrap;
+  }
+
+  .proCaseiraoHeader .proHeaderStatus i { flex: 0 0 8px; }
+  .proCaseiraoHeader .proHeaderStatus.open i { background: #21cf81; }
+  .proCaseiraoHeader .proHeaderStatus.closed i { background: #ff8e8e; }
+
+  body.teamApp .proCaseiraoHeader .proHeader #proRefresh {
+    display: inline-flex;
+    gap: 8px;
+    min-width: 44px;
+    padding: 0 8px !important;
+    font-size: clamp(12px, 1.4vw, 16px) !important;
+    white-space: nowrap;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page,
+  body.teamApp .proCaseiraoHeader.ca-orders-page > .proMain,
+  body.teamApp .proCaseiraoHeader.ca-orders-page #admContent {
+    background: #fff !important;
+    color: #17262c !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .proToolbar > h1 {
+    color: var(--caseirao-petroleo) !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .proToolbar > #proManualOrder {
+    background: #a95c00 !important;
+    border-color: #a95c00 !important;
+    color: #fff !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .proFilters button.on,
+  body.teamApp .proCaseiraoHeader.ca-orders-page .ordersKanban .centralOrderNext {
+    background: var(--caseirao-petroleo) !important;
+    border-color: var(--caseirao-petroleo) !important;
+    color: #fff !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .proFilters button:not(.on),
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanbanColumn,
+  body.teamApp .proCaseiraoHeader.ca-orders-page .ordersKanban .orderDetailed,
+  body.teamApp .proCaseiraoHeader.ca-orders-page .ordersKanban .orderSummary {
+    --ca-panel: #fff;
+    --ca-panel-ink: #263642;
+    --ca-column-ink: #17262c;
+    background: #fff !important;
+    color: #17262c !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanbanColumn > header {
+    border-bottom: 0 !important;
+    justify-content: flex-start;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanbanColumn > header::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #d98200;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanban-ready > header::before { background: #008c59; }
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanban-delivery > header::before { background: #1676bb; }
+  body.teamApp .proCaseiraoHeader.ca-orders-page .kanbanCount { margin-left: auto; }
+
+  body.teamApp .proCaseiraoHeader .proSectionNav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  body.teamApp .proCaseiraoHeader .proSessionActions {
+    flex-shrink: 0;
+    margin: 0;
+    padding-top: 8px;
+    border-top: 1px solid #ffffff30;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page #orderSearch {
+    background: #f8f9fa !important;
+    color: #17262c !important;
+  }
+
+  body.teamApp .proCaseiraoHeader.ca-orders-page #orderSearch::placeholder {
+    color: #586373 !important;
+  }
+
+  @media (max-width: 670px) {
+    .proCaseiraoHeader .proHeaderSection,
+    .proCaseiraoHeader .proHeader #proRefresh > span { display: none; }
+  }
+
+  @media (max-width: 365px) {
+    .proCaseiraoHeader .proBrand svg { display: none; }
+  }
+}
