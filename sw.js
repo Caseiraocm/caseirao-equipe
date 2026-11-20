@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-20261120-combo-refrigerantes-v1';
+const CACHE = 'caseirao-equipe-20261120-combo-refrigerantes-v2';
 const APP_SHELL = ['./js/combo-refrigerantes.js','./css/combo-refrigerantes.css',
   './css/caseirao-card-pilot.css','./js/caseirao-card-pilot.js','./js/caseirao-card-admin.js',
   './css/central-menu.css',
