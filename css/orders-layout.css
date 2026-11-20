@@ -938,3 +938,244 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     .proAdmin[data-pro-section="entregas"] :is(.deliveryHeroMetric, .cashControlTotal):last-child { grid-column: 1 / -1; }
   }
 }
+
+/* Pedido manual com catálogo e dados visíveis lado a lado no tablet. */
+@media screen {
+  body.teamApp .overlay:has(.manualOrderWorkspace) {
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+
+  body.teamApp .sheet.full:has(> .manualOrderWorkspace) {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.teamApp .sheet:has(> .manualOrderWorkspace) > .modalNav { display: none !important; }
+
+  .manualOrderWorkspace {
+    --manual-ink: #173539;
+    --manual-petrol: #07383b;
+    --manual-line: #dce5e5;
+    --manual-muted: #43585d;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(330px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "header header" "catalog details" "catalog footer";
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    color: var(--manual-ink);
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .manualOrderWorkspace [hidden] { display: none !important; }
+
+  .manualOrderHeader {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 58px;
+    padding: 6px clamp(12px, 2vw, 24px);
+    border-bottom: 3px solid #ffb322;
+    background: var(--manual-petrol);
+    color: #fff;
+  }
+
+  .manualOrderHeader h2 {
+    margin: 0;
+    color: #fff !important;
+    font-size: clamp(17px, 2.1vw, 25px);
+    line-height: 1.15;
+  }
+
+  .manualOrderHeader button {
+    min-height: 44px;
+    padding: 0 9px;
+    border: 1px solid #ffffff45;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .manualOrderColumns { display: contents; }
+
+  .manualCatalogPane {
+    grid-area: catalog;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+    border-right: 1px solid var(--manual-line);
+  }
+
+  .manualCatalogHead, .manualCatalogScroll, .manualDetailsPane {
+    padding: 14px clamp(12px, 1.7vw, 22px);
+  }
+
+  .manualCatalogHead { border-bottom: 1px solid var(--manual-line); }
+  .manualCatalogScroll, .manualDetailsPane { overflow: auto; min-height: 0; }
+  .manualDetailsPane { grid-area: details; min-width: 0; }
+
+  .manualOrderWorkspace :is(h3, h4) {
+    margin: 0 0 8px;
+    color: var(--manual-petrol) !important;
+    line-height: 1.2;
+  }
+
+  .manualOrderWorkspace h3 { font-size: 19px; }
+  .manualOrderWorkspace h4 { font-size: 14px; }
+  .manualOrderWorkspace .employeeCatalog { gap: 14px; margin: 0; }
+  .manualOrderWorkspace .employeeProductGrid { grid-template-columns: minmax(0, 1fr); }
+
+  body.teamApp .manualOrderWorkspace .employeeProductCard {
+    grid-template-columns: 49px minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    gap: 6px 10px;
+  }
+
+  .manualOrderWorkspace .employeeProductCard :is(.employeeProductInfo, .employeeProductQty) {
+    align-self: center;
+  }
+
+  .manualOrderWorkspace .employeeProductPhoto { grid-row: auto; width: 49px; height: 49px; }
+  .manualOrderWorkspace .employeeProductInfo > b { white-space: normal; overflow-wrap: anywhere; }
+  .manualOrderWorkspace .employeeProductInfo > span { color: #4f6265 !important; }
+  .manualOrderWorkspace .employeeProductQty { display: flex; align-items: center; }
+  .manualOrderWorkspace .employeeProductQty button {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+    color: var(--manual-petrol) !important;
+    background: #e9f5f3;
+    border: 1px solid #cce1dc;
+    border-radius: 9px;
+  }
+
+  .manualOrderWorkspace .manualOrderTypes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    margin: 0 0 12px;
+  }
+
+  body.teamApp .manualOrderWorkspace .manualOrderTypes button {
+    min-height: 44px;
+    padding: 4px;
+    border: 1px solid #cbdada !important;
+    border-radius: 8px;
+    background: #f5f9f8 !important;
+    color: var(--manual-ink) !important;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  body.teamApp .sheet .manualOrderWorkspace .manualOrderTypes button.on {
+    border-color: var(--manual-petrol) !important;
+    background: var(--manual-petrol) !important;
+    color: #fff !important;
+  }
+
+  .manualOrderWorkspace .manualFields {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .manualOrderWorkspace .manualFields .field { min-width: 0; margin: 0; }
+  .manualOrderWorkspace .manualFullField { grid-column: 1 / -1; }
+  .manualOrderWorkspace #manualAddress { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--manual-line); }
+
+  body.teamApp .manualOrderWorkspace :is(.in, .sel, .ta) {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    min-height: 42px;
+    background: #fff !important;
+    color: var(--manual-ink) !important;
+    border: 1px solid #ccdada !important;
+    border-radius: 8px;
+  }
+
+  .manualOrderWorkspace :is(.manualBasket, .manualNotes) {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--manual-line);
+    border-radius: 10px;
+    background: #f7faf9;
+  }
+
+  .manualBasket p, .manualCatalogEmpty { margin: 0; color: #465b5f; font-size: 13px; }
+  .manualBasket ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .manualBasket li { display: flex; align-items: start; justify-content: space-between; gap: 10px; font-size: 13px; }
+  .manualBasket li strong { flex-shrink: 0; white-space: nowrap; }
+  .manualBasket li small { display: block; margin-top: 2px; color: #465b5f; }
+  .manualNotes summary { cursor: pointer; font-size: 13px; }
+  .manualNotes textarea { margin-top: 8px; }
+
+  .manualOrderSubmit {
+    grid-area: footer;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(135px, 1.15fr);
+    align-items: center;
+    gap: 8px 12px;
+    padding: 10px clamp(12px, 1.7vw, 22px) calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--manual-line);
+    background: #fff;
+  }
+
+  .manualOrderTotal span { display: block; color: var(--manual-muted); font-size: 12px; }
+  .manualOrderTotal b { display: block; font-size: 21px; font-variant-numeric: tabular-nums; }
+
+  body.teamApp .sheet .manualOrderWorkspace #saveManual {
+    min-height: 46px;
+    margin: 0;
+    background: var(--manual-petrol) !important;
+    border-color: var(--manual-petrol) !important;
+    color: #fff !important;
+  }
+
+  .manualOrderError {
+    grid-column: 1 / -1;
+    color: #8e2828;
+    background: #fff1ef;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  .manualOrderWorkspace :is(button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid #057a73;
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 1150px) {
+    .manualOrderWorkspace .employeeProductGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 735px) {
+    .manualOrderWorkspace {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "header" "columns" "footer";
+    }
+
+    .manualOrderColumns { display: block; grid-area: columns; overflow: auto; min-height: 0; }
+    .manualCatalogPane { display: block; border-right: 0; border-bottom: 1px solid var(--manual-line); }
+    .manualCatalogScroll { max-height: 40dvh; }
+    .manualCatalogHead { padding-bottom: 10px; }
+    .manualDetailsPane { overflow: visible; }
+  }
+}
