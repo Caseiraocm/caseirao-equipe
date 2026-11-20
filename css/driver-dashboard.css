@@ -1,205 +1,323 @@
 body.teamApp .sheet.driverDashboardSheet {
-  --driver-paper: #f7f5f1;
-  --driver-ink: #211d19;
-  --driver-muted: #59524b;
-  --driver-border: #ddd7ce;
-  width: min(100%, 720px) !important;
-  max-width: 720px !important;
-  min-height: min(100dvh, 780px);
+  --driver-paper: #f8f6f1;
+  --driver-ink: #24221e;
+  --driver-muted: #6b635a;
+  --driver-border: #e4ded4;
+  width: min(100%, 640px) !important;
+  max-width: 640px !important;
+  min-height: min(100dvh, 760px);
   padding: 0 !important;
   background: var(--driver-paper) !important;
   color: var(--driver-ink) !important;
 }
 
 .driverDashboardBar {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 12px clamp(16px, 5vw, 28px);
-  background: #211d19;
+  padding: max(12px, env(safe-area-inset-top)) clamp(18px, 5vw, 32px) 46px;
+  background: #24211d;
   color: #fff;
 }
 
-.driverDashboardBar strong {
-  color: inherit;
-  font-size: clamp(15px, 4.4vw, 22px);
-  font-weight: 850;
-  letter-spacing: .015em;
+.driverBarNav {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
 }
 
-.driverDashboardBar button {
+.driverBarNav strong {
+  color: inherit;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.driverBarNav button {
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #fff9;
+  border: 1px solid #ffffff44;
   border-radius: 12px;
   background: transparent;
   color: inherit;
   font: inherit;
-  font-weight: 750;
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.driverDashboardBar #driverBack {
+.driverBarNav #driverBack {
   padding: 0;
   border-color: transparent;
   font-size: 34px;
   line-height: 1;
 }
 
-body.teamApp .driverDashboard {
-  display: grid;
-  gap: 24px;
-  padding: 22px clamp(16px, 5vw, 28px) 28px;
-  color: var(--driver-ink) !important;
-}
-
-.driverDashboard h1,
-.driverDashboard h2,
-.driverDashboard p,
-.driverDashboard dl,
-.driverDashboard dd {
+.driverGreeting { margin-top: 22px; }
+.driverGreeting p { margin: 0 0 4px; color: #dacbbb; font-size: 14px; }
+.driverGreeting h1 {
   margin: 0;
-}
-
-.driverDashboard h1 {
-  font-size: clamp(30px, 8.8vw, 44px);
-  line-height: 1.12;
+  color: #fff;
+  font-size: clamp(31px, 9vw, 46px);
+  line-height: 1.08;
   letter-spacing: -.045em;
   overflow-wrap: anywhere;
 }
 
-.driverDashboard h2 {
-  font-size: clamp(21px, 5.6vw, 28px);
-  line-height: 1.16;
-  letter-spacing: -.025em;
+body.teamApp .driverDashboard {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  margin: -24px auto 0;
+  padding: 0 clamp(18px, 5vw, 32px) 28px;
+  color: var(--driver-ink) !important;
 }
 
-.driverDashboard p { color: var(--driver-muted); }
-.driverGreeting p { margin-top: 4px; font-size: 16px; }
+.driverDashboard [hidden] { display: none !important; }
 
 .driverPickupBanner {
   padding: 16px;
   border: 1px solid var(--driver-border);
-  border-radius: 20px;
+  border-radius: 18px;
   background: #fff;
+  box-shadow: 0 6px 18px #33271b10;
 }
 
 .driverPickupBanner.has-ready {
-  border-color: #f3d39b;
-  background: #ffebc8;
+  border-color: #edcb8c;
+  background: #ffebc5;
 }
 
 .driverPickupHeadline {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.driverPickupHeadline p { margin-top: 4px; }
-.driverPickupIcon { font-size: 26px; }
+.driverPickupHeadline h2 {
+  margin: 0;
+  font-size: clamp(21px, 6vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
 
-.driverDashboard .driverPickupList { margin-top: 14px; }
-.driverDashboard .driverPickupClose,
-.driverDashboard .driverPickupList[open] .driverPickupOpen { display: none; }
-.driverDashboard .driverPickupList[open] .driverPickupClose { display: inline; }
-.driverPickupList .driverDashboardList { margin-top: 12px; }
-
-.driverDashboard .driverPickupList > summary,
-.driverDashboard .driverDetails > summary,
-.driverDashboard .driverBreakdown > summary {
+.driverPickupHeadline p { margin: 5px 0 0; color: var(--driver-muted); font-size: 14px; }
+.driverPickupIcon {
   display: grid;
-  min-height: 46px;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  padding: 8px 12px;
-  border: 1px solid var(--driver-ink) !important;
   border-radius: 12px;
-  background: transparent;
-  color: var(--driver-ink) !important;
-  font-size: 15px;
-  font-weight: 750;
-  text-align: center;
-  cursor: pointer;
+  background: #8b5c1817;
+  color: #6d4919;
 }
 
-.driverDashboard .driverPickupList > summary {
-  background: var(--driver-ink);
-  color: #fff !important;
+.driverPickupIcon::before {
+  grid-area: 1 / 1;
+  width: 18px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  content: '';
 }
 
-.driverDashboard summary::-webkit-details-marker { display: none; }
-.driverDashboard .driverDetails > summary::after { content: none; }
+.driverPickupIcon::after {
+  grid-area: 1 / 1;
+  align-self: start;
+  margin-top: 12px;
+  height: 8px;
+  border-left: 2px solid currentColor;
+  content: '';
+}
 
-.driverRouteHeading {
+.driverDashboardNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid var(--driver-border);
+  border-radius: 14px;
+  background: #eeeae2;
+}
+
+.driverDashboardNav button {
   display: flex;
+  min-height: 42px;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.driverRouteHeading span {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #dff3df;
-  color: #1b542a;
-  font-size: 13px;
+  justify-content: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--driver-ink);
+  font: inherit;
+  font-size: 14px;
   font-weight: 750;
-  white-space: nowrap;
 }
 
-.driverDashboardList { display: grid; gap: 10px; margin-top: 10px; }
-body.teamApp .driverDashboard .driverOrder,
+.driverDashboardNav button[aria-pressed="true"] {
+  background: var(--driver-ink);
+  color: #fff;
+}
+
+.driverDashboardNav span {
+  min-width: 22px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: #8b5c1821;
+  font-size: 12px;
+}
+
+.driverDashboardNav button[aria-pressed="true"] span { background: #fff3; }
+.driverDashboardList { display: grid; gap: 8px; }
+
+body.teamApp .driverDashboard .driverQueueOrder,
+body.teamApp .driverDashboard .driverOverview,
 .driverDashboard .driverRouteEmpty {
   margin: 0;
-  padding: 14px !important;
+  padding: 0 !important;
   border: 1px solid var(--driver-border) !important;
-  border-radius: 16px !important;
+  border-radius: 14px !important;
   background: #fff !important;
   box-shadow: none !important;
 }
 
-.driverDashboard .driverCardLocation { margin: 5px 0 10px; color: var(--driver-muted); }
-.driverDashboard .driverDetails { margin-top: 8px; border: 0 !important; }
-.driverDashboard .driverDetailsContent { padding: 12px 0 0; }
-.driverDashboard .driverNextAction:empty { display: none; }
-.driverDashboard .driverDetailsContent > .danger { margin-top: 8px; }
+.driverDashboard .driverRouteEmpty {
+  padding: 16px !important;
+  color: var(--driver-muted);
+  font-size: 14px;
+}
+
+.driverDashboard summary { list-style: none; cursor: pointer; }
+.driverDashboard summary::-webkit-details-marker { display: none; }
+
+.driverQueueOrder > summary {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 11px;
+  min-height: 66px;
+  padding: 9px 13px;
+}
+
+.driverOrderMarker {
+  display: grid;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: #f4eee2;
+  color: #795726;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.driverOrderMarker::before {
+  width: 12px;
+  height: 13px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  content: '';
+}
+
+#driverRoutePanel .driverOrderMarker { background: #e7f0e8; color: #355d41; }
+.driverOrderCaption { min-width: 0; overflow-wrap: anywhere; }
+.driverOrderCaption strong { display: block; font-size: 15px; font-weight: 800; }
+.driverOrderCaption small { display: block; margin-top: 2px; color: var(--driver-muted); font-size: 13px; }
+
+.driverOrderChevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--driver-muted);
+  border-bottom: 2px solid var(--driver-muted);
+  transform: rotate(-45deg);
+}
+
+.driverQueueOrder[open] > summary .driverOrderChevron { transform: rotate(45deg); }
+
+.driverOrderExpanded {
+  display: grid;
+  gap: 10px;
+  padding: 0 13px 13px;
+}
+
+.driverDashboard .driverOrderExpanded .driverNextAction { margin: 0; }
+.driverDashboard .driverOrderExpanded .driverNextAction .primary {
+  min-height: 46px !important;
+  border-radius: 10px;
+  background: var(--driver-ink) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+}
+
+.driverDashboard .driverOrderExpanded .driverDeliveryInfo { gap: 6px; }
+.driverDashboard .driverOrderExpanded .driverInfoBlock { min-width: 0; overflow-wrap: anywhere; }
+.driverOrderStatus { margin: 0; color: var(--driver-muted); font-size: 14px; }
+
+.driverInlineLink {
+  display: inline-flex;
+  justify-self: start;
+  width: fit-content;
+  min-height: 44px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #714615;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: underline;
+}
+
+.driverDashboard .driverOverview > summary,
+.driverDashboard .driverBreakdown > summary,
+.driverDashboard .driverOrderExtras > summary {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 13px;
+  color: var(--driver-ink);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.driverDashboard .driverOverview > summary span { color: #795726; }
+.driverDashboard .driverOtherOrders { margin-top: 10px !important; }
+.driverDashboard .driverOverview > :not(summary) { margin: 0 12px 10px; }
+.driverDashboard .driverOrderExtras { border-top: 1px solid var(--driver-border); }
+.driverDashboard .driverOrderExtras > summary { padding-inline: 0; }
+.driverDashboard .driverOrderExtras > summary::after { content: '+'; }
+.driverDashboard .driverOrderExtras[open] > summary::after { content: '−'; }
+.driverDashboard .driverOrderExtras > button { margin-top: 8px; }
 
 .driverDashboard .driverOverviewStats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 10px;
 }
 
 .driverOverviewStats > div {
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  padding: 10px 8px;
+  padding: 8px;
   border: 1px solid var(--driver-border);
-  border-radius: 12px;
-  background: #fff;
+  border-radius: 10px;
 }
 
 .driverOverviewStats dt { color: var(--driver-muted); font-size: 13px; }
-.driverOverviewStats dd { font-size: clamp(17px, 5.3vw, 28px); font-weight: 850; overflow-wrap: anywhere; }
-.driverOverviewStats > :last-child dd { color: #9c5609; }
-.driverDashboard .driverBreakdown { margin-top: 10px; }
+.driverOverviewStats dd { margin: 3px 0 0; font-size: 18px; font-weight: 800; }
 
 .driverDashboard #driverReadySound {
-  justify-self: start;
   display: flex;
   align-items: center;
   gap: 9px;
   min-height: 44px;
   padding: 6px 10px;
   border: 1px solid var(--driver-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fff;
   color: var(--driver-muted);
   font: inherit;
   font-size: 14px;
-  cursor: pointer;
 }
 
 .driverDashboard #driverReadySound span {
@@ -208,7 +326,7 @@ body.teamApp .driverDashboard .driverOrder,
   width: 32px;
   padding: 3px;
   border-radius: 999px;
-  background: #6a625b;
+  background: #766c62;
 }
 
 .driverDashboard #driverReadySound span::after {
