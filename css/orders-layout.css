@@ -372,9 +372,35 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     font-size: 9px !important;
   }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .statusSentence,
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryCustomer > :is(.centralOrderDate,.opsSlaBadge),
-  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryRight > .orderChronometer {
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .summaryCustomer > :is(.centralOrderDate,.opsSlaBadge) {
     display: none !important;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralCardChronometer {
+    order: 1;
+    align-self: flex-start;
+    display: inline-flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 4px 7px;
+    min-width: 0 !important;
+    max-width: calc(100% - 18px);
+    box-sizing: border-box;
+    margin: 7px 9px 0;
+    background: #fff5e4;
+    border-color: #edce9b;
+    color: #684000;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralCardChronometer.stopped {
+    background: #edf8f1;
+    border-color: #b6dbc3;
+    color: #175739;
+  }
+  body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralCardChronometer small {
+    margin: 0 !important;
+    color: inherit !important;
+    font-size: 9px !important;
   }
   body.teamApp .proAdmin.ca-orders-page .ordersKanban .centralOrderTiming {
     display: flex;
