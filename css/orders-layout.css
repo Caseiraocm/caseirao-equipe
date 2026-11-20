@@ -1179,3 +1179,200 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
     .manualDetailsPane { overflow: visible; }
   }
 }
+
+/* Cartão Caseirão no ADM. */
+@media screen {
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"],
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] > .proMain,
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] #admContent {
+    background: #fff !important;
+    color: #17262c !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .proPageTitle {
+    flex-wrap: wrap;
+    align-items: center !important;
+    margin-bottom: 18px !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .proPageTitle small { display: none !important; }
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .proPageTitle h1 { margin: 0 !important; }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .admCardToolbar {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] :is(.admCardToolbar button, .admCardSimulatorBack) {
+    width: auto !important;
+    min-height: 44px;
+    margin: 0;
+    padding: 8px 13px;
+    border-radius: 9px;
+    border: 1px solid #9fbabe !important;
+    background: #fff !important;
+    color: #07383b !important;
+    -webkit-text-fill-color: #07383b !important;
+    box-shadow: none !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .admCardToolbar [data-card-release] {
+    border-color: #07383b !important;
+    background: #07383b !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+  }
+
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .admCardCaseirao { max-width: none; }
+  body.teamApp .proAdmin[data-pro-section="cartao_caseirao"] .admCardSimulatorBack { margin-bottom: 12px; }
+
+  .admCardWorkspace {
+    display: grid;
+    grid-template-columns: minmax(215px, 1fr) minmax(0, 2fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  body.teamApp .admCardWorkspace > .admCardPanel {
+    min-width: 0;
+    margin: 0;
+    padding: clamp(12px, 1.65vw, 22px);
+    border: 1px solid #d9e2e4;
+    border-radius: 12px;
+    background: #fff !important;
+  }
+
+  .admCardWorkspace h2, .admCardWorkspace h3, .admCardDialog h2 {
+    margin: 0 0 12px;
+    color: #17262c !important;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+
+  .admCardWorkspace h2, .admCardDialog h2 { font-size: clamp(18px, 2vw, 25px); }
+  .admCardWorkspace h3 { font-size: 16px; }
+
+  body.teamApp .admCardWorkspace .admCardSearch {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 12px;
+    border: 1px solid #c9d7db !important;
+    background: #f8fafb !important;
+    color: #17262c !important;
+  }
+
+  .admCardSearch::placeholder { color: #53646b !important; }
+  .admCardClientList { max-height: 65dvh; min-height: 0; overflow: auto; padding: 3px; }
+  .admCardClientList > p, .admCardEmpty, .admCardClientDetail > p { color: #4d6269; font-size: 14px; }
+
+  body.teamApp .admCardClientList > button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 54px;
+    padding: 7px;
+    border: 1px solid transparent;
+    border-bottom-color: #e9eff0;
+    border-radius: 8px;
+    background: #fff;
+    color: #17262c;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  body.teamApp .admCardClientList > button[aria-pressed="true"] {
+    background: #def2ee;
+    border-color: #c2e3dc;
+    color: #07383b;
+  }
+
+  .admCardClientList > button > span:last-child { min-width: 0; }
+  .admCardClientList b, .admCardClientList small { display: block; color: inherit !important; overflow-wrap: anywhere; }
+  .admCardClientList small { margin-top: 2px; font-size: 11px; }
+
+  .admCardAvatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #eaf0f1;
+    color: #17464a;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  [data-card-client][aria-pressed="true"] .admCardAvatar { background: #c3e8df; }
+
+  .admCardIdentity { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .admCardIdentity h2 { margin: 0; min-width: 0; }
+
+  .admCardBadge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: #eef2f3;
+    color: #40545b !important;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .admCardBadge.is-active { background: #d9f1e7; color: #13613c !important; }
+  .admCardBadge.is-open { background: #fff1d4; color: #725000 !important; }
+  .admCardBadge.is-overdue { background: #fde9e6; color: #8b292a !important; }
+
+  body.teamApp .admCardSummary.admCardBalances {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+    margin: 14px 0 17px;
+  }
+
+  .admCardBalances > div {
+    padding: clamp(9px, 1.3vw, 16px);
+    border: 1px solid #d9e2e4;
+    border-radius: 10px;
+    background: #f8fafb;
+  }
+
+  .admCardBalances > div:first-child { background: #def2ee; border-color: #cbe8e1; }
+  .admCardBalances dt, .admCardBalances small { color: #435a60 !important; font-size: 12px; }
+  body.teamApp .admCardBalances dd { color: #07383b !important; font-size: clamp(18px, 2.35vw, 30px); font-variant-numeric: tabular-nums; }
+
+  .admCardPurchases .admCardTable { max-height: 420px; border: 1px solid #d9e2e4; border-radius: 10px; }
+  .admCardPurchases th { position: sticky; top: 0; background: #eff3f4; color: #173539; }
+  .admCardPurchases td { color: #17262c; vertical-align: top; }
+  .admCardPurchases td:nth-child(2), .admCardAmount { white-space: nowrap; }
+  .admCardPurchaseInfo summary { cursor: pointer; }
+  .admCardPurchaseInfo small, .admCardAmount small { display: block; margin-top: 3px; color: #475960 !important; }
+  .admCardInvoices, .admCardAccountSettings { margin-top: 16px !important; }
+  .admCardAccountSettings > summary { font-weight: 750; }
+
+  body.teamApp .admCardDialog {
+    box-sizing: border-box;
+    width: min(660px, calc(100% - 24px));
+    max-height: 90dvh;
+    padding: 0;
+    border: 1px solid #bcd3d3;
+    border-radius: 14px;
+    background: #fff !important;
+    color: #17262c !important;
+  }
+
+  .admCardDialog::backdrop { background: #102b31a6; }
+  body.teamApp .admCardDialog .admCardPanel { margin: 0; padding: 16px; border: 0; background: #fff !important; }
+  .admCardDialogHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admCardDialogHead h2 { margin: 0; }
+  .admCardDialogHead button { width: auto; min-height: 44px; }
+  .admCardCaseirao [hidden] { display: none !important; }
+  .admCardCaseirao :is(button,input,summary):focus-visible { outline: 2px solid #117575; outline-offset: 2px; }
+  [data-card-approve-status]:not(:empty) { margin-top: 10px; }
+
+  @media (max-width: 690px) {
+    .admCardWorkspace { grid-template-columns: minmax(0,1fr); }
+    .admCardClientList { max-height: 29dvh; }
+  }
+}
