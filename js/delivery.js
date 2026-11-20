@@ -80,7 +80,7 @@ function openDriverEditor(d={}){modal(`<div class="sheeth"><div><h2>${d.id?'Edit
 
 function openDriverLogin(){modal(`<div class="sheeth"><div><h2>Área do entregador</h2><div class="adminSub">Entregas, GPS e pagamentos</div></div><button class="x" data-close>×</button></div><div class="deliveryLogin"><div class="field"><label>Login</label><input id="driverLoginUser" class="in" autocapitalize="none"></div><div class="field"><label>Senha</label><input id="driverLoginPassword" class="in" type="password"></div><button id="driverLoginButton" class="primary">ENTRAR</button><div id="driverLoginError"></div></div>`,true);bindClose();$('#driverLoginButton').onclick=async()=>{const b=$('#driverLoginButton');try{b.disabled=true;b.textContent='ENTRANDO...';const r=await api('driver-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',payload:{username:$('#driverLoginUser').value,password:$('#driverLoginPassword').value}})});localStorage.setItem(driverTokenKey,r.token);renderDriverArea()}catch(e){$('#driverLoginError').innerHTML=`<div class="err" style="margin-top:10px">${esc(e.message)}</div>`;b.disabled=false;b.textContent='ENTRAR'}}}
 
-function driverDailySummaryHtml(assignments, enRouteCount){
+function driverDailySummaryHtml(assignments){
   const completed=assignments.filter(a=>['delivered','returned','settled'].includes(a.status));
   const hoods=new Map();let fees=0;
   for(const a of completed){
@@ -91,11 +91,10 @@ function driverDailySummaryHtml(assignments, enRouteCount){
   }
   const gas=completed.length?Number(driverSnapshot?.driver_gas_allowance??driverSnapshot?.gas_allowance??10):0;
   const total=fees+gas;
-  return `<section class="driverOverview" aria-labelledby="driverOverviewTitle">
-    <h2 id="driverOverviewTitle">Resumo de hoje</h2>
+  return `<details class="driverOverview" data-driver-detail="overview">
+    <summary>Resumo do dia <span>${fmt(total)}</span></summary>
     <dl class="driverOverviewStats">
       <div><dt>Concluídas</dt><dd>${completed.length}</dd></div>
-      <div><dt>Em rota</dt><dd>${enRouteCount}</dd></div>
       <div><dt>A receber</dt><dd>${fmt(total)}</dd></div>
     </dl>
     ${completed.length?`<details class="driverBreakdown" data-driver-detail="breakdown">
@@ -103,12 +102,14 @@ function driverDailySummaryHtml(assignments, enRouteCount){
       <div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} ${h.count===1?'entrega':'entregas'}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div>
       <div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>
     </details>`:''}
-  </section>`;
+    <button type="button" id="driverReadySound" aria-pressed="${localStorage.getItem(driverReadySoundKey)==='on'}">Alerta sonoro <span aria-hidden="true"></span></button>
+  </details>`;
 }
 const driverReadySoundKey='caseirao_driver_ready_sound';
 let automaticDriverSyncTimer=null;
 let driverSyncBusy=false;
 let driverReadySeen=new Set();
+let driverDashboardView='ready';
 
 function driverReadyForPickup(assignment){
   const order=assignment.orders;
@@ -118,19 +119,14 @@ function driverReadyForPickup(assignment){
 function driverReadyNotice(count){
   return count===1?'1 entrega pronta para retirada.':`${count} entregas prontas para retirada.`;
 }
-function driverPickupHtml(ready){
-  const count=ready.length;
-  const title=count===1?'1 entrega pronta':`${count} entregas prontas`;
-  return `<section class="driverPickupBanner${count?' has-ready':''}" aria-label="Retirada no Caseirão">
-    <div class="driverPickupHeadline" role="status">
-      <span class="driverPickupIcon" aria-hidden="true">📦</span>
-      <div><h2>${title}</h2><p>${count?'Aguardando retirada no Caseirão':'Nenhuma entrega esperando na loja.'}</p></div>
-    </div>
-    ${count?`<details class="driverPickupList" data-driver-detail="pickup">
-      <summary><span class="driverPickupOpen">Ver entregas prontas</span><span class="driverPickupClose">Ocultar entregas prontas</span></summary>
-      <div class="driverDashboardList">${ready.map(driverOrderCard).join('')}</div>
-    </details>`:''}
-  </section>`;
+function showDriverDashboardView(screen,view){
+  driverDashboardView=view;
+  screen.querySelectorAll('[data-driver-view]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.driverView===view));
+  });
+  screen.querySelectorAll('[data-driver-panel]').forEach(panel=>{
+    panel.hidden=panel.dataset.driverPanel!==view;
+  });
 }
 
 async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
@@ -150,33 +146,59 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
     const oldSheet=oldScreen?.closest('.sheet');
     const scrollTop=oldSheet?.scrollTop||0;
     const details=new Set([...oldScreen?.querySelectorAll('details[open]')||[]].map(item=>item.dataset.driverDetail));
+    if(returnedFromDelivery&&ready.length)driverDashboardView='ready';
     modal(`<header class="driverDashboardBar">
-      <button type="button" id="driverBack" aria-label="Voltar aos acessos">‹</button>
-      <strong>CASEIRÃO BURGER</strong>
-      <button type="button" id="driverLogout">Sair</button>
+      <div class="driverBarNav">
+        <button type="button" id="driverBack" aria-label="Voltar aos acessos">‹</button>
+        <strong>Caseirão Burger</strong>
+        <button type="button" id="driverLogout">Sair</button>
+      </div>
+      <div class="driverGreeting"><p>Central do entregador</p><h1>Olá, ${esc(fresh.driver.name)}</h1></div>
     </header>
     <div class="driverScreenNew driverDashboard">
-      <div class="driverGreeting"><h1>Olá, ${esc(fresh.driver.name)}</h1><p>Suas entregas de hoje</p></div>
-      ${driverPickupHtml(ready)}
-      <section aria-labelledby="driverRouteTitle">
-        <div class="driverRouteHeading"><h2 id="driverRouteTitle">Em rota</h2>${enRoute.length?`<span>${enRoute.length} em rota</span>`:''}</div>
-        <div class="driverDashboardList">${enRoute.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">Nenhuma entrega em rota.</p>'}</div>
+      <section class="driverPickupBanner${ready.length?' has-ready':''}" aria-label="Retirada no Caseirão">
+        <div class="driverPickupHeadline" role="status">
+          <div><h2>${ready.length===1?'1 entrega pronta':`${ready.length} entregas prontas`}</h2>
+          <p>${ready.length?'Esperando por você no Caseirão':'Nenhum pedido esperando na loja'}</p></div>
+          <span class="driverPickupIcon" aria-hidden="true"></span>
+        </div>
       </section>
-      ${other.length?`<section aria-labelledby="driverOtherTitle"><h2 id="driverOtherTitle">Outras entregas ativas</h2><div class="driverDashboardList">${other.map(driverOrderCard).join('')}</div></section>`:''}
-      ${driverDailySummaryHtml(fresh.assignments||[],enRoute.length)}
-      <button type="button" id="driverReadySound" aria-pressed="${localStorage.getItem(driverReadySoundKey)==='on'}">Alerta sonoro <span aria-hidden="true"></span></button>
+      <div class="driverDashboardNav" role="group" aria-label="Listas de entregas">
+        <button type="button" data-driver-view="ready" aria-controls="driverReadyPanel">Prontas <span>${ready.length}</span></button>
+        <button type="button" data-driver-view="route" aria-controls="driverRoutePanel">Em rota <span>${enRoute.length}</span></button>
+      </div>
+      <section id="driverReadyPanel" data-driver-panel="ready" aria-label="Entregas prontas">
+        <div class="driverDashboardList">${ready.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">As entregas liberadas aparecem aqui.</p>'}</div>
+      </section>
+      <section id="driverRoutePanel" data-driver-panel="route" aria-label="Entregas em andamento" hidden>
+        <div class="driverDashboardList">${enRoute.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">Nenhuma entrega em rota.</p>'}</div>
+        ${other.length?`<details class="driverOverview driverOtherOrders" data-driver-detail="other">
+          <summary>Outras entregas <span>${other.length}</span></summary>
+          <div class="driverDashboardList">${other.map(driverOrderCard).join('')}</div>
+        </details>`:''}
+      </section>
+      ${driverDailySummaryHtml(fresh.assignments||[])}
     </div>`,true);
     const screen=document.querySelector('.driverDashboard');
     const sheet=screen.closest('.sheet');
     sheet.classList.add('driverDashboardSheet');
     sheet.querySelector('.modalNav')?.remove();
-    $('#driverBack').onclick=()=>closeModal();
+    if(!oldScreen)driverDashboardView=!ready.length&&enRoute.length?'route':'ready';
+    showDriverDashboardView(screen,driverDashboardView);
+    screen.querySelectorAll('[data-driver-view]').forEach(button=>{
+      button.onclick=()=>showDriverDashboardView(screen,button.dataset.driverView);
+    });
+    $('#driverBack').onclick=()=>{
+      driverDashboardView='ready';
+      closeModal();
+    };
     screen.querySelectorAll('details').forEach(item=>{item.open=details.has(item.dataset.driverDetail)});
     if(oldSheet&&scrollTop)screen.closest('.sheet')?.scrollTo({top:scrollTop});
     $('#driverLogout').onclick=async()=>{
       await driverAppApi('logout').catch(()=>{});
       localStorage.removeItem(driverTokenKey);
       driverReadySeen.clear();
+      driverDashboardView='ready';
       clearInternalResume();
       stopDriverAreaGps();
       openDriverLogin();
@@ -195,7 +217,7 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
     driverReadySeen=new Set(ready.map(a=>String(a.id)));
     if(ready.length&&(incoming.length||returnedFromDelivery)){
       if(localStorage.getItem(driverReadySoundKey)==='on')playOrderSound();
-      showAppToast(`${driverReadyNotice(ready.length)} A equipe do Caseirão está esperando por você.`,'ok');
+      showAppToast(`${driverReadyNotice(ready.length)}`,'ok');
     }else if(returnedFromDelivery){
       showAppToast('Entrega confirmada.','ok');
     }
@@ -240,45 +262,77 @@ const automaticDriverUiObserver=new MutationObserver(()=>{
 });
 automaticDriverUiObserver.observe(document.body,{childList:true,subtree:true});
 
-function driverOrderCard(a){
-  const o=a.orders||{},money=o.payment==='Dinheiro',
-        hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',
-        fee=Number(a.driver_fee||0),
-        nextAction=
-          a.status==='assigned'?(driverReadyForPickup(a)?`<button class="primary" data-driver-status="route" data-driver-assignment="${a.id}">RETIREI · INICIAR ROTA</button>`:'<p class="driverPreparing">Aguardando liberação da equipe.</p>'):
-          a.status==='route'?`<button class="primary" data-driver-status="arrived" data-driver-assignment="${a.id}">CHEGUEI AO CLIENTE</button>`:
-          a.status==='arrived'?`<button class="primary" data-driver-status="delivered" data-driver-assignment="${a.id}">CONFIRMAR ENTREGA</button>`:
-          a.status==='delivered'?`<button class="primary" data-driver-status="returned" data-driver-assignment="${a.id}">VOLTEI AO CASEIRÃO</button>`:
-          '';
-  return `<div class="driverOrder">
-    <div class="driverQuickTop">
-      <div class="grow">
-        <h3>#${o.order_number} • ${esc(o.customer_name)}</h3>
-        <div class="driverStatus">${a.status==='assigned'?(driverReadyForPickup(a)?'Pronta para retirada':'Aguardando liberação'):esc(deliveryStatusLabel(a.status))}</div>
-      </div>
-      <b class="driverFee">${fee?fmt(fee):'—'}</b>
-    </div>
-    <div class="driverQuickLine">
-      <span class="driverQuickChip">📍 ${esc(hood)}</span>
-      <span class="driverQuickChip">💳 ${o.payment==='Cartão Caseirão'?'Cartão Caseirão · cobrado na fatura':esc(paymentLabel(o.payment))}</span>
-    </div>
-    <div class="driverNextAction">${nextAction}${!['delivered','returned'].includes(a.status)?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
-    <details class="driverDetails" data-driver-detail="${esc(a.id)}">
-      <summary>VER DETALHES DA ENTREGA</summary>
-      <div class="driverDetailsContent">
-        ${deliveryTimesHtml(a)}
-        <div class="addressBoxAdmin"><b>📍 Endereço</b>${esc(orderAddress(o))}</div>
-        <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank">ABRIR MAPA</a>
-        <div class="driverCompactMeta">
-          <div><small>Valor pedido</small><b>${fmt(o.total)}</b></div>
-          <div><small>Troco levado</small><b>${fmt(a.change_float)}</b></div>
-        </div>
-        <button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR GPS</button>
-        ${money&&a.status==='arrived'?'<div class="driverMoney">Ao confirmar a entrega, informe o dinheiro recebido e o troco devolvido.</div>':''}
-      </div>
-    </details>
-  </div>`;
+/* A API do entregador pode devolver o pedido completo dentro da atribuição,
+   na lista geral de pedidos ou os itens em uma lista separada. Unificamos
+   esses formatos para o motoboy sempre receber a especificação disponível. */
+function driverFullOrder(assignment){
+  const compact=assignment?.orders||{};
+  const orderId=compact.id||assignment?.order_id;
+  const full=(driverSnapshot?.orders||[]).find(order=>String(order.id)===String(orderId))||{};
+  let directItems=assignment?.order_items||assignment?.items||compact.order_items||compact.items||full.order_items||full.items;
+  if(typeof directItems==='string'){try{directItems=JSON.parse(directItems)}catch{directItems=[]}}
+  const snapshotItems=(driverSnapshot?.order_items||[]).filter(item=>String(item.order_id)===String(orderId));
+  const rawItems=Array.isArray(directItems)?directItems:(snapshotItems.length?snapshotItems:[]);
+  const normalizedItems=rawItems.map(item=>({
+    ...item,
+    quantity:item.quantity??item.qty??1,
+    product_name:item.product_name??item.name??item.product?.name??'Item',
+    note:item.note??item.observation??item.notes??'',
+    order_item_addons:item.order_item_addons??item.addons??item.item_addons??[]
+  }));
+  return {...compact,...full,order_items:normalizedItems};
 }
+
+function driverOrderCard(a){
+  if(isDriverAssignmentFinished(a))return '';
+  const order=driverFullOrder(a);
+  const id=esc(a.id),number=esc(order.order_number||'—');
+  const hood=esc(a.neighborhood_name||order.neighborhood_name||'Bairro não informado');
+  const phone=String(order.customer_phone||'').replace(/\D/g,'');
+  const ready=driverReadyForPickup(a);
+  const pending=a.status==='assigned'&&!ready;
+  const action=ready
+    ? `<button type="button" class="primary" data-driver-status="route" data-driver-assignment="${id}">Retirei · iniciar rota</button>`
+    : pending
+      ? ''
+      : `<button type="button" class="primary driverDeliverButton" data-driver-deliver="${id}">Marcar como entregue</button>`;
+  return `<details class="driverOrder driverQueueOrder" name="caseirao-driver-order" data-driver-detail="${id}">
+    <summary>
+      <span class="driverOrderMarker" aria-hidden="true"></span>
+      <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small></span>
+      <span class="driverOrderChevron" aria-hidden="true"></span>
+    </summary>
+    <div class="driverOrderExpanded">
+      ${action?`<div class="driverNextAction">${action}</div>`:''}
+      ${pending||a.status==='problem'? `<p class="driverOrderStatus">${esc(pending?(order.status==='preparando'?'Em preparo':'Aguardando preparo'):(a.problem_note||deliveryStatusLabel(a.status)))}</p>` : ''}
+      <div class="driverDeliveryInfo">
+        <div class="driverInfoBlock">
+          <small>Endereço</small><strong>${esc(orderAddress(order))}</strong>
+          <a class="driverInlineLink" href="${esc(safeMapsLink(order))}" target="_blank" rel="noopener">Abrir no mapa</a>
+        </div>
+        <div class="driverInfoBlock">
+          <small>Cliente</small><strong>${esc(order.customer_name||'Não informado')}</strong>
+          ${phone?`<a class="driverInlineLink" href="tel:${phone}">Ligar para o cliente</a>`:''}
+        </div>
+        <div class="driverInfoBlock">
+          <small>Pagamento</small><strong>${esc(paymentLabel(order.payment))} · ${fmt(order.total)}</strong>
+          ${order.change_for?`<span class="driverReference">Troco para ${esc(order.change_for)}</span>`:''}
+          ${a.driver_fee?`<span class="driverReference">Taxa da entrega ${fmt(a.driver_fee)}</span>`:''}
+          <button type="button" class="driverInlineLink" data-driver-payment="${id}">Alterar pagamento</button>
+        </div>
+      </div>
+      <details class="driverOrderExtras" data-driver-detail="extras-${id}">
+        <summary>Itens e mais ações</summary>
+        <div class="orderItemsBox">${orderItemsHtml(order)}</div>
+        ${order.notes?`<p class="driverOrderStatus">${esc(order.notes)}</p>`:''}
+        ${deliveryTimesHtml(a)}
+        <button type="button" class="secondary" data-driver-gps="${id}">Compartilhar GPS</button>
+        ${a.status!=='assigned'?`<button type="button" class="secondary danger" data-driver-status="problem" data-driver-assignment="${id}">Informar problema</button>`:''}
+      </details>
+    </div>
+  </details>`;
+}
+
 async function updateDriverDelivery(id,status){try{const payload={assignment_id:id,status};if(status==='problem'){const note=prompt('O que aconteceu na entrega?','Cliente não localizado');if(note===null)return;payload.problem_note=note}if(status==='delivered'){const a=(driverSnapshot.assignments||[]).find(x=>x.id===id),o=a?.orders||{};if(o.payment==='Dinheiro'){const cash=prompt('Quanto em dinheiro ficou com você após devolver o troco?',String(Number(o.total||0).toFixed(2)).replace('.',','));if(cash===null)return;const change=prompt('Quanto de troco você entregou ao cliente?','0,00');if(change===null)return;payload.cash_received=num(cash);payload.change_given=num(change)}payload.payment_confirmed=true}await driverAppApi('status',payload);if(status==='delivered'){stopDriverAreaGps();await renderDriverArea(null,{returnedFromDelivery:true})}else{await renderDriverArea();showAppToast(deliveryStatusLabel(status),'ok')}}catch(e){alert(e.message)}}
 function stopDriverAreaGps(){if(driverLocationWatch!=null)navigator.geolocation.clearWatch(driverLocationWatch);driverLocationWatch=null;if(driverLocationTimer)clearInterval(driverLocationTimer);driverLocationTimer=null}
 function startDriverAreaGps(assignmentId,button){if(!navigator.geolocation)return alert('GPS indisponível neste celular.');stopDriverAreaGps();button.disabled=true;button.textContent='SOLICITANDO LOCALIZAÇÃO...';let last=0;const send=async pos=>{if(Date.now()-last<5000)return;last=Date.now();try{await driverAppApi('location',{assignment_id:assignmentId,latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy});button.classList.add('gpsActive');button.textContent='● GPS ATIVO — MANTENHA A TELA ABERTA'}catch(e){button.textContent='FALHA NO GPS — TOQUE PARA TENTAR'}};driverLocationWatch=navigator.geolocation.watchPosition(send,()=>{button.disabled=false;button.textContent='PERMITA O GPS E TENTE NOVAMENTE'},{enableHighAccuracy:true,maximumAge:0,timeout:20000});button.disabled=false}

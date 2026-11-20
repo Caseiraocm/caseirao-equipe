@@ -73,67 +73,6 @@
 (()=>{
   const deliveryLocks=new Set();
 
-  /* A API do entregador pode devolver o pedido completo dentro da atribuição,
-     na lista geral de pedidos ou os itens em uma lista separada. Unificamos
-     esses formatos para o motoboy sempre receber a especificação disponível. */
-  function driverFullOrder(assignment){
-    const compact=assignment?.orders||{};
-    const orderId=compact.id||assignment?.order_id;
-    const full=(driverSnapshot?.orders||[]).find(order=>String(order.id)===String(orderId))||{};
-    let directItems=assignment?.order_items||assignment?.items||compact.order_items||compact.items||full.order_items||full.items;
-    if(typeof directItems==='string'){try{directItems=JSON.parse(directItems)}catch{directItems=[]}}
-    const snapshotItems=(driverSnapshot?.order_items||[]).filter(item=>String(item.order_id)===String(orderId));
-    const rawItems=Array.isArray(directItems)?directItems:(snapshotItems.length?snapshotItems:[]);
-    const normalizedItems=rawItems.map(item=>({
-      ...item,
-      quantity:item.quantity??item.qty??1,
-      product_name:item.product_name??item.name??item.product?.name??'Item',
-      note:item.note??item.observation??item.notes??'',
-      order_item_addons:item.order_item_addons??item.addons??item.item_addons??[]
-    }));
-    return {...compact,...full,order_items:normalizedItems};
-  }
-
-  driverOrderCard=function(a){
-    if(isDriverAssignmentFinished(a))return '';
-    const o=driverFullOrder(a),hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);
-    const rawPhone=String(o.customer_phone||'').replace(/\D/g,'');
-    const phoneHref=rawPhone?`tel:${rawPhone}`:'';
-    const change=o.change_for?String(o.change_for):'';
-    const street=[o.address_street,o.address_number].filter(Boolean).join(', ')||'Endereço não informado';
-    const complement=o.address_complement?`Complemento: ${o.address_complement}`:'';
-    const reference=o.address_reference?`Referência: ${o.address_reference}`:'';
-    const ready=driverReadyForPickup(a);
-    const action=a.status==='assigned'
-      ? ready
-        ? `<button type="button" class="primary" data-driver-status="route" data-driver-assignment="${esc(a.id)}">Retirei · iniciar rota</button>`
-        : ''
-      : `<button type="button" class="primary driverDeliverButton" data-driver-deliver="${esc(a.id)}">Marcar como entregue</button>`;
-    return `<div class="driverOrder">
-      <div class="driverQuickTop">
-        <div class="grow"><h3>#${esc(o.order_number||'—')}</h3>${a.status==='route'?'':`<div class="driverStatus">${ready?'Pronta para retirada':esc(deliveryStatusLabel(a.status))}</div>`}</div>
-      </div>
-      <div class="driverCardLocation">📍 ${esc(hood)}</div>
-      ${ready?`<div class="driverNextAction">${action}</div>`:''}
-      <details class="driverDetails" data-driver-detail="${esc(a.id)}">
-        <summary>Ver entrega</summary>
-        <div class="driverDetailsContent">
-        ${!ready&&action?`<div class="driverNextAction">${action}</div>`:''}
-        ${a.status!=='assigned'?`<button type="button" class="secondary danger" data-driver-status="problem" data-driver-assignment="${esc(a.id)}">Problema na entrega</button>`:''}
-        ${deliveryTimesHtml(a)}
-        <div class="driverDeliveryInfo">
-          <div class="driverInfoBlock driverAddressBlock"><small>📍 Endereço da entrega</small><strong>${esc(street)}</strong><span class="driverReference">${esc(hood)}${complement?` • ${esc(complement)}`:''}${reference?`<br>${esc(reference)}`:''}</span></div>
-          <a class="secondary driverMiniMapBtn" href="${esc(safeMapsLink(o))}" target="_blank" rel="noopener">🗺️ ABRIR ROTA NO MAPA</a>
-          <div class="driverInfoBlock"><small>👤 Cliente</small><strong>${esc(o.customer_name||'Não informado')}</strong>${phoneHref?`<a class="driverPhoneLink" href="${esc(phoneHref)}">📞 LIGAR PARA ${esc(o.customer_phone)}</a>`:`<span class="driverReference">Telefone não informado</span>`}</div>
-          <div class="driverPayGrid"><div class="driverInfoBlock driverPaymentBlock"><small>💳 Pagamento atual</small><strong>${esc(paymentLabel(o.payment))}</strong><span class="driverReference">${change?`Troco para ${esc(change)}`:'Sem troco informado'}</span><button type="button" class="driverChangePaymentBtn" data-driver-payment="${esc(a.id)}">ALTERAR PAGAMENTO</button></div><div class="driverInfoBlock"><small>💰 Total a receber</small><strong>${fmt(o.total)}</strong><span class="driverReference">Taxa do entregador: ${fee?fmt(fee):'não informada'}</span></div></div>
-        </div>
-        <div class="driverItemsTitle">🍔 ITENS DO PEDIDO</div><div class="orderItemsBox">${orderItemsHtml(o)}</div>
-        ${o.notes?`<div class="notesBoxAdmin"><b>📝 Observações gerais</b>${esc(o.notes)}</div>`:''}
-        <button class="secondary" data-driver-gps="${a.id}">📍 ATIVAR COMPARTILHAMENTO DE GPS</button>
-      </div></details>
-    </div>`;
-  };
-
   async function deliverInOneTap(id,button){
     if(deliveryLocks.has(id))return;
     const assignment=(driverSnapshot?.assignments||[]).find(x=>String(x.id)===String(id));
