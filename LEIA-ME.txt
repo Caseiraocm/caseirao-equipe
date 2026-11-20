@@ -1,0 +1,13 @@
+CASEIRÃO BURGER — AVISO DE ENTREGAS PRONTAS
+
+O servidor já foi atualizado. Publique index.html, sw.js e js/delivery.js
+nas pastas correspondentes do repositório caseirao-equipe.
+A pasta backend guarda uma cópia das mudanças aplicadas ao Supabase.
+
+Ao abrir a Área do entregador, as entregas prontas atribuídas a ele aparecem
+primeiro em Retirada no Caseirão. Quando confirmar uma entrega, o app avisa
+se outra está esperando na loja. O aviso sonoro pode ser ativado na mesma tela.
+
+O entregador toca em Retirei · iniciar rota só depois de pegar o pedido.
+Com o aplicativo aberto, a lista se atualiza automaticamente.
+Entregas em rota antes da atualização seguem o fluxo já registrado.
