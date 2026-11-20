@@ -5,7 +5,8 @@
     ['cace1a00-0000-4000-8000-000000000001','0617c866-311a-496b-87f4-d8a24dd880b9','Guaraná Antarctica'],
     ['cace1a00-0000-4000-8000-000000000002','fc3c9091-d690-4257-85ca-3a06df28969e','Fanta Laranja'],
     ['cace1a00-0000-4000-8000-000000000003','ee1be6b4-5f94-4862-bcd3-7fc32e22226d','Fanta Uva'],
-    ['cace1a00-0000-4000-8000-000000000004','ed33c76f-9e1c-4333-9cca-49122124c5c9','Pepsi']
+    ['cace1a00-0000-4000-8000-000000000004','ed33c76f-9e1c-4333-9cca-49122124c5c9','Pepsi'],
+    ['cace1a00-0000-4000-8000-000000000005','2ea49cad-463c-443a-9ccf-f3da049bf428','Guaraná Antarctica Zero']
   ];
   const includes = id => choices.some(([addonId]) => addonId === String(id));
   function options(catalog, productId) {
