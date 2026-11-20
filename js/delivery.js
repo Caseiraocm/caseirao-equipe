@@ -31,17 +31,47 @@ function deliveryTimesHtml(a){
 }
 
 async function loadDeliveryHub(){deliveryHub=visibleDeliverySnapshot(await driverAppApi('admin_snapshot',{},true));return deliveryHub}
+const deliveryHubRequests=new WeakMap();
 async function renderDeliveryHub(box){
-  try{box.innerHTML='<div class="notice">Carregando controle de entregas...</div>';await loadDeliveryHub();
+  if(!box?.isConnected)return false;
+  const request={};
+  deliveryHubRequests.set(box,request);
+  const isCurrent=()=>box.isConnected&&deliveryHubRequests.get(box)===request;
+  const openPanels=[...box.querySelectorAll('details[data-delivery-panel][open]')].map(panel=>panel.dataset.deliveryPanel);
+  try{
+    if(!box.hasChildNodes())box.innerHTML='<div class="notice" role="status">Carregando entregas…</div>';
+    const snapshot=visibleDeliverySnapshot(await driverAppApi('admin_snapshot',{},true));
+    if(!isCurrent())return false;
+    deliveryHub=snapshot;
     const active=(deliveryHub.assignments||[]).filter(a=>a.status!=='settled'),settled=(deliveryHub.assignments||[]).filter(a=>a.status==='settled').slice(0,10),assignedIds=new Set(active.map(a=>a.order_id));
     const available=(deliveryHub.orders||[]).filter(o=>!assignedIds.has(o.id));
-    box.innerHTML=`<div class="operationHint">Acompanhe quem está com cada pedido, localização, pagamento, troco e acerto com o caixa.</div><div class="deliveryHubGrid"><details class="deliveryPanel deliveryManageFold"><summary><span><b>Entregadores</b><small>Cadastro e acesso da equipe</small></span><span>⌄</span></summary><div class="deliveryManageBody"><button id="newDriverAccount" class="primary">+ CADASTRAR ENTREGADOR</button>${(deliveryHub.drivers||[]).map(d=>`<div class="tableitem"><div class="grow"><b>${esc(d.name)}</b><div class="mini">Login: ${esc(d.username||'não criado')} • ${d.active?'Ativo':'Bloqueado'}</div></div><button class="editbtn" data-edit-driver="${d.id}">EDITAR</button></div>`).join('')||'<div class="empty">Cadastre o primeiro entregador.</div>'}</div></details><section class="deliveryPanel deliveryAvailablePanel"><h3>Pedidos aguardando entregador</h3>${available.map(o=>`<div class="deliveryCard"><b>#${o.order_number} • ${esc(o.customer_name)}</b><div class="mini">${esc(orderAddress(o))}<br>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}</div><div class="field"><label>Entregador</label><select class="sel" data-driver-select="${o.id}"><option value="">Selecione</option>${(deliveryHub.drivers||[]).filter(d=>d.active).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></div><div class="field"><label>Troco levado pelo entregador</label><input class="in" data-change-float="${o.id}" inputmode="decimal" placeholder="R$ 0,00"></div><button class="primary" data-assign-order="${o.id}">ENTREGAR PEDIDO AO MOTOBOY</button></div>`).join('')||'<div class="empty">Nenhum pedido aguardando entregador.</div>'}</section></div><div class="sectionTitle">Entregas em andamento</div>${active.map(deliveryAdminCard).join('')||'<div class="empty">Nenhuma entrega em andamento.</div>'}${settled.length?`<div class="sectionTitle">Acertos concluídos</div>${settled.map(deliveryAdminCard).join('')}`:''}`;
+    box.innerHTML=`
+      <div class="deliveryHubGrid">
+        <section class="deliveryPanel deliveryAvailablePanel"><h2>Pedidos aguardando entregador <span class="deliveryCount">${available.length}</span></h2>${available.map(o=>`<div class="deliveryCard"><b>#${o.order_number} • ${esc(o.customer_name)}</b><div class="mini">${esc(orderAddress(o))}<br>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}</div><div class="field"><label>Entregador</label><select class="sel" data-driver-select="${o.id}"><option value="">Selecione</option>${(deliveryHub.drivers||[]).filter(d=>d.active).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></div><div class="field"><label>Troco levado pelo entregador</label><input class="in" data-change-float="${o.id}" inputmode="decimal" placeholder="R$ 0,00"></div><button class="primary" data-assign-order="${o.id}">ENTREGAR PEDIDO AO MOTOBOY</button></div>`).join('')||'<div class="empty">Nenhum pedido aguardando entregador.</div>'}</section>
+        <section class="deliveryPanel deliveryActivePanel">
+          <h2>Entregas em andamento <span class="deliveryCount">${active.length}</span></h2>
+          ${active.map(deliveryAdminCard).join('')||'<div class="empty">Nenhuma entrega em andamento.</div>'}
+        </section>
+      </div>
+      ${settled.length?`<section class="deliveryPanel deliveryHistoryPanel">
+        <h2>Acertos concluídos</h2>
+        ${settled.map(deliveryAdminCard).join('')}
+      </section>`:''}
+      <details class="deliveryPanel deliveryManageFold" data-delivery-panel="drivers"><summary><span><b>Entregadores</b><small>Cadastro e acesso da equipe</small></span><span class="deliveryClosingChevron" aria-hidden="true"></span></summary><div class="deliveryManageBody"><button id="newDriverAccount" class="primary">+ CADASTRAR ENTREGADOR</button>${(deliveryHub.drivers||[]).map(d=>`<div class="tableitem"><div class="grow"><b>${esc(d.name)}</b><div class="mini">Login: ${esc(d.username||'não criado')} • ${d.active?'Ativo':'Bloqueado'}</div></div><button class="editbtn" data-edit-driver="${d.id}">EDITAR</button></div>`).join('')||'<div class="empty">Cadastre o primeiro entregador.</div>'}</div></details>`;
+    box.querySelector('.deliveryManageFold').open=openPanels.includes('drivers');
     $('#newDriverAccount').onclick=()=>openDriverEditor();box.querySelectorAll('[data-edit-driver]').forEach(b=>b.onclick=()=>openDriverEditor((deliveryHub.drivers||[]).find(d=>d.id===b.dataset.editDriver)));
     box.querySelectorAll('[data-assign-order]').forEach(b=>b.onclick=async()=>{const id=b.dataset.assignOrder,driverId=box.querySelector(`[data-driver-select="${CSS.escape(id)}"]`).value,change=num(box.querySelector(`[data-change-float="${CSS.escape(id)}"]`).value);if(!driverId)return alert('Selecione o entregador.');try{b.disabled=true;b.textContent='ATRIBUINDO...';await driverAppApi('admin_assign',{order_id:id,driver_id:driverId,change_float:change},true);await renderDeliveryHub(box);showAppToast('Pedido enviado para o entregador.','ok')}catch(e){alert(e.message);b.disabled=false}});
     box.querySelectorAll('[data-settle-delivery]').forEach(b=>b.onclick=async()=>{if(!confirm('Confirmar que o entregador prestou contas deste pedido?'))return;try{b.disabled=true;b.textContent='CONFIRMANDO...';await driverAppApi('admin_settle',{assignment_id:b.dataset.settleDelivery},true);await renderDeliveryHub(box)}catch(e){alert(e.message);b.disabled=false;b.textContent='CONFIRMAR ACERTO'}});
     box.querySelectorAll('[data-unassign-delivery]').forEach(b=>b.onclick=async()=>{if(!confirm('Remover esta entrega da rota do entregador?\n\nO pedido voltará para a lista de entregas disponíveis e o histórico já registrado será preservado.'))return;try{b.disabled=true;b.textContent='REMOVENDO...';await driverAppApi('admin_unassign',{assignment_id:b.dataset.unassignDelivery},true);await renderDeliveryHub(box);showAppToast('Entrega removida da rota.','ok')}catch(e){alert(e.message);b.disabled=false;b.textContent='REMOVER DA ROTA'}});
     box.querySelectorAll('[data-delivery-print]').forEach(b=>b.onclick=()=>printOrderBrowser(b.dataset.deliveryPrint));
-  }catch(e){box.innerHTML=`<div class="err">${esc(e.message||String(e))}</div>`}
+    return openPanels;
+  }catch(e){
+    if(!isCurrent())return false;
+    box.innerHTML=`<div class="err" role="alert">${esc(e.message||String(e))}</div>
+      <button type="button" class="secondary" data-delivery-retry>Tentar novamente</button>`;
+    box.querySelector('[data-delivery-retry]').onclick=()=>renderDeliveryHub(box);
+    return false;
+  }
 }
 function deliveryAdminCard(a){const o=a.orders||{},d=a.drivers||{},cash=Number(a.cash_received||0),float=Number(a.change_float||0),items=Array.isArray(o.order_items)?o.order_items:[],itemCount=items.reduce((sum,item)=>sum+Number(item.quantity||1),0),itemsSummary=items.slice(0,2).map(item=>`${Number(item.quantity||1)}x ${esc(item.product_name||'Item')}`).join(' • '),canRemove=!['delivered','returned','settled'].includes(a.status);return `<div class="deliveryCard deliveryOperationalCard ${a.status==='settled'?'settled':''}"><div class="ordertop deliveryCardTop"><div class="grow"><h3>#${o.order_number} • ${esc(o.customer_name||'Cliente')}</h3><div class="deliveryDriverLine">🛵 ${esc(d.name||'Sem entregador')}</div></div><span class="statusBadge st-${a.status==='delivered'||a.status==='settled'?'entregue':a.status==='route'?'em_rota':'preparando'}">${esc(deliveryStatusLabel(a.status))}</span></div><div class="deliveryAddressLine">📍 ${esc(orderAddress(o))}</div><div class="deliveryMeta"><div><small>Pagamento</small><b>${esc(paymentLabel(o.payment))}</b></div><div><small>Total final</small><b>${fmt(o.total)}</b></div><div><small>Troco levado</small><b>${fmt(float)}</b></div><div><small>Retorno</small><b>${fmt(cash)}</b></div></div><details class="deliveryOrderDetails"><summary><span>🍔 ${itemCount||items.length||0} ${itemCount===1?'item':'itens'}${itemsSummary?` • ${itemsSummary}`:''}</span><b>VER DETALHES</b></summary><div class="deliveryOrderDetailsBody"><div class="orderItemsBox">${orderItemsHtml(o)}</div>${o.notes?`<div class="notesBoxAdmin"><b>Observações</b>${esc(o.notes)}</div>`:''}</div></details><div class="mini">${a.problem_note?`<b style="color:#ff858b">Problema: ${esc(a.problem_note)}</b>`:''}</div>${deliveryTimesHtml(a)}<div class="deliveryActions">${['delivered','returned'].includes(a.status)?`<button class="primary" data-settle-delivery="${a.id}">CONFIRMAR ACERTO</button>`:''}${canRemove?`<button class="secondary danger" data-unassign-delivery="${a.id}">REMOVER DA ROTA</button>`:''}${o.id?`<button class="secondary" data-delivery-print="${o.id}">IMPRIMIR</button><button class="secondary" data-delivery-map="${o.id}" data-order-number="${o.order_number}">VER GPS</button>`:''}</div></div>`}
 function openDriverEditor(d={}){modal(`<div class="sheeth"><div><h2>${d.id?'Editar entregador':'Novo entregador'}</h2><div class="adminSub">Acesso exclusivo às entregas</div></div><button class="x" id="backDeliveryHub">←</button></div><div class="field"><label>Nome</label><input id="driverName" class="in" value="${esc(d.name||'')}"></div><div class="field"><label>Telefone</label><input id="driverPhone" class="in" inputmode="tel" value="${esc(d.phone||'')}"></div><div class="field"><label>Login</label><input id="driverUsername" class="in" autocapitalize="none" value="${esc(d.username||'')}"></div><div class="field"><label>${d.id?'Nova senha (deixe vazia para manter)':'Senha — mínimo 6 caracteres'}</label><input id="driverPassword" class="in" type="password"></div><label class="addon"><input id="driverActive" type="checkbox" ${d.active!==false?'checked':''}><span><b>Acesso ativo</b></span></label><button id="saveDriverAccount" class="primary">SALVAR ENTREGADOR</button>${d.id?'<button id="deleteDriverAccount" class="secondary deleteDriverBtn">🗑 EXCLUIR ENTREGADOR</button>':''}`,true);$('#backDeliveryHub').onclick=()=>{adminTab='entregas';renderAdmin()};$('#saveDriverAccount').onclick=async()=>{const b=$('#saveDriverAccount');try{b.disabled=true;b.textContent='SALVANDO...';await driverAppApi('admin_save_driver',{id:d.id||'',name:$('#driverName').value,phone:$('#driverPhone').value,username:$('#driverUsername').value,password:$('#driverPassword').value,active:$('#driverActive').checked},true);adminTab='entregas';renderAdmin();showAppToast('Entregador salvo.','ok')}catch(e){alert(e.message);b.disabled=false;b.textContent='SALVAR ENTREGADOR'}};const del=$('#deleteDriverAccount');if(del)del.onclick=async()=>{if(!confirm(`Excluir ${d.name||'este entregador'} do aplicativo?\n\nO histórico das entregas antigas será preservado e o acesso dele será encerrado.`))return;try{del.disabled=true;del.textContent='EXCLUINDO...';await driverAppApi('admin_delete_driver',{id:d.id},true);adminTab='entregas';renderAdmin();showAppToast('Entregador excluído do aplicativo.','ok')}catch(e){alert(e.message);del.disabled=false;del.textContent='🗑 EXCLUIR ENTREGADOR'}}}
@@ -175,10 +205,52 @@ const deliveryProStyle=document.createElement('style');deliveryProStyle.textCont
 function completedDriverAssignments(){return (deliveryHub?.assignments||[]).filter(a=>['delivered','returned','settled'].includes(a.status)&&(!a.delivered_at||localDay(a.delivered_at)===todayKey()))}
 function driverClosingData(){const gas=Number(deliveryHub?.driver_gas_allowance||10),completed=completedDriverAssignments(),drivers=new Map();for(const a of completed){const d=a.drivers||{},id=d.id||a.driver_id;if(!drivers.has(id))drivers.set(id,{id,name:d.name||'Entregador',count:0,fees:0,cash:0,gas,hoods:new Map()});const x=drivers.get(id),hood=a.neighborhood_name||a.orders?.neighborhood_name||'Bairro não informado',fee=Number(a.driver_fee||0);x.count++;x.fees+=fee;x.cash+=Number(a.cash_received||0);if(!x.hoods.has(hood))x.hoods.set(hood,{count:0,fee,total:0});const h=x.hoods.get(hood);h.count++;h.total+=fee;if(!h.fee&&fee)h.fee=fee}return[...drivers.values()]}
 function closingDriverCard(d){const total=d.fees+d.gas;return `<article class="driverClosingCard"><div class="driverClosingHead"><div class="driverAvatar">🛵</div><div><h3>${esc(d.name)}</h3><div class="mini">${d.count} ${d.count===1?'entrega':'entregas'} hoje</div></div><strong>${fmt(total)}</strong></div>${d.hoods.size?`<div class="neighborhoodBreakdown">${[...d.hoods.entries()].map(([name,h])=>`<div class="neighborhoodPayRow"><span><b>${esc(name)}</b><small>${h.count} × ${fmt(h.fee)}</small></span><b>${fmt(h.total)}</b></div>`).join('')}</div>`:''}<div class="driverClosingSummary"><span>Entregas ${fmt(d.fees)} + gasolina ${fmt(d.gas)}</span><strong>Total ${fmt(total)}</strong></div></article>`}
-function deliveryClosingHtml(){const rows=driverClosingData(),deliveries=rows.reduce((s,d)=>s+d.count,0),fees=rows.reduce((s,d)=>s+d.fees,0),gas=rows.reduce((s,d)=>s+d.gas,0),total=fees+gas;return `<section class="deliveryProHero"><div class="deliveryProHeroHead"><div><h2>Controle de Entregas</h2><p>Operação do expediente</p></div><span class="deliveryLiveTag">● AO VIVO</span></div><div class="deliveryHeroMetrics"><div class="deliveryHeroMetric"><small>Hoje</small><b>${deliveries}</b></div><div class="deliveryHeroMetric"><small>Entregas</small><b>${fmt(fees)}</b></div><div class="deliveryHeroMetric"><small>+ gasolina</small><b>${fmt(total)}</b></div></div></section><details class="deliveryClosingFold"><summary><span><b>Fechamento dos entregadores</b><small>Valores, gasolina e acertos do expediente</small></span><span class="deliveryClosingChevron">⌄</span></summary><div class="deliveryClosingBody"><div class="closingActions"><button id="refreshDriverDeliveries" class="secondary refreshDeliveriesBtn">⟳ ATUALIZAR</button><button id="resetDriverDeliveries" class="secondary resetDeliveriesBtn">↺ ZERAR</button><button id="configureDriverRates" class="secondary">⚙️ VALORES</button></div>${rows.length?rows.map(closingDriverCard).join(''):'<div class="empty"><b>Nenhuma entrega concluída hoje.</b><span>O resumo será montado automaticamente.</span></div>'}</div></details>`}
-const renderDeliveryHubProBase=renderDeliveryHub;renderDeliveryHub=async function(box){await renderDeliveryHubProBase(box);if(!deliveryHub||!box)return;box.insertAdjacentHTML('afterbegin',deliveryClosingHtml());const cfg=$('#configureDriverRates');if(cfg)cfg.onclick=openDriverRateSettings;const reset=$('#resetDriverDeliveries');if(reset)reset.onclick=resetDriverDeliveries;const refresh=$('#refreshDriverDeliveries');if(refresh)refresh.onclick=()=>refreshDriverDeliveries(box,refresh)};
-async function refreshDriverDeliveries(box,button){try{button.disabled=true;button.textContent='ATUALIZANDO...';await loadDeliveryHub();await renderDeliveryHub(box);showAppToast('Entregas atualizadas.','ok')}catch(e){alert(e.message)}finally{const b=$('#refreshDriverDeliveries');if(b){b.disabled=false;b.textContent='⟳ ATUALIZAR'}}}
-async function resetDriverDeliveries(){if(!confirm('Zerar a contagem das entregas agora?\n\nO histórico antigo será preservado, mas o fechamento e a contagem começarão do zero a partir deste momento.'))return;const b=$('#resetDriverDeliveries');try{b.disabled=true;b.textContent='ZERANDO...';await driverAppApi('admin_reset_deliveries',{},true);await loadDeliveryHub();const box=$('#admContent');if(box)await renderDeliveryHub(box);showAppToast('Entregas zeradas. Novo fechamento iniciado.','ok')}catch(e){alert(e.message);if(b){b.disabled=false;b.textContent='↺ ZERAR'}}}
+function deliveryClosingHtml(){
+  const rows=driverClosingData();
+  const deliveries=rows.reduce((sum,driver)=>sum+driver.count,0);
+  const fees=rows.reduce((sum,driver)=>sum+driver.fees,0);
+  const gas=rows.reduce((sum,driver)=>sum+driver.gas,0);
+  return `
+    <section class="deliveryProHero" aria-label="Resumo das entregas">
+      <div class="deliveryHeroMetrics">
+        <div class="deliveryHeroMetric"><small>Entregas hoje</small><b>${deliveries}</b></div>
+        <div class="deliveryHeroMetric"><small>Valor das entregas</small><b>${fmt(fees)}</b></div>
+        <div class="deliveryHeroMetric"><small>Total com gasolina</small><b>${fmt(fees+gas)}</b></div>
+      </div>
+    </section>
+    <details class="deliveryClosingFold" data-delivery-panel="closing">
+      <summary>
+        <span><b>Fechamento dos entregadores</b><small>Taxas, gasolina e totais por entregador</small></span>
+        <span class="deliveryClosingChevron" aria-hidden="true"></span>
+      </summary>
+      <div class="deliveryClosingBody">
+        <div class="closingActions"><button type="button" id="refreshDriverDeliveries" class="secondary refreshDeliveriesBtn">Atualizar fechamento</button></div>
+        ${rows.length?rows.map(closingDriverCard).join(''):'<div class="empty">Nenhuma entrega concluída hoje.</div>'}
+      </div>
+    </details>`;
+}
+const renderDeliveryHubProBase=renderDeliveryHub;
+renderDeliveryHub=async function(box){
+  const openPanels=await renderDeliveryHubProBase(box);
+  if(!openPanels||!box.isConnected)return false;
+  box.insertAdjacentHTML('afterbegin',deliveryClosingHtml());
+  box.querySelector('.deliveryClosingFold').open=openPanels.includes('closing');
+  const refresh=box.querySelector('#refreshDriverDeliveries');
+  refresh.onclick=async()=>{
+    refresh.disabled=true;
+    refresh.textContent='Atualizando…';
+    const rendered=await renderDeliveryHub(box);
+    if(rendered&&box.isConnected){
+      showAppToast('Entregas atualizadas.','ok');
+      box.querySelector('#refreshDriverDeliveries')?.focus({preventScroll:true});
+    }
+    if(refresh.isConnected){
+      refresh.disabled=false;
+      refresh.textContent='Atualizar fechamento';
+    }
+  };
+  return openPanels;
+};
 function openDriverRateSettings(){
   const hoods=(deliveryHub?.neighborhoods||[]).filter(n=>n.active!==false);
   modal(`<div class="sheeth"><div><h2>Valores do entregador</h2><div class="adminSub">Tabela por bairro e ajuda de gasolina</div></div><button class="x" id="backRates">←</button></div>
@@ -298,12 +370,13 @@ function openDeliveryControlEditor(assignment){
   };
 }
 
-async function clearDeliveryCenterV33(){
+async function clearDeliveryCenterV33(event){
+  const box=event.currentTarget.closest('#admContent');
   const snapshot=deliveryHub||{orders:[],assignments:[]},orderCount=(snapshot.orders||[]).length,assignmentCount=(snapshot.assignments||[]).length;
   if(!orderCount&&!assignmentCount)return alert('A central já está vazia.');
   if(!confirm(`APAGAR E ZERAR TODA A CENTRAL?\n\nSerão retiradas da tela ${orderCount} comandas e ${assignmentCount} registros de rota atuais. Pedidos novos continuarão aparecendo normalmente.`))return;
   if(!confirm('Confirme mais uma vez: deseja iniciar um novo expediente com a tela de entregas vazia?'))return;
-  const buttons=[...document.querySelectorAll('[data-clear-delivery-center],#resetDriverDeliveries')];
+  const buttons=[...box.querySelectorAll('[data-clear-delivery-center]')];
   try{
     buttons.forEach(b=>{b.disabled=true;b.textContent='LIMPANDO TUDO...'});
     for(const assignment of snapshot.assignments||[]){
@@ -312,20 +385,32 @@ async function clearDeliveryCenterV33(){
     try{await driverAppApi('admin_reset_deliveries',{},true)}catch{}
     const previous=deliveryClearedRecords();
     saveDeliveryClearedRecords({orders:[...new Set([...previous.orders,...(snapshot.orders||[]).map(o=>String(o.id))])],assignments:[...new Set([...previous.assignments,...(snapshot.assignments||[]).map(a=>String(a.id))])],cleared_at:new Date().toISOString()});
-    await loadDeliveryHub();const box=$('#admContent');if(box)await renderDeliveryHub(box);
+    if(box?.isConnected)await renderDeliveryHub(box);
     showAppToast('Central zerada. Novo expediente iniciado.','ok');
-  }catch(error){alert(error.message||'Não foi possível limpar a central.');buttons.forEach(b=>b.disabled=false)}
+  }catch(error){alert(error.message||'Não foi possível limpar a central.');buttons.forEach(b=>{b.disabled=false;b.textContent='Apagar e zerar tudo'})}
 }
 
-resetDriverDeliveries=clearDeliveryCenterV33;
 const renderDeliveryHubControlBase=renderDeliveryHub;
 renderDeliveryHub=async function(box){
-  await renderDeliveryHubControlBase(box);if(!box||!deliveryHub)return;
-  const settings=document.createElement('section');settings.className='deliveryControlPanel';settings.innerHTML=`<div class="deliveryControlPanelHead"><span class="deliveryControlPanelIcon">⚙️</span><div><h3>Configurações das entregas</h3><p>Editar rotas, controlar troco e limpar o expediente.</p></div></div><button class="secondary deliveryControlDanger" data-clear-delivery-center>🗑 APAGAR E ZERAR TUDO</button>`;
-  const hint=box.querySelector('.operationHint');hint?hint.after(settings):box.prepend(settings);
-  settings.querySelector('[data-clear-delivery-center]').onclick=clearDeliveryCenterV33;
+  const openPanels=await renderDeliveryHubControlBase(box);
+  if(!openPanels||!box.isConnected)return false;
+  box.insertAdjacentHTML('beforeend',`
+    <details class="deliveryControlPanel" data-delivery-panel="settings">
+      <summary>
+        <span><b>Configurações das entregas</b><small>Taxas, gasolina e limpeza do expediente</small></span>
+        <span class="deliveryClosingChevron" aria-hidden="true"></span>
+      </summary>
+      <div class="deliverySettingsActions">
+        <button type="button" id="configureDriverRates" class="secondary">Valores por bairro e gasolina</button>
+        <button type="button" class="secondary deliveryControlDanger" data-clear-delivery-center>Apagar e zerar tudo</button>
+      </div>
+    </details>`);
+  box.querySelector('.deliveryControlPanel').open=openPanels.includes('settings');
+  box.querySelector('#configureDriverRates').onclick=openDriverRateSettings;
+  box.querySelector('[data-clear-delivery-center]').onclick=clearDeliveryCenterV33;
   const visibleAssignments=[...(deliveryHub.assignments||[]).filter(a=>a.status!=='settled'),...(deliveryHub.assignments||[]).filter(a=>a.status==='settled').slice(0,10)];
   box.querySelectorAll('.deliveryOperationalCard').forEach((card,index)=>{const assignment=visibleAssignments[index];if(!assignment||['delivered','returned','settled'].includes(assignment.status))return;const actions=card.querySelector('.deliveryActions');if(!actions||actions.querySelector('[data-edit-delivery-control]'))return;const button=document.createElement('button');button.type='button';button.className='primary';button.dataset.editDeliveryControl=assignment.id;button.textContent='✎ EDITAR ENTREGA';button.onclick=()=>openDeliveryControlEditor(assignment);actions.prepend(button)});
+  return openPanels;
 };
 
 const driverToken=decodeURIComponent((location.hash.match(/^#entregador=([^&]+)/)||[])[1]||'');if(driverToken)setTimeout(()=>openDriverTracking(driverToken),100);

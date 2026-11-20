@@ -10,14 +10,14 @@
 
   function showDriverEarnings() {
     modal(`<div class="sheeth">
-      <h2>Ganhos por entrega</h2><button type="button" class="x" data-close aria-label="Fechar">×</button>
+      <h2>Ganhos por entrega</h2><button type="button" class="x" id="backDriverEarnings" aria-label="Voltar para Entregas">←</button>
       </div><p class="mini">Soma das taxas registradas nas entregas concluídas. Valores dos pedidos e ajuda de gasolina ficam fora desse total.</p>
       <form id="driverEarningsForm" class="finFilters">
         <label>Data inicial<input type="date" class="in" id="driverEarningsStart" required></label>
         <label>Data final<input type="date" class="in" id="driverEarningsEnd" required></label>
         <button type="submit" class="primary">Consultar</button>
       </form><div id="driverEarningsResults" aria-live="polite"></div>`);
-    bindClose();
+    $('#backDriverEarnings').onclick = () => renderAdmin();
     const form = $('#driverEarningsForm');
     const start = $('#driverEarningsStart');
     const end = $('#driverEarningsEnd');
@@ -72,18 +72,22 @@
   }
 
   const renderHub = renderDeliveryHub;
-  renderDeliveryHub = async function (box) {
-    await renderHub(box);
-    if (!box?.isConnected || adminTab !== 'entregas' || box.querySelector('#driverEarningsButton')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.id = 'driverEarningsButton';
-    button.className = 'primary';
-    button.textContent = 'Ganhos por entrega';
-    button.onclick = showDriverEarnings;
-    const actions = document.createElement('div');
-    actions.className = 'finPaymentActions';
-    actions.append(button);
-    box.prepend(actions);
+  renderDeliveryHub = function (box) {
+    const heading = box?.closest('.proAdmin[data-pro-section="entregas"]')?.querySelector('.proPageTitle');
+    if (heading && !heading.querySelector('#driverEarningsButton')) {
+      const actions = document.createElement('div');
+      actions.className = 'deliveryTitleActions';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'driverEarningsButton';
+      button.className = 'secondary';
+      button.textContent = 'Ganhos por entrega';
+      button.onclick = showDriverEarnings;
+      const manual = heading.querySelector('#proManualOrder');
+      actions.append(button);
+      if (manual) actions.append(manual);
+      heading.append(actions);
+    }
+    return renderHub(box);
   };
 })();
