@@ -1,6 +1,17 @@
 'use strict';
 /* CASEIRÃO ENTREGAS — área autenticada, pagamentos, troco e acerto */
 const driverAppStyle=document.createElement('style');driverAppStyle.textContent=`
+.driverPickup{margin:0 0 12px;padding:12px;border:1px solid #dbe5df;border-radius:14px;background:#f6f8f7;color:#16342d}
+.driverPickupPending{border-color:#aacdbb;background:#eaf5ef}
+.driverPickupHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.driverPickupHead h3{margin:0;font-size:16px;color:#16342d}
+.driverPickupHead button.secondary{width:auto;min-height:44px;padding:5px 8px;margin:0;background:#fff;color:#16342d;border:1px solid #b4cdbf}
+.driverPickupHead button[aria-pressed="true"].secondary{background:#164436;color:#fff}
+.driverPickup p{margin:8px 0 0;font-size:13px;line-height:1.4}
+.driverPickup p span{display:block;margin-top:3px}
+.driverPickup .driverOrder{margin-top:10px}
+.driverPreparing{font-size:13px;color:#565b59}
+
 .driverAccessChoice{border-color:#b8d9ee!important;background:#f1f9ff!important;color:#175f8f!important}.deliveryHubGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.deliveryPanel,.deliveryCard{border:1px solid #dfe3e7;background:#fff;border-radius:17px;padding:14px;color:#25292e}.deliveryPanel h3,.deliveryCard h3{margin:0 0 8px}.deliveryCard{margin:10px 0}.deliveryMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.deliveryMeta>div{border:1px solid #e3e6e9;background:#f7f8f9;border-radius:11px;padding:9px}.deliveryMeta small{display:block;color:#717981}.deliveryActions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.deliveryActions button{min-height:46px}.driverScreenNew{max-width:680px;margin:auto}.driverOrder{border:1px solid #dfe3e7;background:#fff;color:#24282d;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 5px 16px rgba(28,34,41,.05)}.driverOrder .addressBoxAdmin{background:#f6f8fa;color:#25292e;border-color:#dfe3e7}.driverMoney{border:1px solid #cce5d4;background:#effaf2;border-radius:13px;padding:12px;margin:10px 0;color:#176b3b}.driverPremiumHero{position:relative;overflow:hidden;border-radius:22px;padding:18px;margin:0 0 13px;background:linear-gradient(135deg,#20252a,#343a40);color:#fff;box-shadow:0 12px 30px rgba(20,24,28,.18);border:1px solid rgba(255,255,255,.06)}.driverPremiumHero:after{content:'🛵';position:absolute;right:12px;top:7px;font-size:58px;opacity:.12;transform:rotate(-7deg)}.driverPremiumHead{display:flex;align-items:center;gap:11px;position:relative;z-index:1}.driverPremiumIcon{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:23px}.driverPremiumHead h2{margin:0;font-size:18px}.driverPremiumHead small{display:block;margin-top:2px;color:#cfd4d9}.driverPremiumStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px;position:relative;z-index:1}.driverPremiumStat{background:rgba(255,255,255,.095);border:1px solid rgba(255,255,255,.11);border-radius:13px;padding:10px}.driverPremiumStat small{display:block;font-size:9px;text-transform:uppercase;font-weight:850;color:#cfd4d9}.driverPremiumStat b{display:block;margin-top:3px;font-size:15px}.driverPremiumStat.total b{color:#ffd2b9}.driverSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 7px}.driverSectionHead h3{margin:0;font-size:15px;color:#2d3238}.driverSectionHead span{font-size:10px;font-weight:900;color:#8a4a27;background:#fff1e8;border:1px solid #f0cfbd;border-radius:999px;padding:5px 8px}.driverQuickTop{display:flex;align-items:flex-start;gap:10px}.driverQuickTop .grow{min-width:0}.driverQuickTop h3{margin:0;font-size:17px}.driverQuickTop .driverFee{font-size:18px;color:#b94716;white-space:nowrap}.driverQuickLine{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}.driverQuickChip{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#f4f6f8;border:1px solid #e3e6e9;font-size:11px;font-weight:800;color:#4a5159}.driverNextAction{margin-top:8px}.driverNextAction .primary,.driverNextAction .secondary{min-height:48px}.driverDetails{margin-top:9px;border-top:1px solid #eceff1;padding-top:8px}.driverDetails>summary{list-style:none;cursor:pointer;font-size:12px;font-weight:900;color:#6a7179;padding:8px 0}.driverDetails>summary::-webkit-details-marker{display:none}.driverDetails>summary:after{content:'＋';float:right;color:#a64a1c}.driverDetails[open]>summary:after{content:'−'}.driverDetailsContent{padding-top:4px}.driverMiniMapBtn{display:block;text-align:center;text-decoration:none;margin:8px 0;padding:11px 12px!important;min-height:auto!important;font-size:12px}.driverCompactMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 0}.driverCompactMeta>div{background:#f6f7f8;border:1px solid #e5e8eb;border-radius:10px;padding:8px}.driverCompactMeta small{display:block;color:#7a8188;font-size:9px;text-transform:uppercase;font-weight:850}.driverCompactMeta b{display:block;margin-top:3px;font-size:12px}.driverStatus{font-size:12px;font-weight:900;color:#b24b18;text-transform:uppercase}.deliveryLogin{max-width:430px;margin:25px auto}.gpsActive{background:#157347!important;color:#fff!important}.settled{opacity:.7}.deliveryPanel .in,.deliveryPanel .sel,.deliveryCard .in,.deliveryCard .sel,.driverOrder .in{color:#20242a!important;background:#fff!important}
 .driverDaySummary{margin:0 0 14px;border:1px solid #d8dce1;background:#fff;color:#20242a;border-radius:18px;padding:15px;box-shadow:0 7px 22px rgba(28,34,41,.06)}.driverDaySummaryHead{display:flex;align-items:center;justify-content:space-between;gap:12px}.driverDaySummaryHead h3{margin:0;font-size:18px}.driverDaySummaryHead strong{font-size:20px;color:#bd4715}.driverDayStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}.driverDayStats>div{background:#f5f7f8;border-radius:12px;padding:10px}.driverDayStats small{display:block;color:#747c84;font-size:9px;font-weight:900;text-transform:uppercase}.driverDayStats b{display:block;margin-top:4px;font-size:16px}.driverHoodList{margin-top:11px;border:1px solid #e4e7ea;border-radius:13px;overflow:hidden}.driverHoodRow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid #e8eaed}.driverHoodRow:last-child{border-bottom:0}.driverHoodRow small{color:#707780}.driverHoodRow>strong{min-width:72px;text-align:right}
 @media(max-width:620px){.deliveryHubGrid,.deliveryActions{grid-template-columns:1fr}.deliveryMeta{grid-template-columns:1fr 1fr}.driverDayStats{grid-template-columns:1fr 1fr}.driverHoodRow{grid-template-columns:1fr auto}.driverHoodRow small{grid-column:1/-1}}
@@ -110,29 +121,104 @@ function driverDailySummaryHtml(){
   const total=fees+gas;
   return `<section class="driverDaySummary"><div class="driverDaySummaryHead"><div><h3>🛵 Resumo de hoje</h3><div class="mini">${completed.length} ${completed.length===1?'entrega concluída':'entregas concluídas'}</div></div><strong>${fmt(total)}</strong></div>${completed.length?`<div class="driverHoodList">${[...hoods.entries()].map(([name,h])=>`<div class="driverHoodRow"><span><b>${esc(name)}</b></span><small>${h.count} × ${fmt(h.fee)}</small><strong>${fmt(h.total)}</strong></div>`).join('')}</div><div class="driverClosingSummary"><span>Entregas ${fmt(fees)} + gasolina ${fmt(gas)}</span><strong>Total ${fmt(total)}</strong></div>`:'<div class="mini" style="margin-top:10px">Nenhuma entrega concluída ainda.</div>'}</section>`;
 }
-async function renderDriverArea(){try{driverSnapshot=await driverAppApi('snapshot');setInternalResume('driver');const activeAssignments=(driverSnapshot.assignments||[]).filter(a=>!isDriverAssignmentFinished(a)&&['assigned','route','arrived','problem'].includes(String(a.status||'').toLowerCase()));modal(`<div class="sheeth"><div><h2>Olá, ${esc(driverSnapshot.driver.name)}</h2><div class="adminSub">Suas entregas de hoje</div></div><button id="driverLogout" class="secondary adminLogout">Sair</button></div><div class="driverScreenNew">${driverPremiumHeroHtml()}${driverDailySummaryHtml()}<div class="driverSectionHead"><h3>Entregas ativas</h3><span>${activeAssignments.length} ATIVAS</span></div>${activeAssignments.map(driverOrderCard).filter(Boolean).join('')||'<div class="empty"><b>Nenhuma entrega pendente.</b><span>As entregas finalizadas continuam contabilizadas no resumo de hoje.</span></div>'}</div>`,true);$('#driverLogout').onclick=async()=>{await driverAppApi('logout').catch(()=>{});localStorage.removeItem(driverTokenKey);clearInternalResume();stopDriverAreaGps();openDriverLogin()};document.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));document.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));}catch(e){if(/expirado/i.test(e.message)){localStorage.removeItem(driverTokenKey);clearInternalResume();openDriverLogin()}else modal(`<div class="err">${esc(e.message)}</div>`,true)}}
-let automaticDriverSyncTimer=null,automaticDriverKnown=new Set();
+const driverReadySoundKey='caseirao_driver_ready_sound';
+let automaticDriverSyncTimer=null;
+let driverSyncBusy=false;
+let driverReadySeen=new Set();
+
+function driverReadyForPickup(assignment){
+  const order=assignment.orders;
+  return assignment.status==='assigned' && !assignment.route_started_at && !order?.archived_at
+    && ['pronto','em_rota'].includes(order?.status);
+}
+function driverReadyNotice(count){
+  return count===1?'1 entrega pronta para retirada.':`${count} entregas prontas para retirada.`;
+}
+function driverPickupHtml(ready){
+  const front=ready.length?driverReadyNotice(ready.length):'Nenhuma entrega pronta no momento.';
+  return `<section class="driverPickup ${ready.length?'driverPickupPending':''}">
+    <div class="driverPickupHead">
+      <h3>Retirada no Caseirão</h3>
+      <button type="button" id="driverReadySound" class="secondary" aria-pressed="${localStorage.getItem(driverReadySoundKey)==='on'}">Alerta sonoro</button>
+    </div>
+    <p role="status"><strong>${front}</strong>${ready.length?'<span>A equipe do Caseirão está esperando por você.</span>':''}</p>
+    ${ready.map(driverOrderCard).filter(Boolean).join('')}
+  </section>`;
+}
+
+async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
+  try{
+    const token=localStorage.getItem(driverTokenKey);
+    const fresh=snapshot||await driverAppApi('snapshot');
+    if(!token||token!==localStorage.getItem(driverTokenKey))return;
+    driverSnapshot=fresh;
+    setInternalResume('driver');
+    const active=(fresh.assignments||[]).filter(a=>!isDriverAssignmentFinished(a)
+      && ['assigned','route','arrived','problem'].includes(a.status));
+    const ready=active.filter(driverReadyForPickup)
+      .sort((a,b)=>Number(a.orders?.order_number)-Number(b.orders?.order_number));
+    const other=active.filter(a=>!driverReadyForPickup(a));
+    const oldScreen=document.querySelector('.driverScreenNew');
+    const oldSheet=oldScreen?.closest('.sheet');
+    const scrollTop=oldSheet?.scrollTop||0;
+    const details=new Set([...oldScreen?.querySelectorAll('details[open]')||[]].map(item=>item.dataset.driverDetail));
+    modal(`<div class="sheeth"><div><h2>Olá, ${esc(fresh.driver.name)}</h2><div class="adminSub">Suas entregas de hoje</div></div><button id="driverLogout" class="secondary adminLogout">Sair</button></div>
+      <div class="driverScreenNew">${driverPickupHtml(ready)}${driverPremiumHeroHtml()}${driverDailySummaryHtml()}
+      <div class="driverSectionHead"><h3>Demais entregas ativas</h3><span>${other.length} ATIVAS</span></div>
+      ${other.map(driverOrderCard).filter(Boolean).join('')||'<div class="empty"><b>Nenhuma outra entrega pendente.</b></div>'}</div>`,true);
+    const screen=document.querySelector('.driverScreenNew');
+    screen.querySelectorAll('details').forEach(item=>{item.open=details.has(item.dataset.driverDetail)});
+    if(oldSheet&&scrollTop)screen.closest('.sheet')?.scrollTo({top:scrollTop});
+    $('#driverLogout').onclick=async()=>{
+      await driverAppApi('logout').catch(()=>{});
+      localStorage.removeItem(driverTokenKey);
+      driverReadySeen.clear();
+      clearInternalResume();
+      stopDriverAreaGps();
+      openDriverLogin();
+    };
+    const sound=$('#driverReadySound');
+    sound.onclick=()=>{
+      const enabled=sound.getAttribute('aria-pressed')!=='true';
+      localStorage.setItem(driverReadySoundKey,enabled?'on':'off');
+      sound.setAttribute('aria-pressed',String(enabled));
+      if(enabled)playOrderSound();
+      showAppToast(enabled?'Alerta sonoro ativado nesta tela.':'Alerta sonoro desativado.','ok');
+    };
+    screen.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));
+    screen.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));
+    const incoming=ready.filter(a=>!driverReadySeen.has(String(a.id)));
+    driverReadySeen=new Set(ready.map(a=>String(a.id)));
+    if(ready.length&&(incoming.length||returnedFromDelivery)){
+      if(localStorage.getItem(driverReadySoundKey)==='on')playOrderSound();
+      showAppToast(`${driverReadyNotice(ready.length)} A equipe do Caseirão está esperando por você.`,'ok');
+    }else if(returnedFromDelivery){
+      showAppToast('Entrega confirmada.','ok');
+    }
+  }catch(e){
+    if(/expirado/i.test(e.message)){localStorage.removeItem(driverTokenKey);driverReadySeen.clear();clearInternalResume();openDriverLogin()}
+    else modal(`<div class="err">${esc(e.message)}</div>`,true);
+  }
+}
+
+function driverAssignmentSignature(snapshot){
+  return JSON.stringify((snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.orders?.status,a.orders?.archived_at]));
+}
+async function refreshAutomaticDriver(){
+  if(driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
+  const previous=driverSnapshot;
+  driverSyncBusy=true;
+  try{
+    const fresh=await driverAppApi('snapshot');
+    if(driverSnapshot===previous&&document.querySelector('.driverScreenNew')&&
+      driverAssignmentSignature(fresh)!==driverAssignmentSignature(previous))await renderDriverArea(fresh);
+  }catch(e){console.warn('Falha temporária na atualização automática do entregador:',e)}
+  finally{driverSyncBusy=false;}
+}
 function startAutomaticDriverSync(){
   if(automaticDriverSyncTimer)return;
-  automaticDriverKnown=new Set((driverSnapshot?.assignments||[]).map(a=>String(a.id)));
-  automaticDriverSyncTimer=setInterval(async()=>{
-    if(!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
-    try{
-      const fresh=await driverAppApi('snapshot');
-      const active=(fresh.assignments||[]).filter(a=>['assigned','route','arrived','problem'].includes(a.status));
-      const incoming=active.filter(a=>!automaticDriverKnown.has(String(a.id)));
-      (fresh.assignments||[]).forEach(a=>automaticDriverKnown.add(String(a.id)));
-      if(!incoming.length)return;
-      driverSnapshot=fresh;
-      playOrderSound();
-      const first=incoming[0].orders||{};
-      showAppToast(incoming.length===1?`Nova entrega #${first.order_number||'—'} recebida automaticamente.`:`${incoming.length} novas entregas recebidas automaticamente.`,'ok');
-      if('Notification' in window&&Notification.permission==='granted'){
-        try{new Notification('Nova rota • Caseirão',{body:incoming.length===1?`Pedido #${first.order_number||'—'} já está na sua tela.`:`${incoming.length} novos pedidos já estão nas suas rotas.`,tag:'caseirao-driver-auto-route',renotify:true,requireInteraction:true,vibrate:[250,120,350]})}catch{}
-      }
-      await renderDriverArea();
-    }catch(e){console.warn('Falha temporária na atualização automática do entregador:',e)}
-  },3500);
+  automaticDriverSyncTimer=setInterval(refreshAutomaticDriver,3500);
+  document.addEventListener('visibilitychange',refreshAutomaticDriver);
 }
 const automaticDriverUiObserver=new MutationObserver(()=>{
   if(document.querySelector('.driverScreenNew')){
@@ -155,7 +241,7 @@ function driverOrderCard(a){
         hood=a.neighborhood_name||o.neighborhood_name||'Bairro não informado',
         fee=Number(a.driver_fee||0),
         nextAction=
-          a.status==='assigned'?`<button class="primary" data-driver-status="route" data-driver-assignment="${a.id}">INICIAR ROTA</button>`:
+          a.status==='assigned'?(driverReadyForPickup(a)?`<button class="primary" data-driver-status="route" data-driver-assignment="${a.id}">RETIREI · INICIAR ROTA</button>`:'<p class="driverPreparing">Aguardando liberação da equipe.</p>'):
           a.status==='route'?`<button class="primary" data-driver-status="arrived" data-driver-assignment="${a.id}">CHEGUEI AO CLIENTE</button>`:
           a.status==='arrived'?`<button class="primary" data-driver-status="delivered" data-driver-assignment="${a.id}">CONFIRMAR ENTREGA</button>`:
           a.status==='delivered'?`<button class="primary" data-driver-status="returned" data-driver-assignment="${a.id}">VOLTEI AO CASEIRÃO</button>`:
@@ -164,7 +250,7 @@ function driverOrderCard(a){
     <div class="driverQuickTop">
       <div class="grow">
         <h3>#${o.order_number} • ${esc(o.customer_name)}</h3>
-        <div class="driverStatus">${esc(deliveryStatusLabel(a.status))}</div>
+        <div class="driverStatus">${a.status==='assigned'?(driverReadyForPickup(a)?'Pronta para retirada':'Aguardando liberação'):esc(deliveryStatusLabel(a.status))}</div>
       </div>
       <b class="driverFee">${fee?fmt(fee):'—'}</b>
     </div>
@@ -173,7 +259,7 @@ function driverOrderCard(a){
       <span class="driverQuickChip">💳 ${o.payment==='Cartão Caseirão'?'Cartão Caseirão · cobrado na fatura':esc(paymentLabel(o.payment))}</span>
     </div>
     <div class="driverNextAction">${nextAction}${!['delivered','returned'].includes(a.status)?`<button class="secondary danger" style="margin-top:7px" data-driver-status="problem" data-driver-assignment="${a.id}">PROBLEMA NA ENTREGA</button>`:''}</div>
-    <details class="driverDetails">
+    <details class="driverDetails" data-driver-detail="${esc(a.id)}">
       <summary>VER DETALHES DA ENTREGA</summary>
       <div class="driverDetailsContent">
         ${deliveryTimesHtml(a)}
@@ -189,7 +275,7 @@ function driverOrderCard(a){
     </details>
   </div>`;
 }
-async function updateDriverDelivery(id,status){try{const payload={assignment_id:id,status};if(status==='problem'){const note=prompt('O que aconteceu na entrega?','Cliente não localizado');if(note===null)return;payload.problem_note=note}if(status==='delivered'){const a=(driverSnapshot.assignments||[]).find(x=>x.id===id),o=a?.orders||{};if(o.payment==='Dinheiro'){const cash=prompt('Quanto em dinheiro ficou com você após devolver o troco?',String(Number(o.total||0).toFixed(2)).replace('.',','));if(cash===null)return;const change=prompt('Quanto de troco você entregou ao cliente?','0,00');if(change===null)return;payload.cash_received=num(cash);payload.change_given=num(change)}payload.payment_confirmed=true}await driverAppApi('status',payload);if(status==='delivered')stopDriverAreaGps();renderDriverArea();showAppToast(deliveryStatusLabel(status),'ok')}catch(e){alert(e.message)}}
+async function updateDriverDelivery(id,status){try{const payload={assignment_id:id,status};if(status==='problem'){const note=prompt('O que aconteceu na entrega?','Cliente não localizado');if(note===null)return;payload.problem_note=note}if(status==='delivered'){const a=(driverSnapshot.assignments||[]).find(x=>x.id===id),o=a?.orders||{};if(o.payment==='Dinheiro'){const cash=prompt('Quanto em dinheiro ficou com você após devolver o troco?',String(Number(o.total||0).toFixed(2)).replace('.',','));if(cash===null)return;const change=prompt('Quanto de troco você entregou ao cliente?','0,00');if(change===null)return;payload.cash_received=num(cash);payload.change_given=num(change)}payload.payment_confirmed=true}await driverAppApi('status',payload);if(status==='delivered'){stopDriverAreaGps();await renderDriverArea(null,{returnedFromDelivery:true})}else{await renderDriverArea();showAppToast(deliveryStatusLabel(status),'ok')}}catch(e){alert(e.message)}}
 function stopDriverAreaGps(){if(driverLocationWatch!=null)navigator.geolocation.clearWatch(driverLocationWatch);driverLocationWatch=null;if(driverLocationTimer)clearInterval(driverLocationTimer);driverLocationTimer=null}
 function startDriverAreaGps(assignmentId,button){if(!navigator.geolocation)return alert('GPS indisponível neste celular.');stopDriverAreaGps();button.disabled=true;button.textContent='SOLICITANDO LOCALIZAÇÃO...';let last=0;const send=async pos=>{if(Date.now()-last<5000)return;last=Date.now();try{await driverAppApi('location',{assignment_id:assignmentId,latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy});button.classList.add('gpsActive');button.textContent='● GPS ATIVO — MANTENHA A TELA ABERTA'}catch(e){button.textContent='FALHA NO GPS — TOQUE PARA TENTAR'}};driverLocationWatch=navigator.geolocation.watchPosition(send,()=>{button.disabled=false;button.textContent='PERMITA O GPS E TENTE NOVAMENTE'},{enableHighAccuracy:true,maximumAge:0,timeout:20000});button.disabled=false}
 
