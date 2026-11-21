@@ -254,7 +254,8 @@ function orderMatchesBoardFilter(order,filter){
 }
 
 function renderOrders(box){
-  let all=shiftOrders(),filter=box.dataset.orderFilter||'active',query=(box.querySelector('#orderSearch')?.value||'').trim().toLowerCase();
+  const all=shiftOrders(),filter=box.dataset.orderFilter||'active',searchText=box.querySelector('#orderSearch')?.value||'';
+  const query=searchText.trim().toLowerCase();
 
   const draw=()=>{
     const visible=all.filter(o=>{
@@ -271,8 +272,21 @@ function renderOrders(box){
     if(printerPanel)box.append(printerPanel);
     bindCaseiraoPrinterPanel();
     $('#manualOrder').onclick=openManualOrder;
-    $('#orderSearch').oninput=e=>{query=e.target.value.trim().toLowerCase();draw()};
-    document.querySelectorAll('[data-ofilter]').forEach(b=>b.onclick=()=>{query=box.querySelector('#orderSearch').value.trim().toLowerCase();filter=box.dataset.orderFilter=b.dataset.ofilter;draw()});
+    $('#orderSearch').value=searchText;
+    $('#orderSearch').oninput=e=>{
+      const {selectionStart,selectionEnd}=e.target;
+      const wasFocused=document.activeElement===e.target;
+      renderOrders(box);
+      const input=box.querySelector('#orderSearch');
+      if(wasFocused&&input){
+        input.focus({preventScroll:true});
+        input.setSelectionRange(selectionStart,selectionEnd);
+      }
+    };
+    document.querySelectorAll('[data-ofilter]').forEach(b=>b.onclick=()=>{
+      box.dataset.orderFilter=b.dataset.ofilter;
+      renderOrders(box);
+    });
     bindPrintButtons();
 
     document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{
@@ -303,12 +317,11 @@ function renderOrders(box){
         }
 
         admin=await adminCall('snapshot');
-        all=shiftOrders();
 
         /* Atualiza somente a lista de pedidos.
            Não chama renderAdmin(), pois isso recriava o modal inteiro
            e fechava o pedido aberto ao trocar o status. */
-        draw();
+        renderOrders(box);
 
         // Mantém os pedidos recolhidos após mudar de etapa e marca o pedido
         // movimentado com uma borda vermelha temporária.

@@ -12,6 +12,7 @@
 
   const historyColumn={key:'finished',title:'Finalizados',statuses:['entregue','cancelado']};
   const pendingUpdates=new Set();
+  const pendingPixConfirmations=new Set();
   const stageStarts=new Map();
 
   function orderId(card){
@@ -50,6 +51,54 @@
       ? Math.max(0,Math.floor((now-timing.start)/60000))+' min '+timing.label
       : '';
     if(timer.textContent!==label)timer.textContent=label;
+  }
+
+  function syncPixAction(card,summary,order,canPay){
+    let row=summary.querySelector(':scope > .centralPixPending');
+    if(canPay||card.classList.contains('finishedOrder')){
+      row?.remove();
+      return;
+    }
+    if(!row){
+      row=document.createElement('div');
+      row.className='centralPixPending';
+      row.innerHTML='<span>Pix pendente</span>';
+      summary.querySelector(':scope > .centralOrderInfo').after(row);
+    }
+    if(row.querySelector('[data-pay]'))return;
+    const button=card.querySelector('.orderBody .opsOrder button[data-pay]');
+    if(!button?.onclick||button.dataset.pay!==String(order.id))return;
+
+    // Move the bound control so the original payment request and refresh are reused.
+    const confirmPayment=button.onclick;
+    const id=String(order.id);
+    button.type='button';
+    button.textContent='Confirmar Pix';
+    button.classList.add('centralConfirmPix');
+    button.disabled=pendingPixConfirmations.has(id);
+    button.onclick=async event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const current=orderForCard(card);
+      if(!current||pendingPixConfirmations.has(id))return;
+      if(orderPaymentConfirmed(current)){
+        renderOrders(card.closest('#admContent'));
+        return;
+      }
+      if(!confirm(`O Pix de ${fmt(current.total)} do pedido #${current.order_number} entrou na conta?`))return;
+      pendingPixConfirmations.add(id);
+      button.disabled=true;
+      try{
+        await confirmPayment.call(button,event);
+      }catch(error){
+        alert(error?.message||String(error));
+      }finally{
+        pendingPixConfirmations.delete(id);
+        const activeButton=document.querySelector(`#admContent .centralConfirmPix[data-pay="${CSS.escape(id)}"]`);
+        if(activeButton)activeButton.disabled=false;
+      }
+    };
+    row.append(button);
   }
 
   function syncCardSummary(card,order){
@@ -135,7 +184,9 @@
       if(printer.textContent!=='Imprimir')printer.textContent='Imprimir';
       if(!canPay)printer.disabled=true;
     }
-    card.classList.toggle('centralPaymentPending',!canPay);
+    const awaitingPix=!canPay&&!card.classList.contains('finishedOrder');
+    card.classList.toggle('centralPaymentPending',awaitingPix);
+    syncPixAction(card,summary,order,canPay);
   }
 
   const deliveryRouteMarkup = `
@@ -194,7 +245,7 @@
   function compactCard(card){
     const body=card.querySelector(':scope > .orderBody');
     if(!body)return;
-    const keep=new Set(['centralOrderTiming','orderInfoGrid','orderItemsBox','orderTotalsBox','pixPendingWarning','smartOrderFlow','orderactions','statusFloatDock']);
+    const keep=new Set(['centralOrderTiming','orderItemsBox','addressBoxAdmin','notesBoxAdmin','pixPendingWarning','smartOrderFlow','orderactions','statusFloatDock','scheduledOrderBadge']);
     let more=body.querySelector(':scope > .centralMore');
     let content=more?.querySelector(':scope > .centralMoreBody');
     const movable=[...body.children].filter(node=>{
@@ -207,7 +258,7 @@
         more=document.createElement('details');
         more.className='centralMore';
         const summary=document.createElement('summary');
-        summary.textContent='MAIS INFORMAÇÕES E AÇÕES';
+        summary.textContent='Mais informações e ações';
         content=document.createElement('div');
         content.className='centralMoreBody';
         more.append(summary,content);
