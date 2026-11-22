@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-20261122-atendimento-v2';
+const CACHE = 'caseirao-equipe-20261122-chat-acompanhamento-v1';
 const APP_SHELL = ['./js/customer-support.js','./css/customer-support.css','./css/order-card-actions.css','./css/driver-dashboard.css','./css/balcao-carrossel.css','./css/balcao-adm.css','./js/balcao-carrossel.js','./js/balcao-adm.js','./js/combo-refrigerantes.js','./css/combo-refrigerantes.css',
   './css/caseirao-card-pilot.css','./js/caseirao-card-pilot.js','./js/caseirao-card-admin.js',
   './css/central-menu.css',
