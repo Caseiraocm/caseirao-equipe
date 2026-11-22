@@ -126,11 +126,20 @@
     const mode = panel.dataset.mode;
     panel.dataset.openThread = id;
     const conversation = panel.querySelector('.supportConversation');
-    conversation.innerHTML = `<header><h3>${esc(threadName(thread))}</h3>
-      <small>${esc(thread.customer_name || (thread.order_number ? 'Acompanhamento do pedido' : 'Antes do pedido'))}</small></header>
+    conversation.innerHTML = `<header class="supportConversationHeader">
+      <span class="supportConversationIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11a8 8 0 0 1-8 8H4l2-4a8 8 0 1 1 15-4Z"/></svg></span>
+      <div><h3>${esc(threadName(thread))}</h3>
+      <small>${esc(thread.customer_name || (thread.order_number ? 'Acompanhamento do pedido' : 'Antes do pedido'))}</small></div>
+      </header>
       <div class="supportMessages" role="log" aria-label="Mensagens da conversa"></div>
-      <form><textarea name="message" rows="2" required maxlength="600" placeholder="Responder ao cliente" aria-label="Responder ao cliente"></textarea>
-      <button class="primary" type="submit">Enviar</button></form><p role="status"></p>`;
+      <form class="supportComposer">
+        <label for="supportReply">Responder ao cliente</label>
+        <div class="supportComposerControls">
+          <textarea id="supportReply" name="message" rows="2" required maxlength="600" placeholder="Escreva sua mensagem"></textarea>
+          <button class="supportSend" type="submit">Enviar</button>
+        </div>
+        <p class="supportComposerFeedback" role="status"></p>
+      </form>`;
     const messages = conversation.querySelector('.supportMessages');
     const form = conversation.querySelector('form');
     const input = form.elements.message;
@@ -204,6 +213,26 @@
     $('#supportGoBack').onclick = () => renderEmployeePanel();
     renderCustomerSupportInbox($('#employeeSupportInbox'),'employee');
   };
+  let focusedComposer;
+  function fitComposerToKeyboard() {
+    const viewport=window.visualViewport;
+    const input=document.activeElement;
+    const composer=input?.matches('.supportComposer textarea') ? input.closest('.supportComposer') : null;
+    if (focusedComposer && focusedComposer !== composer) {
+      focusedComposer.closest('.supportConversation')?.style.removeProperty('--support-visible-height');
+    }
+    focusedComposer=composer;
+    if (!composer || !viewport || viewport.scale > 1.05) return;
+    composer.closest('.supportConversation').style.setProperty('--support-visible-height',viewport.height+'px');
+    const visibleBottom=viewport.offsetTop+viewport.height;
+    if (composer.getBoundingClientRect().bottom > visibleBottom-8) {
+      composer.scrollIntoView({block:'nearest'});
+    }
+  }
+  window.visualViewport?.addEventListener('resize',fitComposerToKeyboard);
+  document.addEventListener('focusin',fitComposerToKeyboard);
+  document.addEventListener('focusout',()=>requestAnimationFrame(fitComposerToKeyboard));
+
   new MutationObserver(updateOrderCards).observe(modalRoot,{childList:true,subtree:true});
   setInterval(updateInbox,4500);
   document.addEventListener('visibilitychange',updateInbox);
