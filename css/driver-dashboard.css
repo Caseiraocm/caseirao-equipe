@@ -485,3 +485,14 @@ body.teamApp .driverDashboard .driverOverview[data-driver-detail="overview"] {
     padding-bottom: env(safe-area-inset-bottom) !important;
   }
 }
+
+.driverDeparturePicker #newDriverStopSorter{display:block}
+.driverStopSorter{margin:8px 0;padding:10px;border:1px solid #c9dfdc;border-radius:9px;background:#f3f9f8;color:#07383b}
+.driverStopSorter:empty,#newDriverStopSorter:empty{display:none}
+.driverStopSorter h3{margin:0;font-size:1rem}
+.driverStopSorter p{margin:4px 0 8px;font-size:.83rem}
+.driverStopSorter ol{margin:0;padding-inline-start:27px}
+.driverStopSorter li{min-height:44px;padding:2px 0}
+.driverStopSorter li span{display:inline-block;width:calc(100% - 92px);font-size:.87rem}
+.driverStopSorter button{width:39px;min-height:39px;margin-inline-start:4px;border:1px solid #b4ccc7;border-radius:7px;background:#fff;color:#07383b;font:inherit;font-weight:800}
+.driverStopSorter button:disabled{opacity:.42}

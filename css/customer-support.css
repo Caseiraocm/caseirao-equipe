@@ -1,0 +1,28 @@
+.supportBadge{padding:3px 8px;border-radius:6px;background:#f1ddb0;color:#654013;font-size:.76rem;white-space:nowrap}
+.supportBadge[hidden]{display:none}
+.customerSupportStaff{display:grid;grid-template-columns:minmax(175px,1fr) minmax(230px,2fr);gap:1px;border:1px solid #d8e2df;border-radius:13px;overflow:hidden;background:#d8e2df;color:#193b36}
+.supportThreads,.supportConversation{min-width:0;background:#fff}
+.supportThreads{padding:8px;max-height:61dvh;overflow:auto}
+.supportThreads button{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;padding:10px;margin:0 0 4px;border:1px solid transparent;border-radius:7px;background:#f6f9f7;color:#193b36;text-align:left;cursor:pointer}
+.supportThreads button[aria-pressed=true]{border-color:#c2a162;background:#fff5df}
+.supportThreads small,.supportConversation header small{display:block;margin-top:2px;color:#4c605a}
+.supportConversation header{padding:10px 12px;border-bottom:1px solid #d8e2df}
+.supportConversation h3{margin:0;font-size:1.04rem}
+.supportMessages{height:min(39dvh,440px);overflow:auto;display:flex;flex-direction:column;gap:8px;padding:12px;background:#fbfcfa}
+.supportBubble{align-self:flex-start;background:#e5f0eb;padding:7px 10px;border-radius:9px;max-width:85%;overflow-wrap:anywhere}
+.supportBubble.staff{align-self:flex-end;background:#faebc7}
+.supportBubble strong{font-size:.75rem}
+.supportBubble p{margin:2px 0;white-space:pre-wrap}
+.supportConversation form{display:flex;gap:8px;align-items:end;padding:8px 10px;border-top:1px solid #d8e2df}
+.supportConversation textarea{flex:1;min-width:0;max-height:8em;resize:vertical;border:1px solid #acc3bb;border-radius:7px;padding:8px;font:inherit}
+.supportConversation [role=status],.supportPlaceholder{margin:5px 10px;color:#506962;font-size:.84rem}
+.supportConversation [role=status]{min-height:1.1em}
+#employeeSupportBtn{margin:10px 0 0}
+@media(max-width:640px){
+  .customerSupportStaff{grid-template-columns:minmax(0,1fr)}
+  .supportThreads{max-height:22dvh}
+}
+.proAdmin .supportOrderButton{margin:0 0 7px}
+.proAdmin .summaryCustomer [data-order-chat-unread]{align-self:flex-start;color:#654013}
+#proSupport{display:inline-flex;align-items:center;gap:6px}
+#proSupport .supportBadge[hidden]{display:none}
