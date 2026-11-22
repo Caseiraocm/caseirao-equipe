@@ -1,49 +1,302 @@
 'use strict';
-function tableSelectedCents(line,qty){return Math.floor(Number(line.total_cents)*(Number(line.paid_quantity)+qty)/Number(line.quantity))-Number(line.paid_cents);}
-(()=>{
- const money=cents=>fmt(Number(cents)/100);
- const consumed=s=>(s.orders||[]).filter(o=>o.status!=='cancelado').reduce((v,o)=>v+Math.round(Number(o.total||0)*100),0);
- const received=s=>(s.table_item_payments||[]).reduce((v,p)=>v+Number(p.amount_cents),0);
- remoteSessionTotal=function(s){return Math.max(0,consumed(s)-received(s))/100;};
- const oldRows=remoteOrdersHtml,oldAdminClose=openRemoteClose,oldEmployeeClose=openEmployeeClose;
- remoteOrdersHtml=function(s){
-  if(!(s.table_item_payments||[]).length)return oldRows(s);
-  const paid=new Map();for(const p of s.table_item_payments||[])for(const i of p.items||[])paid.set(i.item_id,(paid.get(i.item_id)||0)+Number(i.qty));
-  return `<div class="itemPaymentSummary"><span>Consumo <b>${money(consumed(s))}</b></span><span>Recebido <b class="green">${money(received(s))}</b></span><span>Falta pagar <b>${fmt(remoteSessionTotal(s))}</b></span></div>`+(s.orders||[]).filter(o=>o.status!=='cancelado').map(o=>`<div class="tableOrder">${(o.order_items||[]).map(i=>`<div class="tableItemLine"><span>${Number(i.quantity)}× ${esc(i.product_name)}${i.note?'<small>'+esc(i.note)+'</small>':''}<small class="${paid.get(i.id)?'green':''}">${paid.get(i.id)?paid.get(i.id)+' PAGO · ':''}${Number(i.quantity)-(paid.get(i.id)||0)} em aberto</small></span><b>${fmt(i.line_total)}</b></div>`).join('')}</div>`).join('');
- };
- async function refreshPanels(adminMode){if(adminMode){admin=await adminCall('snapshot');await loadEmployeeAdmin();}else employeeSnapshot=await employeeApi('employee_snapshot');}
- const returnToTables=adminMode=>{if(adminMode){adminTab='mesas';renderAdmin();}else renderEmployeePanel();};
- openRemoteClose=function(t,s){openItemPayment(t,s,true);};
- openEmployeeClose=function(t,s){openItemPayment(t,s,false);};
- async function openItemPayment(t,s,adminMode){
-  modal(`<div class="sheeth"><h2>Mesa ${esc(t.table_number)} · Pagar por itens</h2><button class="x" id="backItemPayment">←</button></div><div id="itemPaymentBody"><div class="notice">Carregando saldo atualizado…</div></div>`,true);
-  const host=$('#itemPaymentBody');const storageKey='caseirao_item_payment_'+s.id;let balance,selection=new Map(),busy=false;
-  const back=async()=>{try{await refreshPanels(adminMode);returnToTables(adminMode);}catch(e){alert(e.message||String(e));}};
-  $('#backItemPayment').onclick=back;
-  const pending=()=>{try{return JSON.parse(sessionStorage.getItem(storageKey)||'null');}catch{return null;}};
-  const totalSelected=()=>balance.items.reduce((sum,line)=>sum+tableSelectedCents(line,selection.get(line.id)||0),0);
-  async function send(payload){
-   if(busy)return;busy=true;const button=host.querySelector('#receiveSelected')||host.querySelector('#retryItemPayment');if(button){button.disabled=true;button.textContent='Registrando…';}
-   try{const result=await employeeApi('pay_table_items',payload,adminMode);sessionStorage.removeItem(storageKey);selection.clear();balance=result.balance;
-    if(result.closed){await refreshPanels(adminMode);returnToTables(adminMode);showAppToast('Conta quitada. Mesa liberada.','ok');}
-    else{draw();showAppToast('Pagamento registrado. Mesa continua aberta com o restante.','ok');}
-   }catch(error){if(error.httpStatus&&error.httpStatus<500){sessionStorage.removeItem(storageKey);alert(error.message||String(error));await load();}else{alert('Não foi possível confirmar a resposta. Use “Conferir pagamento anterior” para consultar o mesmo recebimento sem duplicar.');draw();}}
-   finally{busy=false;}
+
+(() => {
+  const money = cents => fmt(Number(cents) / 100);
+  const consumed = session => (session.orders || [])
+    .filter(order => order.status !== 'cancelado')
+    .reduce((sum, order) => sum + Math.round(Number(order.total || 0) * 100), 0);
+  const received = session => (session.table_item_payments || [])
+    .reduce((sum, payment) => sum + Number(payment.amount_cents), 0);
+
+  remoteSessionTotal = session => Math.max(0, consumed(session) - received(session)) / 100;
+  const originalOrdersHtml = remoteOrdersHtml;
+  remoteOrdersHtml = function (session) {
+    if (!session.table_item_payments?.length) return originalOrdersHtml(session);
+    const paid = new Map();
+    for (const payment of session.table_item_payments) {
+      for (const item of payment.items || []) {
+        paid.set(item.item_id, (paid.get(item.item_id) || 0) + Number(item.qty));
+      }
+    }
+    const orders = (session.orders || []).filter(order => order.status !== 'cancelado');
+    return `<div class="itemPaymentSummary">
+      <span>Consumo <b>${money(consumed(session))}</b></span>
+      <span>Recebido <b class="green">${money(received(session))}</b></span>
+      <span>Falta pagar <b>${fmt(remoteSessionTotal(session))}</b></span>
+    </div>` + orders.map(order => `<div class="tableOrder">
+      ${(order.order_items || []).map(item => {
+        const paidQuantity = paid.get(item.id) || 0;
+        return `<div class="tableItemLine"><span>${Number(item.quantity)}× ${esc(item.product_name)}
+          ${item.note ? '<small>' + esc(item.note) + '</small>' : ''}
+          <small class="${paidQuantity ? 'green' : ''}">${paidQuantity ? paidQuantity + ' PAGO · ' : ''}${Number(item.quantity) - paidQuantity} em aberto</small>
+        </span><b>${fmt(item.line_total)}</b></div>`;
+      }).join('')}
+    </div>`).join('');
+  };
+
+  const paths = {
+    pedidos: 'M6 3h8l4 4v14H6z M14 3v5h5 M9 12h6 M9 16h6',
+    mesas: 'M3 6h18v7H3z M6 13l-2 7 M18 13l2 7',
+    producao: 'M6 14a4 4 0 1 1 2-7 4 4 0 0 1 8 0 4 4 0 1 1 2 7v6H6z M6 17h12',
+    entregas: 'M3 15h4l2-6h5l2 6h5 M14 6h3l3 8 M7 9H4 M8 17a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M22 17a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+    caixa: 'M5 10h14l3 10H2z M8 10V4h8v6 M8 14h8 M6 17h12',
+    pix: 'M11 3a1.5 1.5 0 0 1 2 0l8 8a1.5 1.5 0 0 1 0 2l-8 8a1.5 1.5 0 0 1-2 0l-8-8a1.5 1.5 0 0 1 0-2z M6 8h2l3 3a1.4 1.4 0 0 0 2 0l3-3h2 M6 16h2l3-3a1.4 1.4 0 0 1 2 0l3 3h2',
+    dinheiro: 'M2 5h20v14H2z M2 9a4 4 0 0 0 4-4 M18 5a4 4 0 0 0 4 4 M2 15a4 4 0 0 1 4 4 M18 19a4 4 0 0 1 4-4 M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+    cartao: 'M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z M2 10h20',
+    check: 'm5 12 4 4L19 6'
+  };
+  const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name]}"/></svg>`;
+  const tabs = [['pedidos', 'Pedidos'], ['mesas', 'Mesas'], ['producao', 'Produção'], ['entregas', 'Entregas'], ['caixa', 'Caixa']];
+  const methods = [['pix', 'Pix'], ['dinheiro', 'Dinheiro'], ['cartao', 'Cartão']];
+
+  openRemoteClose = (table, session) => openCheckoutForTable(table, session, true);
+  openEmployeeClose = (table, session) => openCheckoutForTable(table, session, false);
+
+  async function openCheckoutForTable(table, session, adminMode) {
+    const name = 'Mesa ' + String(table.table_number).padStart(2, '0');
+    const storageKey = 'caseirao_item_payment_' + session.id;
+    let balance, busy = false, pending = null, closed = false, reloadError = '';
+
+    try {
+      pending = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+    } catch {
+      sessionStorage.removeItem(storageKey);
+    }
+
+    modal(`<div class="tableCheckout">
+      <aside class="tableCheckoutNav">
+        <div class="tableCheckoutBrand"><span>CB</span><div><strong>Caseirão Burger</strong><small>${adminMode ? 'Central ADM' : 'Atendimento'}</small></div></div>
+        <nav aria-label="Central">
+          ${(adminMode ? tabs : tabs.filter(([tab]) => tab === 'mesas')).map(([tab, label]) =>
+            `<button type="button" data-checkout-tab="${tab}" ${tab === 'mesas' ? 'aria-current="page"' : ''}>${icon(tab)}<span>${label}</span></button>`).join('')}
+        </nav>
+      </aside>
+      <main class="tableCheckoutMain" aria-labelledby="tableCheckoutTitle">
+        <p class="tableCheckoutCrumb">Mesas <span>/</span> <strong>${esc(name)}</strong></p>
+        <h1 id="tableCheckoutTitle" tabindex="-1">Fechar ${esc(name.toLowerCase())}</h1>
+        <p id="tableCheckoutNotice" role="status"></p>
+        <div class="tableCheckoutGrid">
+          <section class="tableCheckoutSummary" aria-labelledby="tableCheckoutSummaryTitle">
+            <h2 id="tableCheckoutSummaryTitle">Resumo da mesa</h2>
+            <div class="tableCheckoutLines"></div>
+          </section>
+          <section class="tableCheckoutPayment" aria-label="Pagamento">
+            <div class="tableCheckoutTotal">
+              <span>Total a receber</span>
+              <strong id="tableCheckoutAmount">—</strong>
+              <svg viewBox="0 0 230 180" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M2 181 115 34q8-10 22-10h94M44 181l89-109q8-10 22-10h76M86 181l65-70q8-10 22-10h58"/></svg>
+            </div>
+            <div id="tableCheckoutControls"></div>
+            <button type="button" id="tableCheckoutBack">Voltar para a mesa</button>
+          </section>
+        </div>
+      </main>
+    </div>`, true);
+
+    const view = $('.tableCheckout');
+    const sheet = view.closest('.sheet');
+    sheet.classList.add('tableCheckoutSheet');
+    const notice = view.querySelector('#tableCheckoutNotice');
+    const controls = view.querySelector('#tableCheckoutControls');
+    const lines = view.querySelector('.tableCheckoutLines');
+    const back = view.querySelector('#tableCheckoutBack');
+    const navigation = [...view.querySelectorAll('[data-checkout-tab]')];
+    view.querySelector('h1').focus();
+
+    function showNotice(message, error = false) {
+      notice.textContent = message;
+      notice.classList.toggle('is-error', error);
+    }
+
+    async function refreshPanels() {
+      if (adminMode) {
+        const [snapshot] = await Promise.all([adminCall('snapshot'), loadEmployeeAdmin()]);
+        admin = snapshot;
+      } else {
+        employeeSnapshot = await employeeApi('employee_snapshot');
+      }
+    }
+
+    function goToTab(tab) {
+      if (adminMode) {
+        adminTab = tab;
+        renderAdmin();
+      } else {
+        renderEmployeePanel();
+      }
+    }
+
+    function setBusy(value) {
+      busy = value;
+      back.disabled = value;
+      for (const button of navigation) button.disabled = value;
+      for (const input of controls.querySelectorAll('input')) input.disabled = value;
+      const action = controls.querySelector('button');
+      if (action) action.disabled = value || (action.id === 'tableCheckoutConfirm' && !controls.querySelector('input:checked'));
+    }
+
+    function draw() {
+      if (!view.isConnected) return;
+      view.querySelector('#tableCheckoutAmount').textContent = balance ? money(balance.remaining_cents) : '—';
+      lines.innerHTML = balance ? balance.items.map(item => `<div class="tableCheckoutLine">
+        <span>${Number(item.quantity)}× ${esc(item.name)}
+          ${item.addons?.length ? '<small>' + item.addons.map(esc).join(' · ') + '</small>' : ''}
+          ${Number(item.paid_quantity) ? '<small>' + Number(item.paid_quantity) + ' já pago(s)</small>' : ''}
+        </span><b>${money(item.total_cents)}</b>
+      </div>`).join('') || '<p>Nenhum item lançado.</p>' : '<p>Consultando a comanda…</p>';
+      if (Number(balance?.paid_cents) > 0) {
+        lines.insertAdjacentHTML('beforeend', `<div class="tableCheckoutLine tableCheckoutPaid"><span>Já recebido</span><b>${money(balance.paid_cents)}</b></div>`);
+      }
+      if (closed || reloadError) {
+        controls.innerHTML = `<button type="button" class="tableCheckoutAction">${closed ? 'Atualizar e voltar para mesas' : 'Atualizar saldo'}</button>`;
+        controls.querySelector('button').onclick = closed ? finish : () => load();
+      } else if (pending) {
+        controls.innerHTML = '<button type="button" class="tableCheckoutAction">Conferir pagamento anterior</button>';
+        controls.querySelector('button').onclick = () => submit(pending);
+      } else if (Number(balance?.remaining_cents) > 0) {
+        controls.innerHTML = `<fieldset class="tableCheckoutMethods"><legend>Forma de pagamento</legend>
+          <div class="tableCheckoutChoices">${methods.map(([key, label]) => `<label>
+            <input type="radio" name="tableCheckoutMethod" value="${label}">
+            <span class="tableCheckoutChoice">${icon(key)}<b>${label}</b><span class="tableCheckoutCheck">${icon('check')}</span></span>
+          </label>`).join('')}</div>
+        </fieldset><button type="button" id="tableCheckoutConfirm" class="tableCheckoutAction" disabled>Confirmar e liberar mesa</button>`;
+        controls.querySelector('fieldset').onchange = () => {
+          controls.querySelector('#tableCheckoutConfirm').disabled = false;
+        };
+        controls.querySelector('#tableCheckoutConfirm').onclick = () => {
+          const method = controls.querySelector('input:checked')?.value;
+          if (!method || busy) return;
+          const amount = Number(balance.remaining_cents);
+          const payload = {
+            table_session_id: session.id,
+            client_request_id: crypto.randomUUID(),
+            method,
+            expected_cents: amount,
+            cash_received_cents: amount,
+            items: {
+              all: balance.items.filter(item => Number(item.remaining_quantity) > 0)
+                .map(item => ({ item_id: item.id, qty: Number(item.remaining_quantity) }))
+            }
+          };
+          sessionStorage.setItem(storageKey, JSON.stringify(payload));
+          pending = payload;
+          void submit(payload);
+        };
+      } else {
+        controls.replaceChildren();
+      }
+      back.textContent = closed ? 'Voltar para mesas' : 'Voltar para a mesa';
+    }
+
+    async function load(message = '') {
+      if (busy) return;
+      reloadError = '';
+      setBusy(true);
+      showNotice('Atualizando saldo…');
+      try {
+        const result = await employeeApi('table_item_balance', { table_session_id: session.id }, adminMode);
+        if (!view.isConnected) return;
+        balance = result.balance;
+        closed = result.status !== 'open' && !pending;
+        if (closed) {
+          showNotice('Esta mesa já está fechada.');
+        } else if (pending) {
+          showNotice('Confira o recebimento anterior antes de registrar outro.');
+        } else if (Number(balance.remaining_cents) <= 0) {
+          showNotice('A mesa está sem saldo a receber.');
+        } else {
+          showNotice(message, Boolean(message));
+        }
+      } catch (error) {
+        reloadError = error.message || String(error);
+        showNotice(reloadError, true);
+      } finally {
+        draw();
+        setBusy(false);
+      }
+    }
+
+    async function finish() {
+      if (busy) return;
+      setBusy(true);
+      try {
+        await refreshPanels();
+        if (view.isConnected) goToTab('mesas');
+      } catch {
+        showNotice('Mesa fechada. Atualize a lista de mesas.', true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function submit(payload) {
+      if (busy) return;
+      setBusy(true);
+      const action = controls.querySelector('button');
+      if (action) action.textContent = 'Registrando…';
+      showNotice('');
+      let result;
+      try {
+        result = await employeeApi('pay_table_items', payload, adminMode);
+      } catch (error) {
+        setBusy(false);
+        if (error.httpStatus >= 400 && error.httpStatus < 500 && error.httpStatus !== 429) {
+          sessionStorage.removeItem(storageKey);
+          pending = null;
+          await load(error.message || 'Confira a comanda e tente novamente.');
+        } else {
+          draw();
+          showNotice('Ainda falta confirmar a resposta do caixa. Confira o pagamento anterior para evitar duplicidade.', true);
+        }
+        return;
+      }
+
+      sessionStorage.removeItem(storageKey);
+      pending = null;
+      balance = result.balance;
+      closed = result.closed;
+      draw();
+      setBusy(false);
+      if (closed) {
+        showAppToast('Conta quitada. Mesa liberada.', 'ok');
+        await finish();
+      } else {
+        showNotice('Pagamento anterior registrado. Confira o saldo que ainda está em aberto.');
+      }
+    }
+
+    back.onclick = async () => {
+      if (closed) return finish();
+      if (busy) return;
+      setBusy(true);
+      try {
+        if (adminMode) {
+          await loadEmployeeAdmin();
+          if (!view.isConnected) return;
+          const current = remoteSessionForTable(table.id);
+          if (current?.id === session.id) renderRemoteAdminAccount(table, current);
+          else goToTab('mesas');
+        } else {
+          await refreshPanels();
+          if (!view.isConnected) return;
+          const current = remoteSessionForTable(table.id, employeeSnapshot);
+          if (current?.id === session.id) await openEmployeeTable(table.id);
+          else goToTab('mesas');
+        }
+      } catch (error) {
+        showNotice(error.message || String(error), true);
+      } finally {
+        setBusy(false);
+      }
+    };
+    for (const button of navigation) button.onclick = () => goToTab(button.dataset.checkoutTab);
+    await load();
   }
-  async function load(){try{const result=await employeeApi('table_item_balance',{table_session_id:s.id},adminMode);if(!host.isConnected)return;balance=result.balance;selection.clear();if(result.status!=='open'&&!pending()){await back();return;}draw();}catch(error){if(host.isConnected){host.innerHTML='<div class="err">'+esc(error.message||String(error))+'</div><button id="reloadItemBalance" class="secondary">Atualizar saldo</button>';host.querySelector('#reloadItemBalance').onclick=load;}}}
-  function draw(){
-   if(!host.isConnected)return;
-   const previous=pending();if(previous){host.innerHTML='<div class="notice"><b>Há um recebimento aguardando confirmação.</b><br>Confira esta tentativa antes de registrar outro pagamento.</div><button id="retryItemPayment" class="primary">Conferir pagamento anterior</button>';host.querySelector('#retryItemPayment').onclick=()=>send(previous);return;}
-   host.innerHTML=`<div class="itemPaymentSummary"><span>Consumo total<b>${money(balance.total_cents)}</b></span><span>Já recebido<b class="green">${money(balance.paid_cents)}</b></span><span>Saldo da mesa<b>${money(balance.remaining_cents)}</b></span></div><p>Selecione somente o que esta pessoa vai pagar. A baixa acontece ao confirmar o recebimento.</p><button id="selectRemainingItems" class="secondary">Selecionar todo o restante</button>${balance.payments.length?'':'<button id="closeByValues" class="secondary">Dividir por valores</button>'}<div class="payItemsList">${balance.items.map(line=>`<article class="payItem ${line.remaining_quantity?'':'fullyPaid'}"><div><b>${esc(line.name)}</b><small>Pedido #${esc(line.order_number)}${line.note?' · '+esc(line.note):''}</small>${(line.addons||[]).length?'<small>'+line.addons.map(esc).join(' · ')+'</small>':''}<small>${line.paid_quantity?'<strong class="green">'+line.paid_quantity+' PAGO</strong> · ':''}${line.remaining_quantity} em aberto · ${money(line.remaining_cents)}</small></div>${line.remaining_quantity?`<div class="payItemControls"><button data-pay-qty="${line.id}" data-step="-1" aria-label="Diminuir ${esc(line.name)}">−</button><b id="payQty-${line.id}">0</b><button data-pay-qty="${line.id}" data-step="1" aria-label="Selecionar ${esc(line.name)}">+</button></div>`:'<b class="paidItemBadge">PAGO</b>'}</article>`).join('')}</div><div class="itemPaymentSummary"><span>Esta pessoa paga<b id="selectedItemsTotal">${money(0)}</b></span><span>Restará na mesa<b id="afterItemPayment">${money(balance.remaining_cents)}</b></span></div><div class="field"><label for="itemPayMethod">Forma de pagamento recebido</label><select id="itemPayMethod" class="sel"><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option></select><small>Selecione após conferir que o pagamento foi recebido. O Pix desta tela não gera cobrança automática.</small></div><div class="field" id="itemCashField" hidden><label for="itemCashReceived">Valor entregue em dinheiro</label><input id="itemCashReceived" class="in" inputmode="decimal" placeholder="Ex.: 50,00"><small id="itemCashChange"></small></div><button id="receiveSelected" class="primary" disabled>Selecione os itens pagos</button><details class="itemPaymentHistory"><summary>Pagamentos recebidos (${balance.payments.length})</summary>${balance.payments.map(p=>`<div class="itemPaymentReceipt"><b>${money(p.amount_cents)} · ${esc(p.method)}</b><small>${esc(p.actor)} · ${esc(new Date(p.created_at).toLocaleString('pt-BR',{timeZone:'America/Fortaleza'}))}</small>${(p.items||[]).map(i=>'<div>'+Number(i.qty)+'× '+esc(i.name)+' · '+money(i.amount_cents)+'</div>').join('')}${p.method==='Dinheiro'?'<small>Recebido '+money(p.cash_received_cents)+' · Troco '+money(p.cash_received_cents-p.amount_cents)+'</small>':''}</div>`).join('')||'<p>Nenhum pagamento registrado.</p>'}</details>`;
-   const update=()=>{const amount=totalSelected();host.querySelector('#selectedItemsTotal').textContent=money(amount);host.querySelector('#afterItemPayment').textContent=money(Number(balance.remaining_cents)-amount);host.querySelector('#receiveSelected').disabled=amount<=0;host.querySelector('#receiveSelected').textContent=amount?'Confirmar recebimento de '+money(amount):'Selecione os itens pagos';for(const line of balance.items){const el=host.querySelector('#payQty-'+line.id);if(el)el.textContent=selection.get(line.id)||0;}const cash=host.querySelector('#itemPayMethod').value==='Dinheiro';host.querySelector('#itemCashField').hidden=!cash;const delivered=tableMoneyCents(host.querySelector('#itemCashReceived').value);host.querySelector('#itemCashChange').textContent=delivered>=amount?'Troco: '+money(delivered-amount):'Informe o valor recebido.';};
-   host.querySelectorAll('[data-pay-qty]').forEach(button=>button.onclick=()=>{const line=balance.items.find(i=>i.id===button.dataset.payQty);selection.set(line.id,Math.max(0,Math.min(Number(line.remaining_quantity),(selection.get(line.id)||0)+Number(button.dataset.step))));update();});
-   const legacy=host.querySelector('#closeByValues');if(legacy)legacy.onclick=()=>adminMode?oldAdminClose(t,s):oldEmployeeClose(t,s);
-   host.querySelector('#selectRemainingItems').onclick=()=>{for(const line of balance.items)selection.set(line.id,Number(line.remaining_quantity));update();};
-   host.querySelector('#itemPayMethod').onchange=update;host.querySelector('#itemCashReceived').oninput=update;
-   host.querySelector('#receiveSelected').onclick=()=>{const amount=totalSelected(),method=host.querySelector('#itemPayMethod').value,cash=method==='Dinheiro'?tableMoneyCents(host.querySelector('#itemCashReceived').value):amount;if(amount<=0)return;if(cash<amount)return alert('O valor recebido é menor que o pagamento.');const payload={table_session_id:s.id,client_request_id:crypto.randomUUID(),method,expected_cents:amount,cash_received_cents:cash,items:balance.items.filter(line=>(selection.get(line.id)||0)>0).map(line=>({item_id:line.id,qty:selection.get(line.id)}))};sessionStorage.setItem(storageKey,JSON.stringify(payload));send(payload);};
-  }
-  await load();
- }
- // Existing account buttons lead to the item checkout in both ADM and waiter access.
- new MutationObserver(()=>{for(const id of ['adminCloseRemote','employeeCloseTable']){const button=$('#'+id);if(button&&button.textContent!=='PAGAR POR ITENS / FECHAR')button.textContent='PAGAR POR ITENS / FECHAR';}}).observe(document.querySelector('#modalRoot'),{childList:true,subtree:true});
+
+  new MutationObserver(() => {
+    for (const id of ['adminCloseRemote', 'employeeCloseTable']) {
+      const button = $('#' + id);
+      if (button && button.textContent !== 'FECHAR MESA') button.textContent = 'FECHAR MESA';
+    }
+  }).observe(document.querySelector('#modalRoot'), { childList: true, subtree: true });
 })();
