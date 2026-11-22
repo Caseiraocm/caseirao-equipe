@@ -9,8 +9,112 @@ function remoteSessionForTable(id,cache=employeeAdminCache){return(cache?.sessio
 function remoteSessionTotal(s){return(s?.orders||[]).filter(o=>o.status!=='cancelado').reduce((a,o)=>a+Number(o.total||0),0)}
 async function renderRemoteTables(box){try{box.innerHTML='<div class="notice">Carregando mesas...</div>';const c=await loadEmployeeAdmin(),occupied=c.sessions||[],total=occupied.reduce((a,s)=>a+remoteSessionTotal(s),0);box.innerHTML=`<div class="tableSummary"><div class="financeCard"><span>Mesas ocupadas</span><b>${occupied.length}/${(c.tables||[]).length}</b></div><div class="financeCard"><span>Contas em aberto</span><b>${fmt(total)}</b></div></div><div class="tableToolbar"><div class="operationHint">Mesas sincronizadas: os lançamentos feitos pelos funcionários aparecem aqui em todos os aparelhos.</div><button id="configureRemoteTables" class="secondary">CONFIGURAR MESAS</button></div><div class="tablesGrid">${(c.tables||[]).map(t=>{const s=remoteSessionForTable(t.id,c);return`<button class="restaurantTable ${s?'occupied':''}" data-remote-table="${t.id}"><span class="tableIcon">${s?'🍽️':'○'}</span><strong>MESA ${String(t.table_number).padStart(2,'0')}</strong><small>${s?`${esc(s.customer_name)} • ${esc(s.employee_accounts?.name||'ADM')}`:'Livre'}</small><b>${s?fmt(remoteSessionTotal(s)):'ABRIR'}</b></button>`}).join('')}</div>`;box.querySelectorAll('[data-remote-table]').forEach(b=>b.onclick=()=>openRemoteAdminTable(b.dataset.remoteTable));$('#configureRemoteTables').onclick=async()=>{const n=prompt('Quantas mesas existem no Caseirão?',String((c.tables||[]).length));if(n===null)return;try{await employeeApi('admin_set_table_count',{count:Number(n)},true);renderRemoteTables(box)}catch(e){alert(e.message)}}}catch(e){box.innerHTML=`<div class="err">${esc(e.message||String(e))}</div>`}}
 async function openRemoteAdminTable(tableId){if(!employeeAdminCache)await loadEmployeeAdmin();const t=(employeeAdminCache.tables||[]).find(x=>String(x.id)===String(tableId)),s=remoteSessionForTable(tableId);if(!t)return;if(!s){const customer=(prompt(`Responsável da Mesa ${String(t.table_number).padStart(2,'0')}:`,'')||'').trim();if(!customer)return;await employeeApi('admin_open_table',{table_id:t.id,customer_name:customer},true);await loadEmployeeAdmin();return openRemoteAdminTable(tableId)}renderRemoteAdminAccount(t,s)}
-function remoteOrdersHtml(s){const orders=s.orders||[];return orders.length?orders.map(o=>`<details class="tableOrder"><summary><span><b>Pedido #${esc(o.order_number)}</b><small>${esc(statusLabel[o.status]||o.status)}${o.employee_id?' • funcionário':''}</small></span><b>${fmt(o.total)}</b></summary><div>${(o.order_items||[]).map(i=>`<div class="tableItemLine"><span>${Number(i.quantity||1)}x ${esc(i.product_name)}</span><b>${fmt(i.line_total)}</b></div>`).join('')}${o.notes?`<div class="mini">${esc(o.notes)}</div>`:''}</div></details>`).join(''):'<div class="empty cleanEmpty"><b>Comanda vazia</b><span>Aguardando lançamento.</span></div>'}
-function renderRemoteAdminAccount(t,s){modal(`<div class="sheeth"><div><h2>Mesa ${String(t.table_number).padStart(2,'0')}</h2><div class="adminSub">${esc(s.customer_name)}</div></div><button class="x" id="backRemoteTables">←</button></div><div class="tableAccountTotal"><span>Saldo em aberto</span><b>${fmt(remoteSessionTotal(s))}</b></div><button id="adminAddRemoteOrder" class="primary">+ LANÇAR ITENS</button><div class="sectionTitle">Comanda sincronizada</div>${remoteOrdersHtml(s)}<div class="tableAccountActions"><button id="adminPrintRemote" class="secondary">IMPRIMIR CONTA</button><button id="adminCloseRemote" class="primary">FECHAR E RECEBER</button></div><button id="adminCancelRemote" class="secondary danger">CANCELAR / LIBERAR MESA</button>`,true);$('#backRemoteTables').onclick=()=>{adminTab='mesas';renderAdmin()};$('#adminAddRemoteOrder').onclick=()=>openRemoteOrderForm(t,s,true);$('#adminPrintRemote').onclick=()=>printRemoteTable(t,s);$('#adminCloseRemote').onclick=()=>openRemoteClose(t,s);$('#adminCancelRemote').onclick=async()=>{if(!confirm('Cancelar pedidos em aberto e liberar esta mesa?'))return;await employeeApi('admin_cancel_table',{table_session_id:s.id},true);admin=await adminCall('snapshot');adminTab='mesas';renderAdmin()}}
+function remoteOrdersHtml(session){
+  const orders=session.orders||[];
+  if(!orders.length)return '<div class="tableAccountEmpty"><b>Nenhum item lançado</b><span>Use Lançar itens para começar a comanda.</span></div>';
+  const paid=new Map();
+  for(const payment of session.table_item_payments||[]){
+    for(const item of payment.items||[])paid.set(item.item_id,(paid.get(item.item_id)||0)+Number(item.qty));
+  }
+  return orders.map((order,index)=>{
+    const canceled=order.status==='cancelado';
+    const items=order.order_items||[];
+    const rows=items.map(item=>{
+      const paidQuantity=canceled?0:paid.get(item.id)||0;
+      const addons=(item.order_item_addons||[]).map(addon=>esc(addon.addon_name)).join(' · ');
+      return `<li class="tableAccountItem">
+        <span class="tableAccountQuantity">${Number(item.quantity||1)}×</span>
+        <span><strong>${esc(item.product_name||'Item')}</strong>
+          ${addons?`<small>${addons}</small>`:''}
+          ${item.note?`<small>${esc(item.note)}</small>`:''}
+          ${paidQuantity?`<small class="tableAccountPaid">${paidQuantity} já pago(s)</small>`:''}
+        </span>
+        <b>${fmt(item.line_total)}</b>
+      </li>`;
+    }).join('');
+    return `<details class="tableAccountOrder${canceled?' is-canceled':''}" ${index===0?'open':''}>
+      <summary>
+        <span class="tableAccountOrderNo">Pedido #${esc(order.order_number)}</span>
+        <span class="tableAccountOrderState">${esc(statusLabel[order.status]||order.status||'Sem status')}</span>
+        <strong>${fmt(order.total)}</strong><span class="tableAccountChevron" aria-hidden="true"></span>
+      </summary>
+      ${items.length?`<ul>${rows}</ul>`:'<div class="tableAccountOrderNote">Itens indisponíveis para exibição.</div>'}
+      ${order.notes?`<div class="tableAccountOrderNote">${esc(order.notes)}</div>`:''}
+    </details>`;
+  }).join('');
+}
+
+function renderRemoteTableAccount(table,session,adminMode){
+  const number=String(table.table_number).padStart(2,'0');
+  const orderCount=(session.orders||[]).length;
+  const paid=(session.table_item_payments||[]).reduce((sum,payment)=>sum+Number(payment.amount_cents||0),0);
+  const backId=adminMode?'backRemoteTables':'backEmployeePanel';
+  const addId=adminMode?'adminAddRemoteOrder':'employeeAddOrder';
+  const closeId=adminMode?'adminCloseRemote':'employeeCloseTable';
+  modal(`<main class="tableAccountView" aria-labelledby="tableAccountTitle">
+    <nav class="modalNav tableAccountNav" aria-label="Navegação da mesa">
+      <button type="button" id="${backId}"><span aria-hidden="true">←</span> Mesas</button>
+      <button type="button" data-modal-home>Início</button>
+    </nav>
+    <header class="tableAccountHeader">
+      <div>
+        <h1 id="tableAccountTitle" tabindex="-1">Mesa ${esc(number)}</h1>
+        ${session.customer_name?`<p>${esc(session.customer_name)}</p>`:''}
+      </div>
+      <span class="tableAccountState">Em aberto</span>
+    </header>
+    <div class="tableAccountGrid">
+      <section class="tableAccountOrders" aria-labelledby="tableAccountOrdersTitle">
+        <header>
+          <div><h2 id="tableAccountOrdersTitle">Comanda</h2>
+          <p>${orderCount} ${orderCount===1?'pedido':'pedidos'}</p></div>
+          <button type="button" id="${addId}" class="tableAccountAdd"><span aria-hidden="true">+</span> Lançar itens</button>
+        </header>
+        <div class="tableAccountOrderList">${remoteOrdersHtml(session)}</div>
+      </section>
+      <section class="tableAccountPayment" aria-label="Conta da mesa">
+        <div class="tableAccountBalance">
+          <span>Saldo em aberto</span><strong>${fmt(remoteSessionTotal(session))}</strong>
+          <svg viewBox="0 0 160 155" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M2 156 85 44q7-10 18-10h58M35 156l64-84q7-10 18-10h44M68 156l44-56q7-10 18-10h31"/></svg>
+        </div>
+        ${paid>0?`<div class="tableAccountReceived"><span>Já recebido</span><b>${fmt(paid/100)}</b></div>`:''}
+        <button type="button" id="${closeId}" class="tableAccountClose">Fechar mesa <span aria-hidden="true">→</span></button>
+        ${adminMode?`<button type="button" id="adminPrintRemote" class="tableAccountPrint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M6 8V3h12v5M6 17H3V8h18v9h-3M6 14h12v7H6zM6 11h2"/></svg> Imprimir conta</button>`:''}
+      </section>
+    </div>
+    ${adminMode?'<footer class="tableAccountFooter"><button type="button" id="adminCancelRemote">Cancelar e liberar mesa</button><p id="tableAccountError" role="alert"></p></footer>':''}
+  </main>`,true);
+  const view=$('.tableAccountView');
+  view.closest('.sheet').classList.add('tableAccountSheet');
+  $('#tableAccountTitle').focus();
+  $('#'+backId).onclick=adminMode
+    ?()=>{adminTab='mesas';renderAdmin()}
+    :renderEmployeePanel;
+  $('#'+addId).onclick=()=>openRemoteOrderForm(table,session,adminMode);
+  $('#'+closeId).onclick=()=>adminMode?openRemoteClose(table,session):openEmployeeClose(table,session);
+  if(!adminMode)return;
+  $('#adminPrintRemote').onclick=()=>printRemoteTable(table,session);
+  $('#adminCancelRemote').onclick=async(event)=>{
+    if(!confirm('Cancelar pedidos em aberto e liberar esta mesa?'))return;
+    const button=event.currentTarget;
+    const errorBox=$('#tableAccountError');
+    button.disabled=true;
+    errorBox.textContent='';
+    try{
+      await employeeApi('admin_cancel_table',{table_session_id:session.id},true);
+      admin=await adminCall('snapshot');
+      adminTab='mesas';
+      renderAdmin();
+    }catch(error){
+      errorBox.textContent=error.message||String(error);
+    }finally{
+      button.disabled=false;
+    }
+  };
+}
+
+function renderRemoteAdminAccount(table,session){renderRemoteTableAccount(table,session,true)}
 function printRemoteTable(t,s){const lines=(s.orders||[]).filter(o=>o.status!=='cancelado').flatMap(o=>(o.order_items||[]).map(i=>`<tr><td>${Number(i.quantity||1)}x ${esc(i.product_name)}</td><td>${fmt(i.line_total)}</td></tr>`)).join(''),w=window.open('','_blank','width=420,height=700');if(!w)return alert('Permita a janela de impressão.');w.document.write(`<!doctype html><html><head><meta charset="utf-8"><style>body{font:14px monospace;width:72mm;margin:auto;padding:8px}h2,p{text-align:center}table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px dashed #999}td:last-child{text-align:right}.total{text-align:right;font-size:20px;font-weight:bold;margin-top:14px}</style></head><body><h2>O CASEIRÃO BURGER</h2><p>Mesa ${String(t.table_number).padStart(2,'0')} • ${esc(s.customer_name)}</p><table>${lines}</table><p>Consumo total: ${fmt((s.orders||[]).filter(o=>o.status!=='cancelado').reduce((v,o)=>v+Number(o.total||0),0))}<br>Recebido: ${fmt((s.table_item_payments||[]).reduce((v,p)=>v+Number(p.amount_cents)/100,0))}</p><div class="total">SALDO ${fmt(remoteSessionTotal(s))}</div><script>onload=()=>{print();setTimeout(close,500)}<\/script></body></html>`);w.document.close()}
 function openRemoteClose(t,s){const total=remoteSessionTotal(s);if(total<=0)return alert('A mesa ainda não possui consumo.');openTablePaymentCheckout({title:`Fechar Mesa ${String(t.table_number).padStart(2,'0')}`,total,onBack:()=>renderRemoteAdminAccount(t,s),onConfirm:async({payments,payment,note})=>{const paymentDetails=payments.map(p=>`${p.method}: ${fmt(p.amount/100)}${p.method==='Dinheiro'&&p.cashReceived>p.amount?` (recebido ${fmt(p.cashReceived/100)}, troco ${fmt((p.cashReceived-p.amount)/100)})`:''}`).join(' | '),closingNote=[note,payments.length>1?`Pagamentos: ${paymentDetails}`:''].filter(Boolean).join(' — ');await employeeApi('admin_close_table',{table_session_id:s.id,payment,note:closingNote,payments:payments.map(p=>({method:p.method,amount:p.amount/100,cash_received:p.cashReceived/100,change:(p.cashReceived-p.amount)/100}))},true);admin=await adminCall('snapshot');adminTab='mesas';renderAdmin();showAppToast(`Mesa ${t.table_number} fechada. ${payment}.`,'ok')}})}
 async function renderEmployees(box){try{box.innerHTML='<div class="notice">Carregando funcionários...</div>';const c=await loadEmployeeAdmin();box.innerHTML=`<div class="operationHint">Cada funcionário recebe login e senha próprios. Escolha se o acesso será para atendimento das mesas ou somente para a embalagem.</div><button id="newEmployee" class="primary" style="margin:12px 0">+ CADASTRAR FUNCIONÁRIO</button><div>${(c.employees||[]).map(e=>`<div class="tableitem"><div class="grow"><b>${esc(e.name)}</b><div class="mini">Login: ${esc(e.username)} • ${e.role==='embalagem'?'Embalagem':'Atendimento'} • ${e.active?'Ativo':'Bloqueado'}${e.last_login_at?' • último acesso '+new Date(e.last_login_at).toLocaleString('pt-BR'):''}</div></div><button class="editbtn" data-edit-employee="${e.id}">EDITAR</button></div>`).join('')||'<div class="empty">Nenhum funcionário cadastrado.</div>'}</div>`;$('#newEmployee').onclick=()=>editEmployee();box.querySelectorAll('[data-edit-employee]').forEach(b=>b.onclick=()=>editEmployee((c.employees||[]).find(e=>String(e.id)===String(b.dataset.editEmployee))))}catch(e){box.innerHTML=`<div class="err">${esc(e.message)}</div>`}}
@@ -27,7 +131,20 @@ function dispatcherCustomer(order){const name=String(order.customer_name||'').tr
 function dispatcherOrderSignature(order){return[order.id,order.status,order.customer_name,order.type,order.table_number,order.notes].map(v=>String(v??'')).join(':')}
 function renderPackagingPanel(){const c=employeeSnapshot,orders=(c.orders||[]).filter(order=>!['delivery','pickup'].includes(operationalOrderType(order))||order.status==='preparando');if(employeeReadyPoll)clearInterval(employeeReadyPoll);modal(`<div class="sheeth adminHead"><div class="grow"><h2>Embalagem • ${esc(c.employee.name)}</h2><div class="adminSub">Confira cliente e destino antes de embalar</div></div><button id="employeeLogout" class="secondary adminLogout">Sair</button></div><div class="employeeLimit">📦 Nome do cliente e tipo do pedido ficam destacados para evitar troca na embalagem.</div><div class="packQueue">${orders.length?orders.map(o=>`<article class="packOrder"><div class="packOrderTop"><strong>PEDIDO #${esc(o.order_number)}</strong><span>${esc(dispatcherOrderType(o))}</span></div><div class="packCustomer"><small>CLIENTE</small><b>${esc(dispatcherCustomer(o))}</b></div><div class="packItems">${packagingItemsHtml(o)}</div>${o.notes?`<div class="packGeneralNote">OBSERVAÇÃO: ${esc(o.notes)}</div>`:''}<button class="packReadyBtn" data-pack-ready="${esc(o.id)}">✅ PEDIDO NO PONTO</button></article>`).join(''):`<div class="packEmpty"><b>✓ Nenhum pedido aguardando</b><span>Os próximos pedidos aparecerão automaticamente.</span></div>`}</div>`,true);$('#employeeLogout').onclick=async()=>{if(employeeReadyPoll)clearInterval(employeeReadyPoll);await employeeApi('logout').catch(()=>{});sessionStorage.removeItem('caseirao_employee_token');employeeSnapshot=null;openDispatcherLogin()};document.querySelectorAll('[data-pack-ready]').forEach(button=>button.onclick=async()=>{if(!confirm('Confirmar que este pedido está no ponto?'))return;try{button.disabled=true;button.textContent='AVISANDO A CENTRAL...';const result=await employeeApi('mark_order_ready',{order_id:button.dataset.packReady});if(result?.success===false)throw new Error(result.error||'A central não confirmou a atualização.');employeeSnapshot=await dispatcherSnapshot();showAppToast('Central avisada: pedido no ponto.','ok');renderPackagingPanel()}catch(e){button.disabled=false;button.textContent='✅ PEDIDO NO PONTO';alert(e.message)}});employeeReadyPoll=setInterval(async()=>{if(document.hidden||!sessionStorage.getItem('caseirao_employee_token'))return;try{const fresh=await dispatcherSnapshot();if((fresh.employee?.role||'atendimento')!=='embalagem')return;const before=(employeeSnapshot?.orders||[]).map(dispatcherOrderSignature).join('|'),after=(fresh.orders||[]).map(dispatcherOrderSignature).join('|');employeeSnapshot=fresh;if(before!==after)renderPackagingPanel()}catch{}},3500)}
 function renderEmployeePanel(){const c=employeeSnapshot;if((c.employee?.role||'atendimento')==='embalagem')return renderPackagingPanel();if(employeeReadyPoll){clearInterval(employeeReadyPoll);employeeReadyPoll=null}const occupied=c.sessions||[];modal(`<div class="sheeth adminHead"><div class="grow"><h2>Atendimento • ${esc(c.employee.name)}</h2><div class="adminSub">Mesas e lançamento de pedidos</div></div><button id="employeeLogout" class="secondary adminLogout">Sair</button></div><div class="employeeLimit">🔒 Acesso restrito: caixa, faturamento, relatórios e configurações não estão disponíveis.</div><div class="tablesGrid" style="margin-top:12px">${(c.tables||[]).map(t=>{const s=remoteSessionForTable(t.id,c);return`<button class="restaurantTable ${s?'occupied':''}" data-employee-table="${t.id}"><span class="tableIcon">${s?'🍽️':'○'}</span><strong>MESA ${String(t.table_number).padStart(2,'0')}</strong><small>${s?esc(s.customer_name):'Livre'}</small><b>${s?fmt(remoteSessionTotal(s)):'ABRIR'}</b></button>`}).join('')}</div>`,true);$('#employeeLogout').onclick=async()=>{await employeeApi('logout').catch(()=>{});sessionStorage.removeItem('caseirao_employee_token');openEmployeeLogin()};document.querySelectorAll('[data-employee-table]').forEach(b=>b.onclick=()=>openEmployeeTable(b.dataset.employeeTable))}
-async function openEmployeeTable(tableId){const c=employeeSnapshot,t=(c.tables||[]).find(x=>String(x.id)===String(tableId));let s=remoteSessionForTable(tableId,c);if(!s){const customer=(prompt(`Responsável da Mesa ${String(t.table_number).padStart(2,'0')}:`,'')||'').trim();if(!customer)return;await employeeApi('open_table',{table_id:t.id,customer_name:customer});employeeSnapshot=await employeeApi('employee_snapshot');s=remoteSessionForTable(tableId,employeeSnapshot)}modal(`<div class="sheeth"><div><h2>Mesa ${String(t.table_number).padStart(2,'0')}</h2><div class="adminSub">${esc(s.customer_name)}</div></div><button class="x" id="backEmployeePanel">←</button></div><div class="tableAccountTotal"><span>Saldo em aberto</span><b>${fmt(remoteSessionTotal(s))}</b></div><button id="employeeAddOrder" class="primary">+ LANÇAR PEDIDO</button><div class="sectionTitle">Comanda</div>${remoteOrdersHtml(s)}<div class="tableAccountActions"><button id="employeeBackTables" class="secondary">VOLTAR ÀS MESAS</button><button id="employeeCloseTable" class="primary">FECHAR E RECEBER</button></div><div class="employeeLimit">O atendente pode receber a conta e liberar a mesa. Confira os valores antes de confirmar.</div>`,true);$('#backEmployeePanel').onclick=renderEmployeePanel;$('#employeeBackTables').onclick=renderEmployeePanel;$('#employeeAddOrder').onclick=()=>openRemoteOrderForm(t,s,false);$('#employeeCloseTable').onclick=()=>openEmployeeClose(t,s)}
+async function openEmployeeTable(tableId){
+  const table=(employeeSnapshot.tables||[]).find(entry=>String(entry.id)===String(tableId));
+  if(!table)return;
+  let session=remoteSessionForTable(tableId,employeeSnapshot);
+  if(!session){
+    const customer=(prompt(`Responsável da Mesa ${String(table.table_number).padStart(2,'0')}:`,'')||'').trim();
+    if(!customer)return;
+    await employeeApi('open_table',{table_id:table.id,customer_name:customer});
+    employeeSnapshot=await employeeApi('employee_snapshot');
+    session=remoteSessionForTable(tableId,employeeSnapshot);
+  }
+  if(session)renderRemoteTableAccount(table,session,false);
+  else renderEmployeePanel();
+}
 function openEmployeeClose(t,s){const total=remoteSessionTotal(s);if(total<=0)return alert('A mesa ainda não possui consumo.');openTablePaymentCheckout({title:`Fechar Mesa ${String(t.table_number).padStart(2,'0')}`,total,onBack:()=>openEmployeeTable(t.id),onConfirm:async({payments,note})=>{await employeeApi('close_table',{table_session_id:s.id,note,payments:payments.map(p=>({method:p.method,amount:p.amount/100,cash_received:p.cashReceived/100,change:Math.max(0,(p.cashReceived-p.amount)/100)}))});employeeSnapshot=await employeeApi('employee_snapshot');renderEmployeePanel();showAppToast(`Mesa ${t.table_number} recebida e liberada com sucesso.`,'ok')}})}
 function operationalGroup(p){const category=String(p.category||'').toLowerCase(),name=String(p.name||'').toLowerCase();if(category.includes('hamb'))return'Hambúrgueres';if(category.includes('combo'))return'Combos';if(category.includes('batata'))return'Batatas';if(name.includes('suco'))return'Sucos';if(name==='água'||name==='agua'||name.includes('água ')||name.includes('agua '))return'Água';if(category.includes('bebida')||name.includes('coca')||name.includes('guaran')||name.includes('fanta')||name.includes('pepsi')||name.includes('papsi')||name.includes('refri'))return'Bebidas';return'Outros'}
 const operationalGroupOrder=['Hambúrgueres','Combos','Bebidas','Batatas','Sucos','Água','Outros'];

@@ -33,31 +33,6 @@
     .reduce((sum, payment) => sum + Number(payment.amount_cents), 0);
 
   remoteSessionTotal = session => Math.max(0, consumed(session) - received(session)) / 100;
-  const originalOrdersHtml = remoteOrdersHtml;
-  remoteOrdersHtml = function (session) {
-    if (!session.table_item_payments?.length) return originalOrdersHtml(session);
-    const paid = new Map();
-    for (const payment of session.table_item_payments) {
-      for (const item of payment.items || []) {
-        paid.set(item.item_id, (paid.get(item.item_id) || 0) + Number(item.qty));
-      }
-    }
-    const orders = (session.orders || []).filter(order => order.status !== 'cancelado');
-    return `<div class="itemPaymentSummary">
-      <span>Consumo <b>${money(consumed(session))}</b></span>
-      <span>Recebido <b class="green">${money(received(session))}</b></span>
-      <span>Falta pagar <b>${fmt(remoteSessionTotal(session))}</b></span>
-    </div>` + orders.map(order => `<div class="tableOrder">
-      ${(order.order_items || []).map(item => {
-        const paidQuantity = paid.get(item.id) || 0;
-        return `<div class="tableItemLine"><span>${Number(item.quantity)}× ${esc(item.product_name)}
-          ${item.note ? '<small>' + esc(item.note) + '</small>' : ''}
-          <small class="${paidQuantity ? 'green' : ''}">${paidQuantity ? paidQuantity + ' PAGO · ' : ''}${Number(item.quantity) - paidQuantity} em aberto</small>
-        </span><b>${fmt(item.line_total)}</b></div>`;
-      }).join('')}
-    </div>`).join('');
-  };
-
   const paths = {
     pedidos: 'M6 3h8l4 4v14H6z M14 3v5h5 M9 12h6 M9 16h6',
     mesas: 'M3 6h18v7H3z M6 13l-2 7 M18 13l2 7',
@@ -335,10 +310,4 @@
     await load();
   }
 
-  new MutationObserver(() => {
-    for (const id of ['adminCloseRemote', 'employeeCloseTable']) {
-      const button = $('#' + id);
-      if (button && button.textContent !== 'FECHAR MESA') button.textContent = 'FECHAR MESA';
-    }
-  }).observe(document.querySelector('#modalRoot'), { childList: true, subtree: true });
 })();
