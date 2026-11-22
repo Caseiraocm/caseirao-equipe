@@ -1,20 +1,23 @@
-CASEIRÃO EQUIPE — COMANDA DE MESA, FECHAMENTO E WHATSAPP
+CASEIRÃO EQUIPE — FILA DA ROTA NO WHATSAPP
 
-A comanda passa a mostrar o consumo e o saldo em dois painéis no tablet.
-A correção de Confirmar e liberar mesa está incluída.
-O botão do WhatsApp continua abrindo o texto da etapa atual do pedido.
+Na aba Prontas, quando houver pelo menos duas entregas, marque os pedidos
+que vão na mesma saída e toque em Iniciar rota em grupo. Para sair com
+uma entrega, use Retirei · iniciar rota no pedido. A ordem da saída em
+grupo segue a numeração crescente dos pedidos.
 
-1. No repositório da Equipe, substitua index.html, sw.js, js/admin.js,
-   js/team.js, js/mesa-pagar-itens.js e css/fechamento-mesas.css pelos do ZIP.
-2. No SQL Editor do projeto Supabase da Equipe, execute o arquivo
-   supabase/fechamento-mesas.sql. Esta versão do SQL permite registrar
-   Cartão e confere o saldo integral antes de fechar a mesa. Pode ser
-   reaplicada mesmo se o SQL do ZIP anterior já tiver sido executado.
-   Pix e Dinheiro também usam o formato já aceito pelo banco antigo.
-3. Após publicar, feche e reabra a Central no tablet. Em Mesas, abra uma
-   comanda, toque em Fechar mesa, selecione a forma de pagamento e
-   confirme depois de receber.
-4. Se houver uma tentativa pendente, use Conferir pagamento anterior.
-   A Central reaproveita a mesma identificação para evitar duplicidade.
+Na Central, o botão WhatsApp do cliente consulta a fila ao ser aberto.
+O texto mostra as paradas restantes antes do pedido, somente se houver
+alguma. A equipe ainda toca em Enviar no WhatsApp.
 
-O SQL é executado no Supabase e o LEIA-ME é só para consulta.
+Instalação
+
+1. No SQL Editor do Supabase da Equipe, execute supabase/rota-entregas.sql.
+2. Atualize a Edge Function driver-api existente com o arquivo
+   supabase/driver-api/index.ts. Preserve a configuração atual da função.
+3. No repositório caseirao-equipe, substitua index.html, sw.js e os
+   arquivos das pastas js/ e css/ incluídos neste ZIP. Mantenha os demais
+   arquivos da Equipe. Os arquivos em supabase/ são para o Supabase.
+
+O pacote também inclui a comanda premium, o fechamento corrigido e as
+mensagens por etapa. O SQL fechamento-mesas.sql já foi aplicado na
+Central atual e é incluído apenas para reinstalação em outro projeto.
