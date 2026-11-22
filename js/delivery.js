@@ -137,7 +137,10 @@ function driverDailySummaryHtml(assignments){
       return timer?`<li><span>Pedido #${esc(a.orders?.order_number||'—')}</span>${timer}</li>`:'';
     }).join('');
   return `<details class="driverOverview" data-driver-detail="overview">
-    <summary>Resumo do dia <span>${fmt(total)}</span></summary>
+    <summary>
+      <span class="driverSummaryLabel">Resumo do dia${gas>0?'<small>Com gasolina</small>':''}</span>
+      <strong class="driverSummaryTotal">${fmt(total)}</strong>
+    </summary>
     <dl class="driverOverviewStats">
       <div><dt>Concluídas</dt><dd>${completed.length}</dd></div>
       <div><dt>A receber</dt><dd>${fmt(total)}</dd></div>
@@ -202,13 +205,16 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
         <strong>Caseirão Burger</strong>
         <button type="button" id="driverLogout">Sair</button>
       </div>
-      <div class="driverGreeting"><p>Central do entregador</p><h1>Olá, ${esc(fresh.driver.name)}</h1></div>
     </header>
     <div class="driverScreenNew driverDashboard">
+      <div class="driverGreeting"><p>Central do entregador</p><h1>Olá, ${esc(fresh.driver.name)}</h1></div>
       <section class="driverPickupBanner${ready.length?' has-ready':''}" aria-label="Retirada no Caseirão">
         <div class="driverPickupHeadline" role="status">
-          <div><h2>${ready.length===1?'1 entrega pronta':`${ready.length} entregas prontas`}</h2>
-          <p>${ready.length?'Esperando por você no Caseirão':'Nenhum pedido esperando na loja'}</p></div>
+          <span class="driverPickupCount">${ready.length}</span>
+          <div class="driverPickupCopy">
+            <h2>${ready.length===1?'Entrega pronta':'Entregas prontas'}</h2>
+            <p>${ready.length?'Japopo, por favor, não demore quando tiver entregas te esperando! 😂':'Nenhum pedido esperando na loja'}</p>
+          </div>
           <span class="driverPickupIcon" aria-hidden="true"></span>
         </div>
       </section>
