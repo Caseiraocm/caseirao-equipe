@@ -169,6 +169,33 @@ let driverSyncBusy=false;
 let driverReadySeen=new Set();
 let driverDashboardView='ready';
 const selectedDeparture=new Set();
+let customDepartureOrder=[];
+
+function orderedDriverStops(ready){
+  const selected=ready.filter(assignment=>selectedDeparture.has(String(assignment.id)));
+  return customDepartureOrder.flatMap(id=>selected.filter(assignment=>String(assignment.id)===id))
+    .concat(selected.filter(assignment=>!customDepartureOrder.includes(String(assignment.id))));
+}
+function driverStopSorter(assignments, departureId=''){
+  if(assignments.length<2)return '';
+  return `<div class="driverStopSorter" ${departureId?`data-existing-departure="${esc(departureId)}"`:''}>
+    <h3>${departureId?'Reorganizar paradas restantes':'Organizar paradas'}</h3>
+    <p>Vai passar por bairros próximos? Coloque as paradas na ordem que pretende fazer.</p>
+    <ol>${assignments.map((assignment,index)=>{
+      const number=assignment.orders?.order_number;
+      return `<li><span><strong>#${esc(number)}</strong> ${esc(assignment.neighborhood_name||assignment.orders?.neighborhood_name||'')}</span>
+        <button type="button" data-stop-index="${index}" data-stop-change="-1" ${index===0?'disabled':''} aria-label="Subir pedido ${esc(number)}">↑</button>
+        <button type="button" data-stop-index="${index}" data-stop-change="1" ${index===assignments.length-1?'disabled':''} aria-label="Descer pedido ${esc(number)}">↓</button></li>`;
+    }).join('')}</ol>
+  </div>`;
+}
+function moveDriverStop(assignments,button){
+  const from=Number(button.dataset.stopIndex),to=from+Number(button.dataset.stopChange);
+  if(to<0||to>=assignments.length)return null;
+  const ids=assignments.map(assignment=>String(assignment.id));
+  [ids[from],ids[to]]=[ids[to],ids[from]];
+  return ids;
+}
 let startingDeparture=false;
 
 function driverReadyForPickup(assignment){
@@ -202,10 +229,19 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       .sort((a,b)=>Number(a.orders?.order_number)-Number(b.orders?.order_number));
     const enRoute=active.filter(a=>['route','arrived'].includes(a.status))
       .sort((a,b)=>String(a.route_started_at||'').localeCompare(String(b.route_started_at||''))
+        ||(a.departure_position??Infinity)-(b.departure_position??Infinity)
         ||Number(a.orders?.order_number)-Number(b.orders?.order_number));
+    const departureGroups=new Map();
+    for(const assignment of enRoute){
+      if(!assignment.departure_id || assignment.orders?.status!=='em_rota' || assignment.orders?.archived_at)continue;
+      const group=departureGroups.get(assignment.departure_id)||[];
+      group.push(assignment);
+      departureGroups.set(assignment.departure_id,group);
+    }
     const readyIds=new Set(ready.map(a=>String(a.id)));
     for(const id of selectedDeparture)if(!readyIds.has(id))selectedDeparture.delete(id);
     if(ready.length<2)selectedDeparture.clear();
+    customDepartureOrder=customDepartureOrder.filter(id=>selectedDeparture.has(id));
     const other=active.filter(a=>['assigned','problem'].includes(a.status)&&!driverReadyForPickup(a));
     const oldScreen=document.querySelector('.driverScreenNew');
     const oldSheet=oldScreen?.closest('.sheet');
@@ -239,11 +275,13 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
         ${ready.length>1?`<fieldset class="driverDeparturePicker">
           <legend>Pedidos desta saída</legend>
           <div>${ready.map(a=>`<label><input type="checkbox" data-departure-pick="${esc(a.id)}" ${selectedDeparture.has(String(a.id))?'checked':''}> #${esc(a.orders?.order_number)}</label>`).join('')}</div>
+          <div id="newDriverStopSorter"></div>
           <button type="button" class="primary" id="driverStartDeparture" disabled>Iniciar rota em grupo</button>
         </fieldset>`:''}
         <div class="driverDashboardList">${ready.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">As entregas liberadas aparecem aqui.</p>'}</div>
       </section>
       <section id="driverRoutePanel" data-driver-panel="route" aria-label="Entregas em andamento" hidden>
+        ${[...departureGroups].map(([id,group])=>driverStopSorter(group,id)).join('')}
         <div class="driverDashboardList">${enRoute.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">Nenhuma entrega em rota.</p>'}</div>
         ${other.length?`<details class="driverOverview driverOtherOrders" data-driver-detail="other">
           <summary>Outras entregas <span>${other.length}</span></summary>
@@ -272,6 +310,8 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       await driverAppApi('logout').catch(()=>{});
       localStorage.removeItem(driverTokenKey);
       driverReadySeen.clear();
+      selectedDeparture.clear();
+      customDepartureOrder=[];
       driverDashboardView='ready';
       clearInternalResume();
       stopDriverAreaGps();
@@ -293,6 +333,16 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       const count=selectedDeparture.size;
       groupButton.disabled=startingDeparture||count<2||count>30;
       groupButton.textContent=startingDeparture?'Iniciando rota…':count<2?'Iniciar rota em grupo':`Iniciar rota com ${count} entregas`;
+      const sorter=screen.querySelector('#newDriverStopSorter');
+      const ordered=orderedDriverStops(ready);
+      sorter.innerHTML=driverStopSorter(ordered);
+      sorter.querySelectorAll('[data-stop-index]').forEach(button=>{
+        if(startingDeparture)button.disabled=true;
+        button.onclick=()=>{
+          const ids=moveDriverStop(ordered,button);
+          if(ids){customDepartureOrder=ids;updateGroup();}
+        };
+      });
       for(const choice of groupChoices)choice.disabled=startingDeparture;
       screen.querySelectorAll('[data-driver-status="route"]').forEach(button=>{button.disabled=startingDeparture;});
     };
@@ -306,10 +356,11 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       startingDeparture=true;
       updateGroup();
       try{
-        await driverAppApi('start_departure',{assignment_ids:[...selectedDeparture]});
+        await driverAppApi('start_departure',{ordered:true,assignment_ids:orderedDriverStops(ready).map(assignment=>String(assignment.id))});
         selectedDeparture.clear();
+        customDepartureOrder=[];
         driverDashboardView='route';
-        showAppToast('Rota iniciada. Siga a ordem dos números dos pedidos.','ok');
+        showAppToast('Rota iniciada. Siga a sequência das paradas.','ok');
       }catch(error){
         alert(error.message);
       }finally{
@@ -318,6 +369,23 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       }
     };
     updateGroup();
+    screen.querySelectorAll('[data-existing-departure]').forEach(sorter=>{
+      const departureId=sorter.dataset.existingDeparture;
+      sorter.querySelectorAll('[data-stop-index]').forEach(button=>{
+        button.onclick=async()=>{
+          if(startingDeparture)return;
+          const ids=moveDriverStop(departureGroups.get(departureId),button);
+          if(!ids)return;
+          startingDeparture=true;
+          sorter.querySelectorAll('button').forEach(item=>item.disabled=true);
+          try{
+            await driverAppApi('reorder_departure',{departure_id:departureId,assignment_ids:ids});
+            showAppToast('Ordem das paradas atualizada.','ok');
+          }catch(error){alert(error.message);}
+          finally{startingDeparture=false;await renderDriverArea();}
+        };
+      });
+    });
     screen.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));
     const incoming=ready.filter(a=>!driverReadySeen.has(String(a.id)));
     driverReadySeen=new Set(ready.map(a=>String(a.id)));
@@ -334,15 +402,15 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
 }
 
 function driverAssignmentSignature(snapshot){
-  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.delivered_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at,a.orders?.ready_at])]);
+  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.departure_position,a.delivered_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at,a.orders?.ready_at])]);
 }
 async function refreshAutomaticDriver(){
-  if(driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
+  if(startingDeparture||driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
   const previous=driverSnapshot;
   driverSyncBusy=true;
   try{
     const fresh=await driverAppApi('snapshot');
-    if(driverSnapshot===previous&&document.querySelector('.driverScreenNew')&&
+    if(!startingDeparture&&driverSnapshot===previous&&document.querySelector('.driverScreenNew')&&
       driverAssignmentSignature(fresh)!==driverAssignmentSignature(previous))await renderDriverArea(fresh);
   }catch(e){console.warn('Falha temporária na atualização automática do entregador:',e)}
   finally{driverSyncBusy=false;}

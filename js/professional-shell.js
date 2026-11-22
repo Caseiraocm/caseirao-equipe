@@ -2,13 +2,13 @@
 (()=>{
   'use strict';
   const sections=[
-    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
+    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade','★','Fidelidade'],['promocoes','🔥','Promoções']]},
     {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const paymentKey=value=>{const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(key.includes('pix'))return'pix';if(key.includes('dinheiro'))return'dinheiro';if(key.includes('cartao')||key.includes('credito')||key.includes('debito'))return'cartao';return''};
-  const navHtml=()=>sections.map(section=>`<section class="proNavGroup"><div class="proNavLabel">${section.group}</div>${section.items.map(([key,icon,label])=>`<button type="button" data-pro-tab="${key}" class="proNavButton ${adminTab===key?'active':''}"><span>${icon}</span><b>${label}</b></button>`).join('')}</section>`).join('');
+  const navHtml=()=>sections.map(section=>`<section class="proNavGroup"><div class="proNavLabel">${section.group}</div>${section.items.map(([key,icon,label])=>`<button type="button" data-pro-tab="${key}" class="proNavButton ${adminTab===key?'active':''}"><span>${icon}</span><b>${label}</b>${key==='atendimento_chat'?'<strong class="supportBadge" data-support-unread hidden></strong>':''}</button>`).join('')}</section>`).join('');
   function enhanceHome(){const card=document.querySelector('.teamLauncherCard');if(!card)return;const kicker=card.querySelector('.teamLauncherKicker');if(kicker&&kicker.textContent!=='CENTRAL OFICIAL DO CASEIRÃO')kicker.textContent='CENTRAL OFICIAL DO CASEIRÃO';const live=card.querySelector('.teamLauncherLive');if(live&&live.textContent!=='● SISTEMA ONLINE')live.textContent='● SISTEMA ONLINE'}
   function cashMetrics(){
     const orders=typeof shiftOrders==='function'?shiftOrders():(admin.orders||[]);
@@ -32,6 +32,7 @@
       </div>
       <span class="proHeaderSection" aria-current="page">${title}</span>
       <div class="proHeaderStatus ${opened?'open':'closed'}"><i aria-hidden="true"></i>${opened?'Loja aberta':'Loja fechada'}</div>
+      <button type="button" id="proSupport" class="proHeaderButton" aria-label="Atendimento"><span>Atendimento</span><strong class="supportBadge" data-support-unread hidden></strong></button>
       <button type="button" id="proRefresh" class="proHeaderButton" aria-label="Atualizar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4v6h-6M21 10a9 9 0 1 0 0 5"/></svg>
         <span>Atualizar</span>
@@ -72,6 +73,7 @@
     });
     $('#proHome').onclick=()=>{clearInternalResume();leaveOperationalMode()};
     $('#adminLogout').onclick=()=>{sessionStorage.removeItem('caseirao_admin_pin');clearInternalResume();if(orderWatcher)clearInterval(orderWatcher);admin=null;openAdmin()};
+    $('#proSupport').onclick=()=>{adminTab='atendimento_chat';renderAdmin()};
     $('#proRefresh').onclick=async()=>{
       const button=$('#proRefresh');
       const label=button.querySelector('span');
