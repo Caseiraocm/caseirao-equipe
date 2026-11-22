@@ -39,7 +39,7 @@
       const url=customerWhatsAppUrl(order);
       const wa=document.createElement(url?'a':'button');wa.className='premiumWhatsApp';
       wa.textContent='☏ WhatsApp';
-      if(url){wa.href=url;wa.target='_blank';wa.rel='noopener';wa.setAttribute('aria-label',`WhatsApp do cliente do pedido ${order.order_number}`)}
+      if(url){wa.dataset.whatsappRouteOrder=customerWhatsAppRouteOrder(order);wa.href=url;wa.target='_blank';wa.rel='noopener';wa.setAttribute('aria-label',`WhatsApp do cliente do pedido ${order.order_number}`)}
       else {wa.type='button';wa.disabled=true;wa.title='Cliente sem telefone válido';wa.textContent='Sem telefone'}
       // Move o próprio botão de impressão do rodapé, preservando seu comando.
       const originalPrint=card.querySelector('.printActions [data-btprint]');

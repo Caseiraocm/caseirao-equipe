@@ -6,6 +6,12 @@ const driverAppStyle=document.createElement('style');driverAppStyle.textContent=
 .driverAccessChoice{border-color:#b8d9ee!important;background:#f1f9ff!important;color:#175f8f!important}.deliveryHubGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.deliveryPanel,.deliveryCard{border:1px solid #dfe3e7;background:#fff;border-radius:17px;padding:14px;color:#25292e}.deliveryPanel h3,.deliveryCard h3{margin:0 0 8px}.deliveryCard{margin:10px 0}.deliveryMeta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.deliveryMeta>div{border:1px solid #e3e6e9;background:#f7f8f9;border-radius:11px;padding:9px}.deliveryMeta small{display:block;color:#717981}.deliveryActions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.deliveryActions button{min-height:46px}.driverScreenNew{max-width:680px;margin:auto}.driverOrder{border:1px solid #dfe3e7;background:#fff;color:#24282d;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 5px 16px rgba(28,34,41,.05)}.driverOrder .addressBoxAdmin{background:#f6f8fa;color:#25292e;border-color:#dfe3e7}.driverMoney{border:1px solid #cce5d4;background:#effaf2;border-radius:13px;padding:12px;margin:10px 0;color:#176b3b}.driverPremiumHero{position:relative;overflow:hidden;border-radius:22px;padding:18px;margin:0 0 13px;background:linear-gradient(135deg,#20252a,#343a40);color:#fff;box-shadow:0 12px 30px rgba(20,24,28,.18);border:1px solid rgba(255,255,255,.06)}.driverPremiumHero:after{content:'🛵';position:absolute;right:12px;top:7px;font-size:58px;opacity:.12;transform:rotate(-7deg)}.driverPremiumHead{display:flex;align-items:center;gap:11px;position:relative;z-index:1}.driverPremiumIcon{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:23px}.driverPremiumHead h2{margin:0;font-size:18px}.driverPremiumHead small{display:block;margin-top:2px;color:#cfd4d9}.driverPremiumStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px;position:relative;z-index:1}.driverPremiumStat{background:rgba(255,255,255,.095);border:1px solid rgba(255,255,255,.11);border-radius:13px;padding:10px}.driverPremiumStat small{display:block;font-size:9px;text-transform:uppercase;font-weight:850;color:#cfd4d9}.driverPremiumStat b{display:block;margin-top:3px;font-size:15px}.driverPremiumStat.total b{color:#ffd2b9}.driverSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 7px}.driverSectionHead h3{margin:0;font-size:15px;color:#2d3238}.driverSectionHead span{font-size:10px;font-weight:900;color:#8a4a27;background:#fff1e8;border:1px solid #f0cfbd;border-radius:999px;padding:5px 8px}.driverQuickTop{display:flex;align-items:flex-start;gap:10px}.driverQuickTop .grow{min-width:0}.driverQuickTop h3{margin:0;font-size:17px}.driverQuickTop .driverFee{font-size:18px;color:#b94716;white-space:nowrap}.driverQuickLine{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}.driverQuickChip{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#f4f6f8;border:1px solid #e3e6e9;font-size:11px;font-weight:800;color:#4a5159}.driverNextAction{margin-top:8px}.driverNextAction .primary,.driverNextAction .secondary{min-height:48px}.driverDetails{margin-top:9px;border-top:1px solid #eceff1;padding-top:8px}.driverDetails>summary{list-style:none;cursor:pointer;font-size:12px;font-weight:900;color:#6a7179;padding:8px 0}.driverDetails>summary::-webkit-details-marker{display:none}.driverDetails>summary:after{content:'＋';float:right;color:#a64a1c}.driverDetails[open]>summary:after{content:'−'}.driverDetailsContent{padding-top:4px}.driverMiniMapBtn{display:block;text-align:center;text-decoration:none;margin:8px 0;padding:11px 12px!important;min-height:auto!important;font-size:12px}.driverCompactMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 0}.driverCompactMeta>div{background:#f6f7f8;border:1px solid #e5e8eb;border-radius:10px;padding:8px}.driverCompactMeta small{display:block;color:#7a8188;font-size:9px;text-transform:uppercase;font-weight:850}.driverCompactMeta b{display:block;margin-top:3px;font-size:12px}.driverStatus{font-size:12px;font-weight:900;color:#b24b18;text-transform:uppercase}.deliveryLogin{max-width:430px;margin:25px auto}.gpsActive{background:#157347!important;color:#fff!important}.settled{opacity:.7}.deliveryPanel .in,.deliveryPanel .sel,.deliveryCard .in,.deliveryCard .sel,.driverOrder .in{color:#20242a!important;background:#fff!important}
 .driverDaySummary{margin:0 0 14px;border:1px solid #d8dce1;background:#fff;color:#20242a;border-radius:18px;padding:15px;box-shadow:0 7px 22px rgba(28,34,41,.06)}.driverDaySummaryHead{display:flex;align-items:center;justify-content:space-between;gap:12px}.driverDaySummaryHead h3{margin:0;font-size:18px}.driverDaySummaryHead strong{font-size:20px;color:#bd4715}.driverDayStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}.driverDayStats>div{background:#f5f7f8;border-radius:12px;padding:10px}.driverDayStats small{display:block;color:#747c84;font-size:9px;font-weight:900;text-transform:uppercase}.driverDayStats b{display:block;margin-top:4px;font-size:16px}.driverHoodList{margin-top:11px;border:1px solid #e4e7ea;border-radius:13px;overflow:hidden}.driverHoodRow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid #e8eaed}.driverHoodRow:last-child{border-bottom:0}.driverHoodRow small{color:#707780}.driverHoodRow>strong{min-width:72px;text-align:right}
 @media(max-width:620px){.deliveryHubGrid,.deliveryActions{grid-template-columns:1fr}.deliveryMeta{grid-template-columns:1fr 1fr}.driverDayStats{grid-template-columns:1fr 1fr}.driverHoodRow{grid-template-columns:1fr auto}.driverHoodRow small{grid-column:1/-1}}
+.driverDeparturePicker{display:grid;gap:10px;margin:8px 0 14px;padding:12px;border:1px solid #c9dfdc;border-radius:10px;color:#07383b;background:#f3f9f8}
+.driverDeparturePicker legend{padding:0 5px;font-weight:800}
+.driverDeparturePicker>div{display:flex;flex-wrap:wrap;gap:6px}
+.driverDeparturePicker label{display:flex;align-items:center;gap:6px;min-height:40px;padding:4px 9px;margin:0;border:1px solid #c9dfdc;border-radius:7px;background:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.driverDeparturePicker input{width:17px;height:17px;accent-color:#084547}
+.driverDeparturePicker button{min-height:42px}
 `;document.head.appendChild(driverAppStyle);
 
 let deliveryHub=null,driverSnapshot=null,driverLocationWatch=null,driverLocationTimer=null;
@@ -162,6 +168,8 @@ let automaticDriverSyncTimer=null;
 let driverSyncBusy=false;
 let driverReadySeen=new Set();
 let driverDashboardView='ready';
+const selectedDeparture=new Set();
+let startingDeparture=false;
 
 function driverReadyForPickup(assignment){
   const order=assignment.orders;
@@ -192,7 +200,12 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       && ['assigned','route','arrived','problem'].includes(a.status));
     const ready=active.filter(driverReadyForPickup)
       .sort((a,b)=>Number(a.orders?.order_number)-Number(b.orders?.order_number));
-    const enRoute=active.filter(a=>['route','arrived'].includes(a.status));
+    const enRoute=active.filter(a=>['route','arrived'].includes(a.status))
+      .sort((a,b)=>String(a.route_started_at||'').localeCompare(String(b.route_started_at||''))
+        ||Number(a.orders?.order_number)-Number(b.orders?.order_number));
+    const readyIds=new Set(ready.map(a=>String(a.id)));
+    for(const id of selectedDeparture)if(!readyIds.has(id))selectedDeparture.delete(id);
+    if(ready.length<2)selectedDeparture.clear();
     const other=active.filter(a=>['assigned','problem'].includes(a.status)&&!driverReadyForPickup(a));
     const oldScreen=document.querySelector('.driverScreenNew');
     const oldSheet=oldScreen?.closest('.sheet');
@@ -223,6 +236,11 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
         <button type="button" data-driver-view="route" aria-controls="driverRoutePanel">Em rota <span>${enRoute.length}</span></button>
       </div>
       <section id="driverReadyPanel" data-driver-panel="ready" aria-label="Entregas prontas">
+        ${ready.length>1?`<fieldset class="driverDeparturePicker">
+          <legend>Pedidos desta saída</legend>
+          <div>${ready.map(a=>`<label><input type="checkbox" data-departure-pick="${esc(a.id)}" ${selectedDeparture.has(String(a.id))?'checked':''}> #${esc(a.orders?.order_number)}</label>`).join('')}</div>
+          <button type="button" class="primary" id="driverStartDeparture" disabled>Iniciar rota em grupo</button>
+        </fieldset>`:''}
         <div class="driverDashboardList">${ready.map(driverOrderCard).join('')||'<p class="driverRouteEmpty">As entregas liberadas aparecem aqui.</p>'}</div>
       </section>
       <section id="driverRoutePanel" data-driver-panel="route" aria-label="Entregas em andamento" hidden>
@@ -268,6 +286,38 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       showAppToast(enabled?'Alerta sonoro ativado nesta tela.':'Alerta sonoro desativado.','ok');
     };
     screen.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));
+    const groupButton=screen.querySelector('#driverStartDeparture');
+    const groupChoices=[...screen.querySelectorAll('[data-departure-pick]')];
+    const updateGroup=()=>{
+      if(!groupButton)return;
+      const count=selectedDeparture.size;
+      groupButton.disabled=startingDeparture||count<2||count>30;
+      groupButton.textContent=startingDeparture?'Iniciando rota…':count<2?'Iniciar rota em grupo':`Iniciar rota com ${count} entregas`;
+      for(const choice of groupChoices)choice.disabled=startingDeparture;
+      screen.querySelectorAll('[data-driver-status="route"]').forEach(button=>{button.disabled=startingDeparture;});
+    };
+    for(const choice of groupChoices)choice.onchange=()=>{
+      if(choice.checked)selectedDeparture.add(choice.dataset.departurePick);
+      else selectedDeparture.delete(choice.dataset.departurePick);
+      updateGroup();
+    };
+    if(groupButton)groupButton.onclick=async()=>{
+      if(startingDeparture||selectedDeparture.size<2||selectedDeparture.size>30)return;
+      startingDeparture=true;
+      updateGroup();
+      try{
+        await driverAppApi('start_departure',{assignment_ids:[...selectedDeparture]});
+        selectedDeparture.clear();
+        driverDashboardView='route';
+        showAppToast('Rota iniciada. Siga a ordem dos números dos pedidos.','ok');
+      }catch(error){
+        alert(error.message);
+      }finally{
+        startingDeparture=false;
+        await renderDriverArea();
+      }
+    };
+    updateGroup();
     screen.querySelectorAll('[data-driver-gps]').forEach(b=>b.onclick=()=>startDriverAreaGps(b.dataset.driverGps,b));
     const incoming=ready.filter(a=>!driverReadySeen.has(String(a.id)));
     driverReadySeen=new Set(ready.map(a=>String(a.id)));
