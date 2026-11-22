@@ -226,3 +226,197 @@
   .tableCheckoutGrid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .tableCheckoutPayment { grid-row: 1; }
 }
+
+/* Comanda aberta na Central e no atendimento. */
+.sheet.full.tableAccountSheet {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: auto !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  scrollbar-color: #b4c7c7 #fff;
+}
+.tableCheckoutSheet > .modalNav { display: none !important; }
+.tableAccountView {
+  --account-ink: #07383b;
+  --account-muted: #53686b;
+  --account-line: #dbe5e5;
+  --account-fill: #edf6f4;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 22px clamp(16px, 4vw, 54px) 30px;
+  color: var(--account-ink);
+  background: #fff;
+  font-family: Inter, system-ui, sans-serif;
+}
+.tableAccountView *, .tableAccountView *::before, .tableAccountView *::after { box-sizing: border-box; }
+.tableAccountView button { font: inherit; font-weight: 700; cursor: pointer; }
+.tableAccountView button:disabled { cursor: default; opacity: .6; }
+.tableAccountView :is(button, summary):focus-visible { outline: 3px solid #c94e17; outline-offset: 3px; }
+.tableAccountView .tableAccountNav {
+  display: flex !important;
+  position: static !important;
+  justify-content: space-between;
+  grid-column: auto;
+  margin: 0;
+  padding: 0 0 13px;
+  border: 0;
+  border-bottom: 1px solid var(--account-line);
+  background: #fff;
+}
+.tableAccountView .tableAccountNav button {
+  min-height: 41px;
+  padding: 6px 12px !important;
+  border: 1px solid var(--account-line) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: var(--account-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: none !important;
+  font-size: 14px;
+}
+.tableAccountNav button span { margin-inline-end: 5px; }
+.tableAccountHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 0 24px;
+}
+.tableAccountHeader h1 {
+  margin: 0;
+  color: var(--account-ink);
+  font-size: clamp(36px, 6vw, 65px);
+  font-weight: 825;
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+.tableAccountHeader h1:focus { outline: none; }
+.tableAccountHeader p {
+  margin: 8px 0 0;
+  color: var(--account-muted);
+  font-size: clamp(15px, 2vw, 20px);
+  overflow-wrap: anywhere;
+}
+.tableAccountState {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  margin-top: 5px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: var(--account-fill);
+  color: #1a534a;
+  font-size: 13px;
+  font-weight: 750;
+}
+.tableAccountState::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #26805f; }
+.tableAccountGrid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(230px, 1fr); align-items: start; gap: clamp(12px, 2vw, 24px); }
+.tableAccountOrders, .tableAccountPayment {
+  min-width: 0;
+  border: 1px solid var(--account-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px #07383b0b;
+}
+.tableAccountOrders > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: clamp(13px, 2.2vw, 23px);
+  border-bottom: 1px solid var(--account-line);
+}
+.tableAccountOrders h2 { margin: 0; color: var(--account-ink); font-size: clamp(24px, 3vw, 34px); line-height: 1; letter-spacing: -.038em; }
+.tableAccountOrders header p { margin: 7px 0 0; color: var(--account-muted); font-size: 13px; }
+.tableAccountView .tableAccountAdd {
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid #bad6d1;
+  border-radius: 8px;
+  background: var(--account-fill);
+  color: var(--account-ink);
+  font-size: clamp(13px, 1.6vw, 16px);
+}
+.tableAccountAdd span { margin-right: 3px; font-size: 1.2em; vertical-align: -.03em; }
+.tableAccountOrderList { padding: 0 clamp(13px, 2.2vw, 23px); }
+.tableAccountOrder + .tableAccountOrder { border-top: 1px solid var(--account-line); }
+.tableAccountOrder summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 14px;
+  align-items: center;
+  gap: clamp(7px, 1.3vw, 14px);
+  min-height: 58px;
+  padding: 7px 0;
+  color: var(--account-ink);
+  cursor: pointer;
+  list-style: none;
+}
+.tableAccountOrder summary::-webkit-details-marker { display: none; }
+.tableAccountOrder summary strong { white-space: nowrap; }
+.tableAccountOrderNo { font-weight: 785; overflow-wrap: anywhere; }
+.tableAccountOrderState {
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #f0f4f4;
+  color: #385659;
+  font-size: clamp(10px, 1.4vw, 13px);
+  font-weight: 700;
+  text-align: center;
+}
+.tableAccountOrder.is-canceled .tableAccountOrderState { background: #fff0ed; color: #963325; }
+.tableAccountChevron { justify-self: center; width: 7px; height: 7px; border-right: 2px solid; border-bottom: 2px solid; transform: rotate(45deg); }
+.tableAccountOrder[open] .tableAccountChevron { transform: rotate(225deg); }
+.tableAccountOrder ul { list-style: none; padding: 0; margin: 0 0 10px; border-top: 1px solid var(--account-line); }
+.tableAccountItem { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: baseline; padding: 9px 0; color: #203839; font-size: clamp(13px, 1.65vw, 16px); }
+.tableAccountItem + .tableAccountItem { border-top: 1px solid #edf1f1; }
+.tableAccountQuantity { min-width: 24px; color: var(--account-muted); font-variant-numeric: tabular-nums; }
+.tableAccountItem strong { overflow-wrap: anywhere; }
+.tableAccountItem small { display: block; margin-top: 3px; color: var(--account-muted); overflow-wrap: anywhere; }
+.tableAccountItem small.tableAccountPaid { color: #1a684f; font-weight: 700; }
+.tableAccountItem > b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tableAccountOrderNote { padding: 2px 0 12px; color: var(--account-muted); font-size: 13px; overflow-wrap: anywhere; }
+.tableAccountEmpty { display: grid; gap: 5px; padding: 26px 0; color: var(--account-muted); font-size: 14px; }
+.tableAccountEmpty b { font-size: 17px; color: var(--account-ink); }
+.tableAccountPayment { display: grid; gap: 10px; padding: clamp(12px, 2vw, 20px); }
+.tableAccountBalance {
+  display: grid;
+  position: relative;
+  isolation: isolate;
+  gap: 6px;
+  align-content: center;
+  min-height: clamp(112px, 15vw, 165px);
+  overflow: hidden;
+  padding: clamp(13px, 2.3vw, 27px);
+  border-radius: 9px;
+  color: #fff;
+  background: #084547;
+}
+.tableAccountBalance span { font-size: clamp(14px, 2vw, 20px); font-weight: 680; }
+.tableAccountBalance strong { font-size: clamp(32px, 4.65vw, 56px); line-height: 1.05; font-weight: 830; letter-spacing: -.05em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: #fff; }
+.tableAccountBalance svg { position: absolute; z-index: -1; inset: 0 0 0 auto; height: 100%; width: 30%; stroke: #ee793f; stroke-width: 1.8; }
+.tableAccountReceived { display: flex; justify-content: space-between; gap: 8px; padding: 2px 4px; color: #205d4b; font-size: 14px; }
+.tableAccountView :is(.tableAccountClose,.tableAccountPrint) { min-height: 48px; border-radius: 8px; padding: 8px 12px; }
+.tableAccountView .tableAccountClose { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 0; background: #084547; color: #fff; font-size: clamp(16px, 2vw, 21px); }
+.tableAccountClose span { font-size: 1.25em; }
+.tableAccountView .tableAccountPrint { display: flex; justify-content: center; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--account-line); color: var(--account-ink); font-size: 14px; }
+.tableAccountPrint svg { width: 20px; }
+.tableAccountFooter { margin-top: 18px; padding-top: 8px; border-top: 1px solid var(--account-line); }
+.tableAccountFooter button { min-height: 44px; padding: 0 5px; border: 0; border-radius: 6px; background: #fff; color: #9b392e; font-size: 13px; }
+.tableAccountFooter button:hover { text-decoration: underline; }
+#tableAccountError { margin: 0; color: #9b392e; font-size: 14px; }
+#tableAccountError:empty { display: none; }
+@media (max-width: 640px) {
+  .tableAccountView { padding-top: 13px; }
+  .tableAccountHeader { padding: 16px 0; }
+  .tableAccountGrid { grid-template-columns: minmax(0, 1fr); }
+  .tableAccountPayment { grid-row: 1; }
+}
+#modalRoot .overlay:has(> :is(.tableAccountSheet,.tableCheckoutSheet)) { padding: 0 !important; }
