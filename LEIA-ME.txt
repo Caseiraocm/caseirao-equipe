@@ -1,14 +1,19 @@
-CASEIRÃO EQUIPE — FECHAMENTO DE MESAS
+CASEIRÃO EQUIPE — CORREÇÃO DO FECHAMENTO DE MESAS E WHATSAPP
 
-1. No SQL Editor do projeto Supabase já usado pela Equipe, execute o conteúdo
-   de supabase/fechamento-mesas.sql. O ajuste habilita Cartão como forma de
-   pagamento e confere a comanda antes de quitar todo o saldo.
-2. No repositório da Equipe, substitua index.html, sw.js e
-   js/mesa-pagar-itens.js. Adicione css/fechamento-mesas.css.
-3. Após a publicação, recarregue a Central. Abra Mesas, entre em uma comanda
-   e toque em Fechar mesa para ver a tela nova. Escolha a forma após receber
-   na maquininha, conferir o Pix ou receber em dinheiro. Confirme para
-   registrar o saldo e liberar a mesa.
+Esta versão corrige o registro ao tocar em Confirmar e liberar mesa.
+O botão do WhatsApp continua abrindo o texto da etapa atual do pedido.
 
-O ZIP contém os arquivos da atualização. Mantenha os demais arquivos da Equipe.
+1. No repositório da Equipe, substitua index.html, sw.js, js/admin.js,
+   js/mesa-pagar-itens.js e css/fechamento-mesas.css pelos do ZIP.
+2. No SQL Editor do projeto Supabase da Equipe, execute o arquivo
+   supabase/fechamento-mesas.sql. Esta versão do SQL permite registrar
+   Cartão e confere o saldo integral antes de fechar a mesa. Pode ser
+   reaplicada mesmo se o SQL do ZIP anterior já tiver sido executado.
+   Pix e Dinheiro também usam o formato já aceito pelo banco antigo.
+3. Após publicar, feche e reabra a Central no tablet. Em Mesas, abra uma
+   comanda, toque em Fechar mesa, selecione a forma de pagamento e
+   confirme depois de receber.
+4. Se houver uma tentativa pendente, use Conferir pagamento anterior.
+   A Central reaproveita a mesma identificação para evitar duplicidade.
+
 O SQL é executado no Supabase e o LEIA-ME é só para consulta.
