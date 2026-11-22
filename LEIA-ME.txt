@@ -1,15 +1,14 @@
-CASEIRÃO EQUIPE | FLUXO DE PEDIDOS
+CASEIRÃO EQUIPE — FECHAMENTO DE MESAS
 
-Publique index.html, sw.js e os arquivos das pastas js e css nas mesmas
-pastas do repositório Caseiraocm/caseirao-equipe. O pacote já inclui o
-painel do entregador aprovado na atualização anterior.
+1. No SQL Editor do projeto Supabase já usado pela Equipe, execute o conteúdo
+   de supabase/fechamento-mesas.sql. O ajuste habilita Cartão como forma de
+   pagamento e confere a comanda antes de quitar todo o saldo.
+2. No repositório da Equipe, substitua index.html, sw.js e
+   js/mesa-pagar-itens.js. Adicione css/fechamento-mesas.css.
+3. Após a publicação, recarregue a Central. Abra Mesas, entre em uma comanda
+   e toque em Fechar mesa para ver a tela nova. Escolha a forma após receber
+   na maquininha, conferir o Pix ou receber em dinheiro. Confirme para
+   registrar o saldo e liberar a mesa.
 
-Aplique backend/fluxo-pedidos.sql no SQL Editor do projeto Supabase do
-Caseirão na mesma atualização. Esse arquivo substitui a regra que
-mudava Pronto para Em rota. A tela e o banco precisam da correção.
-A pasta backend e este guia ficam fora da publicação no GitHub Pages.
-
-Entrega segue Recebido, Em preparo, Pronto, Em rota e Entregue.
-Retirada segue Recebido, Em preparo, Pronto e Retirado.
-O status interno Confirmado continua na etapa Recebidos.
-O sistema mantém o toque e os avisos visuais sem a locução de pronto.
+O ZIP contém os arquivos da atualização. Mantenha os demais arquivos da Equipe.
+O SQL é executado no Supabase e o LEIA-ME é só para consulta.
