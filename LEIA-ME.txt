@@ -1,10 +1,11 @@
-CASEIRÃO EQUIPE — CORREÇÃO DO FECHAMENTO DE MESAS E WHATSAPP
+CASEIRÃO EQUIPE — COMANDA DE MESA, FECHAMENTO E WHATSAPP
 
-Esta versão corrige o registro ao tocar em Confirmar e liberar mesa.
+A comanda passa a mostrar o consumo e o saldo em dois painéis no tablet.
+A correção de Confirmar e liberar mesa está incluída.
 O botão do WhatsApp continua abrindo o texto da etapa atual do pedido.
 
 1. No repositório da Equipe, substitua index.html, sw.js, js/admin.js,
-   js/mesa-pagar-itens.js e css/fechamento-mesas.css pelos do ZIP.
+   js/team.js, js/mesa-pagar-itens.js e css/fechamento-mesas.css pelos do ZIP.
 2. No SQL Editor do projeto Supabase da Equipe, execute o arquivo
    supabase/fechamento-mesas.sql. Esta versão do SQL permite registrar
    Cartão e confere o saldo integral antes de fechar a mesa. Pode ser
