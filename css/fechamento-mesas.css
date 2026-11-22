@@ -85,7 +85,7 @@
   letter-spacing: -.039em;
 }
 .tableCheckout h1:focus { outline: 0; }
-#tableCheckoutNotice { margin: 0 0 12px; color: #385859; line-height: 1.4; }
+#tableCheckoutNotice { margin: 12px 0 0; color: #385859; line-height: 1.4; }
 #tableCheckoutNotice:empty { display: none; }
 #tableCheckoutNotice.is-error { color: #93291f; }
 .tableCheckoutGrid { display: grid; grid-template-columns: minmax(0, .53fr) minmax(0, 1fr); gap: clamp(9px, 1.05vw, 16px); }
