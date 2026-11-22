@@ -28,20 +28,53 @@ function customerWhatsAppWebUrl(phone,message=''){
   if(!number)return '';
   return 'https://web.whatsapp.com/send?phone='+encodeURIComponent(number)+'&text='+encodeURIComponent(message);
 }
-function customerWhatsAppUrl(o){
-  const phone=customerWhatsAppNumber(o.customer_phone);
-  if(!phone)return '';
-  const name=String(o.customer_name||'cliente').trim();
-  const number=String(o.order_number||'').trim();
-  let message=`Olá, ${name}! Estamos entrando em contato sobre o seu pedido #${number} no O Caseirão Burger.`;
-  if(o.status==='confirmado')message=`Olá, ${name}! ✅ Seu pedido #${number} foi confirmado pelo O Caseirão Burger.`;
-  else if(o.status==='preparando')message=`Olá, ${name}! 🍔 Seu pedido #${number} está em preparo no O Caseirão Burger.`;
-  else if(o.status==='pronto')message=o.type==='delivery'
-    ?`Olá, ${name}! Seu pedido #${number} no O Caseirão Burger está pronto e em breve sairá para entrega. 🍔✅`
-    :`Olá, ${name}! Seu pedido #${number} no O Caseirão Burger está pronto. Já pode vir buscar! 🍔✅`;
-  else if(o.status==='em_rota')message=`Olá, ${name}! Seu pedido #${number} no O Caseirão Burger saiu para entrega. 🛵✅`;
-  else if(o.status==='entregue')message=`Olá, ${name}! Passando para confirmar se você recebeu direitinho o pedido #${number} do O Caseirão Burger. 🍔`;
-  return customerWhatsAppWebUrl(phone,message);
+function customerWhatsAppMessage(order, status=order.status){
+  const name=String(order.customer_name||'').trim().split(/\s+/)[0];
+  const greeting=name?`Oi, ${name}!`:'Oi!';
+  const lead=name?`${name}, seu pedido`:'Seu pedido';
+  const number=String(order.order_number??'').trim();
+  const reference=number?` #${number}`:'';
+
+  switch(status){
+    case 'novo':
+      return `${greeting} Aqui é do Caseirão Burger. Recebemos seu pedido${reference} e já vamos conferir. Assim que ele for aceito, te avisamos por aqui!`;
+    case 'confirmado': {
+      const items=(Array.isArray(order.order_items)?order.order_items:[]).map(item=>{
+        const note=String(item.note||'').trim();
+        const addons=(Array.isArray(item.order_item_addons)?item.order_item_addons:[])
+          .map(addon=>String(addon.addon_name||'').trim()).filter(Boolean);
+        return [
+          `• ${Number(item.quantity)||1}× ${item.product_name||'Item'}${note?` — ${note}`:''}`,
+          ...addons.map(addon=>`  + ${addon}`)
+        ].join('\n');
+      });
+      const total=order.total!=null&&order.total!==''&&Number.isFinite(Number(order.total))
+        ?`*Total: ${fmt(order.total)}${order.type?` · ${orderTypeLabel(order.type)}`:''}*`:'';
+      return [
+        `${greeting} Seu pedido${reference} foi aceito pelo Caseirão Burger 🍔`,
+        items.length?`Você pediu:\n${items.join('\n')}`:'',
+        [total,'Assim que seu lanche estiver pronto, te avisamos!'].filter(Boolean).join('\n')
+      ].filter(Boolean).join('\n\n');
+    }
+    case 'preparando':
+      return `${lead}${reference} já está na chapa! A equipe do Caseirão começou a preparar seu lanche 🍔`;
+    case 'pronto':
+      if(order.type==='delivery')return `${lead}${reference} ficou pronto! Agora ele está aguardando o entregador sair. Te avisamos assim que estiver a caminho 🛵`;
+      if(order.type==='pickup')return `${lead}${reference} já está pronto pra retirada! Pode passar no Caseirão Burger, na Av. Monsenhor Mateus, 340, no bairro Flores.`;
+      if(order.type==='counter')return `${lead}${reference} já está pronto! Pode buscar no balcão do Caseirão Burger 🍔`;
+      return `${lead}${reference} já está pronto! A equipe do Caseirão vai levar até sua mesa 🍔`;
+    case 'em_rota':
+      return `${lead}${reference} saiu para entrega e já está a caminho! Se precisar passar alguma referência pro entregador, pode responder por aqui.`;
+    case 'entregue':
+      return `${lead}${reference} foi finalizado. Valeu por pedir no Caseirão Burger! Bom apetite 🍔`;
+    case 'cancelado':
+      return `${name?`Oi, ${name}.`:'Oi.'} Seu pedido${reference} foi cancelado. Se quiser saber mais ou fazer um novo pedido, pode falar com a gente por aqui.`;
+    default:
+      return `${greeting} Aqui é do Caseirão Burger. Estamos falando sobre seu pedido${reference}.`;
+  }
+}
+function customerWhatsAppUrl(order,status=order.status){
+  return customerWhatsAppWebUrl(order.customer_phone,customerWhatsAppMessage(order,status));
 }
 function driverAddressWhatsAppUrl(o){
   if(o.type!=='delivery')return '';
@@ -350,7 +383,15 @@ function renderOrders(box){
   draw()
 }
 
-function kitchenWhatsAppHtml(o){const phone=customerWhatsAppNumber(o.customer_phone);if(!phone)return '<div class="kitchenPhoneMissing">⚠️ Cliente sem WhatsApp válido</div>';const messages={confirmado:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} foi aceito pelo O Caseirão Burger.`,preparando:`Olá, ${o.customer_name||'cliente'}! 🍔 Seu pedido #${o.order_number} está em preparo.`,pronto:o.type==='pickup'?`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto. Você já pode vir buscar no Caseirão.`:`Olá, ${o.customer_name||'cliente'}! ✅ Seu pedido #${o.order_number} está pronto e aguardando o entregador.`,em_rota:`Olá, ${o.customer_name||'cliente'}! 🛵 Seu pedido #${o.order_number} saiu para entrega e está a caminho.`,entregue:o.type==='pickup'?`Pedido #${o.order_number} retirado com sucesso. Obrigado por escolher o Caseirão! 🍔`:`Seu pedido #${o.order_number} foi entregue. Obrigado por escolher o Caseirão! Bom apetite 🍔`};const stages=o.type==='delivery'?[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PRONTO'],['em_rota','EM ROTA'],['entregue','ENTREGUE']]:[['confirmado','ACEITO'],['preparando','EM PREPARO'],['pronto','PODE BUSCAR'],['entregue','RETIRADO']];return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO WHATSAPP WEB</b><div>${stages.map(([stage,label])=>`<a href="${esc(customerWhatsAppWebUrl(phone,messages[stage]))}" target="_blank" rel="noopener">${label}</a>`).join('')}</div></div>`}
+function kitchenWhatsAppHtml(o){
+  if(!customerWhatsAppNumber(o.customer_phone))return '<div class="kitchenPhoneMissing">⚠️ Cliente sem WhatsApp válido</div>';
+  const stages=[['novo','RECEBIDO'],['confirmado','ACEITO'],['preparando','EM PREPARO'],
+    ['pronto',o.type==='pickup'?'PODE BUSCAR':'PRONTO']];
+  if(o.type==='delivery')stages.push(['em_rota','EM ROTA']);
+  stages.push(['entregue',o.type==='pickup'?'RETIRADO':o.type==='delivery'?'ENTREGUE':'FINALIZADO']);
+  return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO WHATSAPP WEB</b><div>${stages.map(([stage,label])=>
+    `<a href="${esc(customerWhatsAppUrl(o,stage))}" target="_blank" rel="noopener">${label}</a>`).join('')}</div></div>`;
+}
 function renderKitchen(box){const orders=shiftOrders().filter(o=>['novo','confirmado','preparando','pronto'].includes(o.status));box.innerHTML=`<div class="kitchenToolbar"><button id="manualOrderKitchen" class="primary">+ PEDIDO MANUAL</button><button id="connectPrinterKitchen" class="secondary">🖨️ CONECTAR BLUETOOTH</button><button id="refreshKitchen" class="secondary">↻ ATUALIZAR</button></div><div id="printerState" class="printerState kitchenPrinterState">${btWriteChar&&btDevice?.gatt?.connected?`Conectada: ${esc(btPrinterName)}`:navigator.bluetooth?'Impressora Bluetooth disponível no Chrome.':'Bluetooth indisponível neste navegador.'}</div><div class="operationHint">Produção completa: cliente, tempo, pagamento, endereço, itens, impressão e mensagens do WhatsApp.</div><div class="kitchenGrid">${orders.length?orders.map(o=>{const m=orderMinutes(o),late=m>=35,created=new Date(o.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),change=o.change_for?` • Troco para ${esc(o.change_for)}`:'';return `<article class="kitchenCard kitchenFullCard ${late?'late':''}"><div class="ordertop kitchenOrderTop"><div><b class="orderNumber">#${o.order_number}</b><div class="kitchenCreated">Recebido às ${esc(created)}</div></div><span class="grow"></span>${orderWaitHtml(o)}</div><div class="kitchenCustomer"><div><span>CLIENTE</span><b>${esc(o.customer_name||'Não informado')}</b><a href="tel:${esc(o.customer_phone||'')}">${esc(o.customer_phone||'Sem telefone')}</a></div><div><span>PEDIDO E PAGAMENTO</span><b>${esc(orderTypeLabel(o.type))}</b><small>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}${change}</small></div></div>${o.type==='delivery'?`<div class="kitchenAddress"><b>📍 ENDEREÇO COMPLETO</b><span>${esc(orderAddress(o))}</span></div>`:`<div class="kitchenAddress pickup"><b>📦 ${esc(orderTypeLabel(o.type))}</b><span>Cliente busca no estabelecimento</span></div>`}<div class="kitchenItems">${(o.order_items||[]).map(i=>`<div class="kitchenItem"><b>${Number(i.quantity||1)}x ${esc(i.product_name||'Item')}</b>${(i.order_item_addons||[]).map(a=>`<div class="kitchenAddon">+ ${esc(a.addon_name)}</div>`).join('')}${i.note?`<div class="kitchenNote">Observação do item: ${esc(i.note)}</div>`:''}</div>`).join('')}</div>${o.notes?`<div class="kitchenNote"><b>OBSERVAÇÃO GERAL:</b> ${esc(o.notes)}</div>`:''}<div class="printActions kitchenPrintActions"><button class="mainPrint" data-webprint="${o.id}">🧾 IMPRIMIR PEDIDO</button><button class="bt" data-btprint="${o.id}">🖨️ BLUETOOTH</button></div>${kitchenWhatsAppHtml(o)}${o.status==='pronto'?'<div class="notice">✓ Pedido pronto</div>':`<button class="primary kitchenMainAction" data-kitchen="${o.id}" data-next="${o.status==='novo'||o.status==='confirmado'?'preparando':'pronto'}">${o.status==='novo'||o.status==='confirmado'?'INICIAR PREPARO':'MARCAR COMO PRONTO'}</button>`}</article>`}).join(''):'<div class="empty">Nenhum pedido aguardando produção.</div>'}</div>`;$('#manualOrderKitchen').onclick=openManualOrder;$('#refreshKitchen').onclick=async()=>{admin=await adminCall('snapshot');renderKitchen(box)};$('#connectPrinterKitchen').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};bindPrintButtons(orders);document.querySelectorAll('[data-kitchen]').forEach(b=>b.onclick=async()=>{try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.kitchen,status:b.dataset.next});admin=await adminCall('snapshot');renderKitchen(box)}catch(e){b.disabled=false;alert(e.message)}})}
 
 const renderKitchenPaymentBase=renderKitchen;

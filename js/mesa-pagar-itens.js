@@ -2,6 +2,30 @@
 
 (() => {
   const money = cents => fmt(Number(cents) / 100);
+  function paymentRequestId() {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+  }
+
+  // Keep the array accepted by older installations. Newer SQL also checks the full balance.
+  function fullPaymentItems(items) {
+    return items.map((item, index) => index === 0 ? { ...item, close_all: true } : item);
+  }
+
+  async function withResponseTimeout(request) {
+    let timeout;
+    try {
+      return await Promise.race([request, new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('O caixa demorou a responder.')), 15000);
+      })]);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
   const consumed = session => (session.orders || [])
     .filter(order => order.status !== 'cancelado')
     .reduce((sum, order) => sum + Math.round(Number(order.total || 0) * 100), 0);
@@ -60,7 +84,12 @@
     try {
       pending = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
     } catch {
-      sessionStorage.removeItem(storageKey);
+      pending = null;
+    }
+
+    function clearPending() {
+      pending = null;
+      try { sessionStorage.removeItem(storageKey); } catch {}
     }
 
     modal(`<div class="tableCheckout">
@@ -74,7 +103,6 @@
       <main class="tableCheckoutMain" aria-labelledby="tableCheckoutTitle">
         <p class="tableCheckoutCrumb">Mesas <span>/</span> <strong>${esc(name)}</strong></p>
         <h1 id="tableCheckoutTitle" tabindex="-1">Fechar ${esc(name.toLowerCase())}</h1>
-        <p id="tableCheckoutNotice" role="status"></p>
         <div class="tableCheckoutGrid">
           <section class="tableCheckoutSummary" aria-labelledby="tableCheckoutSummaryTitle">
             <h2 id="tableCheckoutSummaryTitle">Resumo da mesa</h2>
@@ -87,6 +115,7 @@
               <svg viewBox="0 0 230 180" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M2 181 115 34q8-10 22-10h94M44 181l89-109q8-10 22-10h76M86 181l65-70q8-10 22-10h58"/></svg>
             </div>
             <div id="tableCheckoutControls"></div>
+            <p id="tableCheckoutNotice" role="status"></p>
             <button type="button" id="tableCheckoutBack">Voltar para a mesa</button>
           </section>
         </div>
@@ -167,20 +196,23 @@
           const method = controls.querySelector('input:checked')?.value;
           if (!method || busy) return;
           const amount = Number(balance.remaining_cents);
-          const payload = {
-            table_session_id: session.id,
-            client_request_id: crypto.randomUUID(),
-            method,
-            expected_cents: amount,
-            cash_received_cents: amount,
-            items: {
-              all: balance.items.filter(item => Number(item.remaining_quantity) > 0)
-                .map(item => ({ item_id: item.id, qty: Number(item.remaining_quantity) }))
-            }
-          };
-          sessionStorage.setItem(storageKey, JSON.stringify(payload));
-          pending = payload;
-          void submit(payload);
+          try {
+            const items = balance.items.filter(item => Number(item.remaining_quantity) > 0)
+              .map(item => ({ item_id: item.id, qty: Number(item.remaining_quantity) }));
+            const payload = {
+              table_session_id: session.id,
+              client_request_id: paymentRequestId(),
+              method,
+              expected_cents: amount,
+              cash_received_cents: amount,
+              items: fullPaymentItems(items)
+            };
+            sessionStorage.setItem(storageKey, JSON.stringify(payload));
+            pending = payload;
+            void submit(payload);
+          } catch {
+            showNotice('O navegador não conseguiu preparar o recebimento. Reabra a Central e tente novamente.', true);
+          }
         };
       } else {
         controls.replaceChildren();
@@ -194,7 +226,8 @@
       setBusy(true);
       showNotice('Atualizando saldo…');
       try {
-        const result = await employeeApi('table_item_balance', { table_session_id: session.id }, adminMode);
+        const result = await withResponseTimeout(employeeApi('table_item_balance', { table_session_id: session.id }, adminMode));
+        if (!Array.isArray(result.balance?.items)) throw new Error('O caixa não retornou os itens da comanda. Atualize o saldo.');
         if (!view.isConnected) return;
         balance = result.balance;
         closed = result.status !== 'open' && !pending;
@@ -220,7 +253,7 @@
       if (busy) return;
       setBusy(true);
       try {
-        await refreshPanels();
+        await withResponseTimeout(refreshPanels());
         if (view.isConnected) goToTab('mesas');
       } catch {
         showNotice('Mesa fechada. Atualize a lista de mesas.', true);
@@ -234,16 +267,25 @@
       setBusy(true);
       const action = controls.querySelector('button');
       if (action) action.textContent = 'Registrando…';
-      showNotice('');
+      showNotice('Registrando o recebimento…');
       let result;
       try {
-        result = await employeeApi('pay_table_items', payload, adminMode);
+        // Pending payments from the earlier version retain the original request ID.
+        const request = Array.isArray(payload.items?.all)
+          ? { ...payload, items: fullPaymentItems(payload.items.all) }
+          : payload;
+        result = await withResponseTimeout(employeeApi('pay_table_items', request, adminMode));
+        if (result.ok !== true || typeof result.closed !== 'boolean' || !Array.isArray(result.balance?.items)) {
+          throw new Error('Resposta do caixa incompleta.');
+        }
       } catch (error) {
         setBusy(false);
         if (error.httpStatus >= 400 && error.httpStatus < 500 && error.httpStatus !== 429) {
-          sessionStorage.removeItem(storageKey);
-          pending = null;
-          await load(error.message || 'Confira a comanda e tente novamente.');
+          clearPending();
+          const message = payload.method === 'Cartão' && /forma de pagamento inválida/i.test(error.message)
+            ? 'O banco da Equipe precisa do ajuste para aceitar Cartão. Pix e Dinheiro continuam disponíveis.'
+            : error.message || 'Confira a comanda e tente novamente.';
+          await load(message);
         } else {
           draw();
           showNotice('Ainda falta confirmar a resposta do caixa. Confira o pagamento anterior para evitar duplicidade.', true);
@@ -251,17 +293,17 @@
         return;
       }
 
-      sessionStorage.removeItem(storageKey);
-      pending = null;
+      clearPending();
       balance = result.balance;
       closed = result.closed;
       draw();
       setBusy(false);
       if (closed) {
-        showAppToast('Conta quitada. Mesa liberada.', 'ok');
+        showNotice('Pagamento registrado. Mesa liberada.');
         await finish();
+        if (!view.isConnected) showAppToast('Conta quitada. Mesa liberada.', 'ok');
       } else {
-        showNotice('Pagamento anterior registrado. Confira o saldo que ainda está em aberto.');
+        showNotice('Pagamento registrado. Ainda há saldo em aberto nesta mesa.');
       }
     }
 
