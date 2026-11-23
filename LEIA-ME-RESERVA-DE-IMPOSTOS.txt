@@ -1,0 +1,19 @@
+CASEIRÃO BURGER | RESERVA DE IMPOSTOS
+
+Publicação da Central ADM
+1. Extraia este ZIP.
+2. No repositório Caseiraocm/caseirao-equipe, publique index.html e sw.js na raiz,
+   css/tax-reserve.css em css/ e os dois arquivos JavaScript em js/.
+   Preserve a estrutura das pastas e substitua os arquivos de mesmo nome.
+3. Depois da publicação do GitHub Pages, atualize a Central ADM e acesse
+   Menu > Gestão > Reserva de impostos.
+
+O banco e a função da Central já foram preparados no Supabase do Caseirão.
+A pasta supabase/ contém o código dessas alterações para manutenção.
+Não reaplique a migração ao mesmo projeto.
+
+O painel usa as comandas finalizadas do relatório financeiro, pela data
+do pedido ou de liberação do agendamento. Cada comanda entra uma vez,
+inclusive com pagamento dividido. O percentual inicial de reserva é 5%
+e pode ser alterado por mês. Registre as transferências após fazê-las
+no banco e informe o valor do DAS quando tiver a guia.
