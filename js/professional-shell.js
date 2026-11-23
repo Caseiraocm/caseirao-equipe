@@ -4,7 +4,7 @@
   const sections=[
     {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade','★','Fidelidade'],['promocoes','🔥','Promoções']]},
-    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
+    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['reserva_impostos','%','Reserva de impostos'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const paymentKey=value=>{const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(key.includes('pix'))return'pix';if(key.includes('dinheiro'))return'dinheiro';if(key.includes('cartao')||key.includes('credito')||key.includes('debito'))return'cartao';return''};
@@ -40,7 +40,7 @@
     </header><aside class="proSidebar" id="proSidebar" hidden><div class="proSidebarHead"><b>MENU PRINCIPAL</b><button type="button" id="proMenuClose" aria-label="Fechar menu">×</button></div><nav class="proSectionNav" aria-label="Menu principal">${navHtml()}</nav><section class="proNavGroup proSessionActions" aria-label="Sessão">
       <button type="button" id="proHome" class="proNavButton"><span aria-hidden="true">⌂</span><b>Início</b></button>
       <button type="button" id="adminLogout" class="proNavButton"><span aria-hidden="true">↪</span><b>Sair</b></button>
-    </section><div class="proSidebarFoot"><span class="${opened?'on':'off'}"></span><div><b>${opened?'Expediente aberto':'Expediente fechado'}</b><small>O Caseirão Burger</small></div></div></aside><button type="button" class="proBackdrop" id="proBackdrop" aria-label="Fechar menu" tabindex="-1" hidden></button><main class="proMain"><section class="proPageTitle"><div><small>PAINEL ADMINISTRATIVO</small><h1 tabindex="-1">${title}</h1></div>${['estoque','cartao_caseirao'].includes(adminTab)?'':'<button type="button" id="proManualOrder">＋ Novo pedido</button>'}</section>${adminTab==='caixa'?cashMetrics():''}<section class="proContent" id="admContent" aria-live="polite"></section></main></div>`,true);
+    </section><div class="proSidebarFoot"><span class="${opened?'on':'off'}"></span><div><b>${opened?'Expediente aberto':'Expediente fechado'}</b><small>O Caseirão Burger</small></div></div></aside><button type="button" class="proBackdrop" id="proBackdrop" aria-label="Fechar menu" tabindex="-1" hidden></button><main class="proMain"><section class="proPageTitle"><div><small>PAINEL ADMINISTRATIVO</small><h1 tabindex="-1">${title}</h1></div>${['estoque','cartao_caseirao','reserva_impostos'].includes(adminTab)?'':'<button type="button" id="proManualOrder">＋ Novo pedido</button>'}</section>${adminTab==='caixa'?cashMetrics():''}<section class="proContent" id="admContent" aria-live="polite"></section></main></div>`,true);
     bindClose();
     const menu = $('#proMenu');
     const closeMenu = $('#proMenuClose');
@@ -96,7 +96,8 @@
     };
     const manualOrder=$('#proManualOrder');
     if(manualOrder)manualOrder.onclick=()=>openManualOrder();
-    renderAdminTab();
+    if (adminTab === 'reserva_impostos') window.renderTaxReserve($('#admContent'));
+    else renderAdminTab();
   };
   new MutationObserver(enhanceHome).observe(document.body,{childList:true,subtree:true});enhanceHome();
 })();
