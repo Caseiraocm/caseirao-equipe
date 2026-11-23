@@ -1,6 +1,9 @@
-CORREÇÃO DE CARREGAMENTO
-Se a Reserva de impostos já aparece no menu, atualize apenas três arquivos no GitHub:
-index.html e sw.js na raiz, e js/professional-shell.js dentro da pasta js/.
+ATUALIZAÇÃO DA RESERVA DO CONTADOR
+Se a Reserva de impostos já aparece no menu, atualize quatro arquivos no GitHub:
+index.html e sw.js na raiz, e professional-shell.js e tax-reserve.js na pasta js/.
+A tela calcula os R$ 550 por mês conforme o número de dias informado.
+O total diário soma o contador à estimativa de imposto. As confirmações de
+transferência da tela continuam sendo usadas para a parte do imposto.
 Depois que o GitHub Pages publicar, feche e reabra a Central.
 
 INSTALAÇÃO COMPLETA
