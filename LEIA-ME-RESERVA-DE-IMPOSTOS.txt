@@ -1,3 +1,9 @@
+CORREÇÃO DE CARREGAMENTO
+Se a Reserva de impostos já aparece no menu, atualize apenas três arquivos no GitHub:
+index.html e sw.js na raiz, e js/professional-shell.js dentro da pasta js/.
+Depois que o GitHub Pages publicar, feche e reabra a Central.
+
+INSTALAÇÃO COMPLETA
 CASEIRÃO BURGER | RESERVA DE IMPOSTOS
 
 Publicação da Central ADM
