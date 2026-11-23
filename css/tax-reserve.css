@@ -1,0 +1,29 @@
+.taxPanel {
+  margin: 16px 0;
+  padding: 18px;
+  background: #fff;
+  color: #17352f;
+  border: 1px solid #dce7e3;
+  border-radius: 16px;
+}
+.taxPanel h2 { margin: 0 0 12px; font-size: 1.125rem; }
+.taxPanel p { color: #465d56; }
+.taxPanel details { margin-top: 14px; }
+.taxMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px), 1fr));
+  gap: 8px;
+}
+.taxMetrics div { padding: 12px; background: #edf5f1; border-radius: 10px; }
+.taxMetrics span, .taxMetrics strong { display: block; }
+.taxMetrics span { font-size: .8125rem; }
+.taxMetrics strong { margin-top: 4px; font-size: 1.1rem; overflow-wrap: anywhere; }
+.taxSettings, .taxForm { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.taxSettings { margin-top: 16px; }
+.taxSettings form { padding-inline-end: 8px; }
+.taxForm label { display: grid; gap: 4px; font-size: .875rem; font-weight: 600; }
+.taxForm label[hidden] { display: none; }
+.taxForm input, .taxForm select { max-width: 100%; }
+.taxForm button { min-height: 42px; }
+.taxFilters { margin-block: 12px; }
+#taxMessage:empty { margin: 0; }
