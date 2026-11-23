@@ -31,7 +31,7 @@
     box.replaceChildren(status);
 
     const retry = document.createElement('script');
-    retry.src = new URL('./js/tax-reserve.js', document.baseURI).href + '?v=20261123-reserva-v2-retry';
+    retry.src = new URL('./js/tax-reserve.js', document.baseURI).href + '?v=20261123-reserva-v3-retry';
     const finish = () => {
       retry.remove();
       if (!box.isConnected) return;

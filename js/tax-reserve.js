@@ -7,6 +7,8 @@
   const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Fortaleza' });
   let selectedDay = today();
   let pendingTransfer;
+  const accountantCents = 55000;
+  const savingDaysByMonth = new Map();
 
   function hundredths(input) {
     const normalized = input.trim().replace(/^R\$\s*/, '');
@@ -47,6 +49,9 @@
     const das = data.das_cents == null ? 'A informar' : money(data.das_cents);
     const gap = data.das_cents == null ? 'Sem DAS informado' : money(Math.max(0, data.das_cents - data.reserved_cents));
 
+    const [year, month] = data.month.split('-').map(Number);
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
     box.innerHTML = `<section class="taxPanel" aria-labelledby="taxDayTitle">
       <h2 id="taxDayTitle">Dia selecionado · ${shortDate(selectedDay)}</h2>
       ${metrics([['Vendas finalizadas', money(day.sales_cents)], ['Reserva sugerida', money(day.estimated_cents)],
@@ -59,6 +64,14 @@
       </form>
       ${day.transfers.length ? `<details><summary>Transferências registradas (${day.transfers.length})</summary>
         <ul>${day.transfers.map(row => `<li>${money(row.amount_cents)} · ${new Date(row.confirmed_at).toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' })}</li>`).join('')}</ul></details>` : ''}
+    </section>
+    <section class="taxPanel" aria-labelledby="taxAccountantTitle">
+      <h2 id="taxAccountantTitle">Reserva do contador</h2>
+      <div class="taxForm"><label>Dias para separar no mês<input class="in" id="taxAccountantDays" type="number"
+        min="1" max="${daysInMonth}" step="1" value="${savingDaysByMonth.get(data.month) ?? daysInMonth}"></label></div>
+      <p>Use todos os dias do mês ou informe quantos dias o Caseirão vai funcionar se quiser separar só nesses dias.</p>
+      <div id="taxAccountantAmounts" aria-live="polite"></div>
+      <p>O valor diário é arredondado para cima. Ao confirmar uma transferência de imposto, informe só a parte do imposto.</p>
     </section>
     <section class="taxPanel" aria-labelledby="taxMonthTitle">
       <h2 id="taxMonthTitle">Resumo do mês · ${data.month.split('-').reverse().join('/')}</h2>
@@ -82,6 +95,25 @@
       <p>O percentual vale para o mês selecionado e atualiza as estimativas. Informe o DAS quando tiver o valor da guia.</p>
     </section>
     <section class="taxPanel"><h2>Histórico diário</h2>${history(data.days)}</section>`;
+
+    const savingDaysInput = box.querySelector('#taxAccountantDays');
+    const accountantAmounts = box.querySelector('#taxAccountantAmounts');
+    const updateAccountant = () => {
+      const savingDays = savingDaysInput.valueAsNumber;
+      if (!Number.isInteger(savingDays) || savingDays < 1 || savingDays > daysInMonth) {
+        accountantAmounts.textContent = `Informe de 1 a ${daysInMonth} dias.`;
+        return;
+      }
+      savingDaysByMonth.set(data.month, savingDays);
+      const dailyAccountant = Math.ceil(accountantCents / savingDays);
+      accountantAmounts.innerHTML = metrics([
+        ['Mensalidade do contador', money(accountantCents)],
+        ['Contador por dia', money(dailyAccountant)],
+        ['Total sugerido no dia (imposto + contador)', money(day.estimated_cents + dailyAccountant)],
+      ]);
+    };
+    savingDaysInput.oninput = updateAccountant;
+    updateAccountant();
 
     const rateForm = box.querySelector('[data-tax-form="rate"]');
     const updateRate = () => {
