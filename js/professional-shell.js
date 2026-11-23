@@ -18,6 +18,34 @@
     const payments=valid.reduce((sum,order)=>{const key=paymentKey(order.payment==='Cartão Caseirão'?'':order.payment);if(key)sum[key]+=Number(order.total||0);return sum},{pix:0,dinheiro:0,cartao:0});
     return `<section class="proMetrics"><article><span class="proMetricIcon yellow">⚡</span><div><small>EM ANDAMENTO</small><b>${active}</b><em>pedidos ativos</em></div></article><article><span class="proMetricIcon dark">▣</span><div><small>PEDIDOS DO CAIXA</small><b>${orders.length}</b><em>neste expediente</em></div></article><article><span class="proMetricIcon green">$</span><div><small>COMANDAS LIBERADAS</small><b>${money(sales)}</b><em>valor dos pedidos do turno</em></div></article><article><span class="proMetricIcon blue">◆</span><div><small>COMANDAS PIX</small><b>${money(payments.pix)}</b><em>valor dos pedidos confirmados</em></div></article></section>`;
   }
+  function openTaxReserve(box) {
+    if (typeof window.renderTaxReserve === 'function') {
+      window.renderTaxReserve(box);
+      return;
+    }
+
+    const status = document.createElement('p');
+    status.className = 'notice';
+    status.setAttribute('role', 'status');
+    status.textContent = 'Carregando a reserva de impostos…';
+    box.replaceChildren(status);
+
+    const retry = document.createElement('script');
+    retry.src = new URL('./js/tax-reserve.js', document.baseURI).href + '?v=20261123-reserva-v2-retry';
+    const finish = () => {
+      retry.remove();
+      if (!box.isConnected) return;
+      if (typeof window.renderTaxReserve === 'function') {
+        window.renderTaxReserve(box);
+        return;
+      }
+      status.className = 'err';
+      status.textContent = 'A reserva de impostos não carregou. Toque em Atualizar no topo para tentar novamente.';
+    };
+    retry.onload = finish;
+    retry.onerror = finish;
+    document.head.appendChild(retry);
+  }
   window.renderAdmin=function(){
     if(!admin)return;
     const opened=!!admin.settings?.store_open;
@@ -96,7 +124,7 @@
     };
     const manualOrder=$('#proManualOrder');
     if(manualOrder)manualOrder.onclick=()=>openManualOrder();
-    if (adminTab === 'reserva_impostos') window.renderTaxReserve($('#admContent'));
+    if (adminTab === 'reserva_impostos') openTaxReserve($('#admContent'));
     else renderAdminTab();
   };
   new MutationObserver(enhanceHome).observe(document.body,{childList:true,subtree:true});enhanceHome();
