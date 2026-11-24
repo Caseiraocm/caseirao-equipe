@@ -331,23 +331,50 @@
       finally{reset.disabled=false;}
     };
     const settlement=detail.querySelector('[data-card-settlement]');
-    detail.querySelectorAll('[data-card-invoice]').forEach(button=>button.onclick=()=>openInvoice(settlement,account.id,button.dataset.cardInvoice,refresh));
+    detail.querySelectorAll('[data-card-invoice]').forEach(button=>button.onclick=()=>openInvoice(settlement,account,button.dataset.cardInvoice,today,refresh));
   }
 
-  async function openInvoice(box,account,due,refresh){
+  async function openInvoice(box,client,due,today,refresh){
     box.textContent='Conferindo o total da fatura…';
     try{
+      const account=client.id;
       const invoice=await call('invoice',{account,due});
       if(!box.isConnected)return;
+      const canSettle=invoice.ready&&invoice.amount>0&&!invoice.pix_state;
+      const notice=invoice.pix_state==='review'?'Pix em conferência. Consulte a transação no Mercado Pago.':
+        invoice.pix_state==='pending'?'Aguardando o Pix online desta fatura.':
+        invoice.ready?'Registre depois de conferir o recebimento integral.':'Finalize as comandas desta fatura antes de dar baixa.';
       box.innerHTML=`<form class="admCardPanel" data-card-settle>
       <p><b>Fatura de ${date(due)} · ${money(invoice.amount)}</b></p>
       <label>Como recebeu<select class="in" name="method"><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>Pix</option></select></label>
-      <button class="primary" ${invoice.ready?'':'disabled'}>Confirmar recebimento</button>
-      <p role="status">${invoice.ready?'Registre depois de conferir o recebimento integral.':'Finalize as comandas desta fatura antes de dar baixa.'}</p></form>`;
+      <button class="primary" ${canSettle?'':'disabled'}>Confirmar recebimento</button>
+      <p role="status">${notice}</p></form>`;
+      if(invoice.ready&&invoice.amount>0&&due<=today&&invoice.pix_state!=='review'){
+        const phone=phoneDigits(client.phone);
+        if(/^\d{10,11}$/.test(phone)){
+          const reminder=document.createElement('a');
+          reminder.className='secondary';
+          reminder.textContent='Cobrar pelo WhatsApp';
+          reminder.target='_blank';
+          reminder.rel='noopener noreferrer';
+          const name=String(client.name||'').trim().split(/\s+/)[0];
+          const timing=due===today?'vence hoje, '+date(due):'venceu em '+date(due);
+          const link='https://caseiraopedidos.api.br/#fatura-caseirao='+due;
+          const text=`Oi, ${name}! Tudo bem? 😊 Aqui é da equipe do Caseirão Burger. Sua fatura do *Cartão Caseirão* ${timing} e o valor em aberto é de *${money(invoice.amount)}*.
+
+Para pagar por Pix, acesse seu cartão neste link e toque em *Pagar com Pix*:
+${link}
+
+Se já pagou, pode responder por aqui para a gente conferir. Obrigado! 🍔`;
+          reminder.href='https://wa.me/55'+phone+'?text='+encodeURIComponent(text);
+          box.prepend(reminder);
+        }
+      }
       const form=box.querySelector('form');
       const request=crypto.randomUUID();
       form.onsubmit=async event=>{
         event.preventDefault();
+        if(!canSettle)return;
         const method=form.elements.namedItem('method').value;
         if(!confirm(`Você já recebeu ${money(invoice.amount)} via ${method}?`))return;
         const button=form.querySelector('button');
