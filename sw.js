@@ -1,12 +1,12 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-20261123-reserva-impostos-v3';
+const CACHE = 'caseirao-equipe-20261123-consumo-fotos';
 const APP_SHELL = ['./js/tax-reserve.js', './css/tax-reserve.css','./js/customer-support.js','./css/customer-support.css','./css/order-card-actions.css','./css/driver-dashboard.css','./css/balcao-carrossel.css','./css/balcao-adm.css','./js/balcao-carrossel.js','./js/balcao-adm.js','./js/combo-refrigerantes.js','./css/combo-refrigerantes.css',
   './css/caseirao-card-pilot.css','./js/caseirao-card-pilot.js','./js/caseirao-card-admin.js',
   './css/central-menu.css',
  './js/payroll-core.js', './js/payroll-ui.js', './css/payroll.css',
  './js/stock-core.js', './js/stock-ui.js', './css/stock.css',
- './js/staff-core.js', './js/staff-consumo.js', './css/staff-consumo.css',
+ './js/staff-core.js', './js/staff-consumo.js?v=20261123-catalogo-fotos', './css/staff-consumo.css?v=20261123-catalogo-fotos',
   './js/finance-core.js', './js/finance-ui.js', './js/sale-receipt.js', './js/driver-earnings.js', './css/finance.css',
   './js/agendamentos.js', './js/mesa-pagar-itens.js', './css/fechamento-mesas.css',
   './css/orders-layout.css', './js/orders-layout.js',
