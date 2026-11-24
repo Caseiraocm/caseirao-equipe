@@ -61,8 +61,10 @@
     const feedback = box.querySelector('[data-gift-feedback]');
     const fields = form.elements;
     const submit = form.querySelector('[type=submit]');
+    const remove = form.querySelector('[data-delete-gift]');
     let id;
     let photo;
+    let savedGift;
 
     const photoInput = bindPhotoInput(fields.photo, status, preview => {
       const url = preview || photo;
@@ -74,6 +76,8 @@
     function edit(gift) {
       if (submit.disabled) return;
       id = gift?.id || crypto.randomUUID();
+      savedGift = gift;
+      remove.hidden = !gift;
       photo = gift?.photo_url || null;
       form.reset();
       title.textContent = gift ? 'Editar brinde' : 'Novo brinde';
@@ -122,6 +126,30 @@
       photoInput.clear();
       form.hidden = true;
       add.focus();
+    };
+    remove.onclick = async () => {
+      if (submit.disabled || !savedGift) return;
+      const gift = savedGift;
+      if (!window.confirm('Apagar “' + gift.name + '”? Ele sairá do catálogo. Os resgates anteriores ficam no histórico.')) return;
+      submit.disabled = true;
+      fields.editor.disabled = true;
+      status.textContent = 'Apagando brinde…';
+      try {
+        await call('caseirao-fidelidade', { action:'delete-gift', id:gift.id });
+        const index = gifts.findIndex(item => item.id === gift.id);
+        if (index !== -1) gifts.splice(index, 1);
+        savedGift = null;
+        photoInput.clear();
+        renderList();
+        form.hidden = true;
+        feedback.textContent = 'Brinde apagado. Você pode cadastrar outro.';
+        add.focus();
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        fields.editor.disabled = false;
+        submit.disabled = false;
+      }
     };
     form.onsubmit = async event => {
       event.preventDefault();
@@ -201,6 +229,7 @@
               <button class="secondary" type="button" data-remove-photo>Remover foto</button>
               <label><input name="active" type="checkbox"> Disponível para resgate</label>
               <button class="primary" type="submit">Salvar brinde</button>
+              <button class="secondary" type="button" data-delete-gift hidden>Apagar brinde</button>
               <button class="secondary" type="button" data-cancel-gift>Voltar</button>
               <p role="status"></p>
             </fieldset>
