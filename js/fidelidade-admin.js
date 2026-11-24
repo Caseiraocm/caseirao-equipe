@@ -12,10 +12,137 @@
       reader.readAsDataURL(file);
     });
   }
+  async function uploadPhoto(file) {
+    if (file.size > 5 * 1024 * 1024) throw new Error('Escolha uma foto de até 5 MB.');
+    const upload = await call('admin-upload-image', { content_type:file.type, base64:await readPhoto(file) });
+    return upload.public_url;
+  }
+
+  function bindGiftEditor(box, gifts) {
+    const list = box.querySelector('[data-gift-list]');
+    const form = box.querySelector('[data-gift-form]');
+    const add = box.querySelector('[data-add-gift]');
+    const title = form.querySelector('h4');
+    const img = form.querySelector('img');
+    const status = form.querySelector('[role=status]');
+    const feedback = box.querySelector('[data-gift-feedback]');
+    const fields = form.elements;
+    const submit = form.querySelector('[type=submit]');
+    let id;
+    let photo;
+    let preview;
+
+    function showPhoto() {
+      if (preview) URL.revokeObjectURL(preview);
+      const file = fields.photo.files[0];
+      preview = file ? URL.createObjectURL(file) : null;
+      const url = preview || photo;
+      img.hidden = !url;
+      if (url) img.src = url;
+      else img.removeAttribute('src');
+    }
+
+    function edit(gift) {
+      if (submit.disabled) return;
+      id = gift?.id || crypto.randomUUID();
+      photo = gift?.photo_url || null;
+      form.reset();
+      title.textContent = gift ? 'Editar brinde' : 'Novo brinde';
+      fields.giftName.value = gift?.name ?? '';
+      fields.description.value = gift?.description ?? '';
+      fields.goal.value = gift?.goal ?? '';
+      fields.stock.value = gift?.stock ?? '';
+      fields.active.checked = gift?.active ?? false;
+      status.textContent = '';
+      feedback.textContent = '';
+      showPhoto();
+      form.hidden = false;
+      fields.giftName.focus();
+    }
+
+    function renderList() {
+      list.replaceChildren();
+      if (!gifts.length) {
+        list.textContent = 'Nenhum brinde personalizado cadastrado.';
+        return;
+      }
+      for (const gift of gifts) {
+        const row = document.createElement('div');
+        const name = document.createElement('strong');
+        const details = document.createElement('p');
+        const button = document.createElement('button');
+        name.textContent = gift.name;
+        const state = !gift.active ? 'Pausado' : gift.remaining === 0 ? 'Esgotado' : 'Disponível';
+        details.textContent = gift.goal + ' pontos · ' + gift.remaining + ' em estoque · ' + state;
+        button.type = 'button';
+        button.className = 'secondary';
+        button.textContent = 'Editar';
+        button.setAttribute('aria-label', 'Editar ' + gift.name);
+        button.onclick = () => edit(gift);
+        row.append(name, details, button);
+        list.append(row);
+      }
+    }
+
+    add.onclick = () => edit();
+    fields.photo.onchange = showPhoto;
+    form.querySelector('[data-remove-photo]').onclick = () => {
+      photo = null;
+      fields.photo.value = '';
+      showPhoto();
+    };
+    form.querySelector('[data-cancel-gift]').onclick = () => {
+      if (submit.disabled) return;
+      fields.photo.value = '';
+      showPhoto();
+      form.hidden = true;
+      add.focus();
+    };
+    form.onsubmit = async event => {
+      event.preventDefault();
+      if (submit.disabled) return;
+      const gift = {
+        id, name:fields.giftName.value.trim(), description:fields.description.value.trim(),
+        goal:fields.goal.valueAsNumber, stock:fields.stock.valueAsNumber, active:fields.active.checked,
+        photo_url:photo,
+      };
+      if (!gift.name) {
+        status.textContent = 'Informe o nome do brinde.';
+        fields.giftName.focus();
+        return;
+      }
+      submit.disabled = true;
+      fields.editor.disabled = true;
+      status.textContent = 'Salvando…';
+      try {
+        const file = fields.photo.files[0];
+        if (file) {
+          photo = gift.photo_url = await uploadPhoto(file);
+          fields.photo.value = '';
+          showPhoto();
+        }
+        const { gift:saved } = await call('caseirao-fidelidade', { action:'save-gift', gift });
+        const existing = gifts.findIndex(item => item.id === saved.id);
+        if (existing === -1) gifts.push(saved);
+        else gifts[existing] = saved;
+        renderList();
+        form.hidden = true;
+        feedback.textContent = 'Brinde salvo.';
+        add.focus();
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        fields.editor.disabled = false;
+        submit.disabled = false;
+      }
+    };
+    renderList();
+  }
+
   window.renderCaseiraoPointsAdmin = async box => {
     box.innerHTML = '<p class="notice" role="status">Carregando a fidelidade…</p>';
     try {
-      const { settings, products } = await call('caseirao-fidelidade', { action:'admin' });
+      const { settings, products, gifts = [] } = await call('caseirao-fidelidade', { action:'admin' });
       if (!box.isConnected) return;
       box.innerHTML = `
         <form style="display:grid;gap:10px;max-width:580px">
@@ -24,13 +151,36 @@
           <label><input name="active" type="checkbox"> Campanha ativa</label>
           <label class="field">Valor em produtos para ganhar 1 ponto (R$)<input class="input" name="amount" type="number" min="0.01" max="10000" step="0.01" required></label>
           <label class="field">Pontos para resgatar o brinde<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
-          <label class="field">Produto do brinde<select class="input" name="reward" required></select></label>
+          <label class="field">Brinde do cardápio<select class="input" name="reward" required></select></label>
           <img width="230" style="max-width:100%;border-radius:12px" alt="Foto do brinde" hidden>
           <label class="field">Trocar foto do brinde<input class="input" name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>
           <button class="secondary" type="button" data-default-photo>Usar a foto do produto</button>
           <button class="primary" type="submit">Salvar campanha</button>
           <p role="status"></p>
         </form>
+        <section style="display:grid;gap:12px;max-width:580px;margin-top:22px">
+          <h3>Brindes personalizados</h3>
+          <div data-gift-list style="display:grid;gap:14px"></div>
+          <button class="secondary" type="button" data-add-gift>Cadastrar brinde</button>
+          <p data-gift-feedback role="status"></p>
+          <form data-gift-form hidden>
+            <fieldset name="editor" style="display:grid;gap:10px">
+              <legend><h4>Novo brinde</h4></legend>
+              <label class="field">Nome<input class="input" name="giftName" maxlength="100" required></label>
+              <label class="field">Descrição<textarea class="input" name="description" maxlength="500" rows="3"></textarea></label>
+              <label class="field">Pontos para resgatar<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
+              <label class="field">Estoque total<input class="input" name="stock" type="number" min="0" max="1000000" step="1" required aria-describedby="giftStockHelp"></label>
+              <small id="giftStockHelp">Inclua as unidades já resgatadas. Para repor, some as novas unidades ao total.</small>
+              <img width="160" style="max-width:100%;border-radius:12px" alt="Foto do brinde" hidden>
+              <label class="field">Foto<input class="input" name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+              <button class="secondary" type="button" data-remove-photo>Remover foto</button>
+              <label><input name="active" type="checkbox"> Disponível para resgate</label>
+              <button class="primary" type="submit">Salvar brinde</button>
+              <button class="secondary" type="button" data-cancel-gift>Voltar</button>
+              <p role="status"></p>
+            </fieldset>
+          </form>
+        </section>
         <form data-wallet-search style="display:grid;gap:10px;max-width:580px;margin-top:22px">
           <h2>Consultar pontos por WhatsApp</h2>
           <input class="input" name="phone" type="tel" inputmode="tel" required aria-label="WhatsApp com DDD">
@@ -77,11 +227,7 @@
         $status.textContent = 'Salvando…';
         try {
           const file = fields.photo.files[0];
-          if (file) {
-            if (file.size > 5 * 1024 * 1024) throw new Error('Escolha uma foto de até 5 MB.');
-            const upload = await call('admin-upload-image', { content_type:file.type, base64:await readPhoto(file) });
-            photo = upload.public_url;
-          }
+          if (file) photo = await uploadPhoto(file);
           await call('caseirao-fidelidade', { action:'save', settings:{
             active:fields.active.checked, step_cents:Math.round(fields.amount.valueAsNumber * 100),
             goal:fields.goal.valueAsNumber, reward_id:fields.reward.value, photo_url:photo,
@@ -96,6 +242,8 @@
         }
       };
       updateImage();
+
+      bindGiftEditor(box, gifts);
 
       const lookup = box.querySelector('[data-wallet-search]');
       lookup.onsubmit = async event => {
