@@ -203,11 +203,15 @@
           <p>Os pedidos feitos pelo cardápio somam pontos após o pagamento e a conclusão.</p>
           <label><input name="active" type="checkbox"> Campanha ativa</label>
           <label class="field">Valor em produtos para ganhar 1 ponto (R$)<input class="input" name="amount" type="number" min="0.01" max="10000" step="0.01" required></label>
-          <label class="field">Pontos para resgatar o brinde<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
-          <label class="field">Brinde do cardápio<select class="input" name="reward" required></select></label>
-          <img width="230" style="max-width:100%;border-radius:12px" alt="Foto do brinde" hidden>
-          <label class="field">Trocar foto do brinde<input class="input" name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>
-          <button class="secondary" type="button" data-default-photo>Usar a foto do produto</button>
+          <label class="field">Brinde do cardápio<select class="input" name="reward"></select></label>
+          <fieldset data-menu-reward-details style="border:0;padding:0;margin:0;min-width:0">
+            <div style="display:grid;gap:10px">
+              <label class="field">Pontos para resgatar o brinde<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
+              <img width="230" style="max-width:100%;border-radius:12px" alt="Foto do brinde" hidden>
+              <label class="field">Trocar foto do brinde<input class="input" name="photo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+              <button class="secondary" type="button" data-default-photo>Usar a foto do produto</button>
+            </div>
+          </fieldset>
           <button class="primary" type="submit">Salvar campanha</button>
           <p role="status"></p>
         </form>
@@ -245,6 +249,7 @@
       const fields = form.elements;
       const $status = form.querySelector('[role=status]');
       const img = form.querySelector('img');
+      const rewardDetails = form.querySelector('[data-menu-reward-details]');
       let photo = settings.photo_url;
       let preview;
       function updateImage() {
@@ -256,18 +261,25 @@
       fields.active.checked = settings.active;
       fields.amount.value = settings.step_cents / 100;
       fields.goal.value = settings.goal;
-      fields.reward.add(new Option('Selecione o produto', ''));
+      fields.reward.add(new Option('Sem brinde do cardápio', ''));
       for (const product of products) {
         if (product.active || product.id === settings.reward_id) {
           fields.reward.add(new Option(product.name, product.id));
         }
       }
       fields.reward.value = settings.reward_id || '';
-      fields.reward.onchange = updateImage;
       const photoInput = bindPhotoInput(fields.photo, $status, url => {
         preview = url;
         updateImage();
       });
+      function updateReward() {
+        const hasReward = Boolean(fields.reward.value);
+        rewardDetails.hidden = !hasReward;
+        rewardDetails.disabled = !hasReward;
+        if (!hasReward) photoInput.clear();
+        else updateImage();
+      }
+      fields.reward.onchange = updateReward;
       const defaultPhoto = form.querySelector('[data-default-photo]');
       defaultPhoto.onclick = () => {
         photo = null;
@@ -278,6 +290,7 @@
         const button = form.querySelector('[type=submit]');
         if (button.disabled) return;
         button.disabled = true;
+        fields.reward.disabled = true;
         fields.photo.disabled = true;
         defaultPhoto.disabled = true;
         $status.textContent = 'Salvando…';
@@ -288,20 +301,25 @@
             photoInput.clear();
             $status.textContent = 'Salvando…';
           }
-          await call('caseirao-fidelidade', { action:'save', settings:{
+          const campaign = {
             active:fields.active.checked, step_cents:Math.round(fields.amount.valueAsNumber * 100),
-            goal:fields.goal.valueAsNumber, reward_id:fields.reward.value, photo_url:photo,
-          } });
+            goal:fields.reward.value ? fields.goal.valueAsNumber : settings.goal,
+            reward_id:fields.reward.value || null, photo_url:fields.reward.value ? photo : null,
+          };
+          await call('caseirao-fidelidade', { action:'save', settings:campaign });
+          settings.goal = campaign.goal;
+          if (!fields.reward.value) photo = null;
           $status.textContent = 'Campanha salva.';
         } catch (error) {
           $status.textContent = error.message;
         } finally {
           defaultPhoto.disabled = false;
           fields.photo.disabled = false;
+          fields.reward.disabled = false;
           button.disabled = false;
         }
       };
-      updateImage();
+      updateReward();
 
       bindGiftEditor(box, gifts);
 
