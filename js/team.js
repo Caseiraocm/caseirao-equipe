@@ -410,7 +410,7 @@ document.addEventListener('click',event=>{
 const caseiraoNativeAlert=window.alert.bind(window);window.alert=function(...args){document.querySelectorAll('.adminActionLoading').forEach(clearAdminActionFeedback);return caseiraoNativeAlert(...args)};
 
 restoreCart();lastCartCount=cartCount();updateCartBar();
-$('#search').addEventListener('input',e=>{search=e.target.value;renderCatalog()});$('#cartBtn').onclick=renderCart;$('#trackBtn').onclick=()=>openTracking();$('#adminBtn').onclick=openAdmin;$('#homeBtn').onclick=goHome;$('#promotionsBtn').onclick=openDailyPromotions;$('#loyaltyBtn').onclick=openCustomerLoyalty;$('#installBtn').onclick=installApp;
+$('#search').addEventListener('input',e=>{search=e.target.value;renderCatalog()});$('#cartBtn').onclick=renderCart;$('#trackBtn').onclick=()=>openTracking();$('#adminBtn').onclick=openAdmin;$('#homeBtn').onclick=goHome;$('#promotionsBtn').onclick=openDailyPromotions;$('#installBtn').onclick=installApp;
 $('#teamEmployeeBtn').onclick=()=>employeeToken()?openTeamEmployeePanel().catch(e=>{sessionStorage.removeItem('caseirao_employee_token');employeeSnapshot=null;openEmployeeLogin();setTimeout(()=>alert(e.message),50)}):openEmployeeLogin();
 $('#teamDispatcherBtn').onclick=()=>employeeToken()?openDispatcherPanel():openDispatcherLogin();
 $('#teamAdminBtn').onclick=openAdmin;

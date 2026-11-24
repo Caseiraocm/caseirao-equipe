@@ -51,7 +51,7 @@
     };
   }
 
-  function bindGiftEditor(box, gifts) {
+  function bindGiftEditor(box, gifts, products) {
     const list = box.querySelector('[data-gift-list]');
     const form = box.querySelector('[data-gift-form]');
     const add = box.querySelector('[data-add-gift]');
@@ -62,6 +62,7 @@
     const fields = form.elements;
     const submit = form.querySelector('[type=submit]');
     const remove = form.querySelector('[data-delete-gift]');
+    const productPicker = form.querySelector('[data-gift-product]');
     let id;
     let photo;
     let savedGift;
@@ -80,7 +81,8 @@
       remove.hidden = !gift;
       photo = gift?.photo_url || null;
       form.reset();
-      title.textContent = gift ? 'Editar brinde' : 'Novo brinde';
+      productPicker.hidden = Boolean(gift);
+      title.textContent = gift ? 'Editar recompensa' : 'Nova recompensa';
       fields.giftName.value = gift?.name ?? '';
       fields.description.value = gift?.description ?? '';
       fields.goal.value = gift?.goal ?? '';
@@ -95,7 +97,7 @@
     function renderList() {
       list.replaceChildren();
       if (!gifts.length) {
-        list.textContent = 'Nenhum brinde personalizado cadastrado.';
+        list.textContent = 'Nenhuma recompensa adicional cadastrada.';
         return;
       }
       for (const gift of gifts) {
@@ -117,6 +119,19 @@
     }
 
     add.onclick = () => edit();
+    for (const product of products.filter(product => product.active)) {
+      fields.giftProduct.add(new Option(product.name, product.id));
+    }
+    const photoBase = new URL('/storage/v1/object/public/product-images/products/', FN).href;
+    fields.giftProduct.onchange = () => {
+      const product = products.find(product => product.id === fields.giftProduct.value);
+      if (!product) return;
+      fields.giftName.value = product.name;
+      const imageUrl = product.image_url;
+      photo = imageUrl?.startsWith(photoBase) &&
+        /^[a-f0-9-]+\.(jpg|png|webp)$/.test(imageUrl.slice(photoBase.length)) ? imageUrl : null;
+      photoInput.clear();
+    };
     form.querySelector('[data-remove-photo]').onclick = () => {
       photo = null;
       photoInput.clear();
@@ -193,17 +208,18 @@
   }
 
   window.renderCaseiraoPointsAdmin = async box => {
-    box.innerHTML = '<p class="notice" role="status">Carregando a fidelidade…</p>';
+    box.innerHTML = '<p class="notice" role="status">Carregando Clube Pontos…</p>';
     try {
       const { settings, products, gifts = [] } = await call('caseirao-fidelidade', { action:'admin' });
       if (!box.isConnected) return;
       box.innerHTML = `
         <form style="display:grid;gap:10px;max-width:580px">
-          <h2>Campanha de pontos</h2>
+          <h2>Clube Pontos</h2>
           <p>Os pedidos feitos pelo cardápio somam pontos após o pagamento e a conclusão.</p>
           <label><input name="active" type="checkbox"> Campanha ativa</label>
           <label class="field">Valor em produtos para ganhar 1 ponto (R$)<input class="input" name="amount" type="number" min="0.01" max="10000" step="0.01" required></label>
           <label class="field">Brinde do cardápio<select class="input" name="reward"></select></label>
+          <button class="secondary" type="button" data-delete-menu-reward hidden>Apagar brinde</button>
           <fieldset data-menu-reward-details style="border:0;padding:0;margin:0;min-width:0">
             <div style="display:grid;gap:10px">
               <label class="field">Pontos para resgatar o brinde<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
@@ -216,13 +232,14 @@
           <p role="status"></p>
         </form>
         <section style="display:grid;gap:12px;max-width:580px;margin-top:22px">
-          <h3>Brindes personalizados</h3>
+          <h3>Produtos e brindes adicionais</h3>
           <div data-gift-list style="display:grid;gap:14px"></div>
-          <button class="secondary" type="button" data-add-gift>Cadastrar brinde</button>
+          <button class="secondary" type="button" data-add-gift>Cadastrar produto ou brinde</button>
           <p data-gift-feedback role="status"></p>
           <form data-gift-form hidden>
             <fieldset name="editor" style="display:grid;gap:10px">
-              <legend><h4>Novo brinde</h4></legend>
+              <legend><h4>Nova recompensa</h4></legend>
+              <label class="field" data-gift-product>Preencher com produto do cardápio<select class="input" name="giftProduct"><option value="">Brinde personalizado</option></select></label>
               <label class="field">Nome<input class="input" name="giftName" maxlength="100" required></label>
               <label class="field">Descrição<textarea class="input" name="description" maxlength="500" rows="3"></textarea></label>
               <label class="field">Pontos para resgatar<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
@@ -250,6 +267,8 @@
       const $status = form.querySelector('[role=status]');
       const img = form.querySelector('img');
       const rewardDetails = form.querySelector('[data-menu-reward-details]');
+      const save = form.querySelector('[type=submit]');
+      const removeReward = form.querySelector('[data-delete-menu-reward]');
       let photo = settings.photo_url;
       let preview;
       function updateImage() {
@@ -279,20 +298,60 @@
         if (!hasReward) photoInput.clear();
         else updateImage();
       }
-      fields.reward.onchange = updateReward;
+      fields.reward.onchange = () => {
+        photo = fields.reward.value === settings.reward_id ? settings.photo_url : null;
+        photoInput.clear();
+        updateReward();
+      };
       const defaultPhoto = form.querySelector('[data-default-photo]');
       defaultPhoto.onclick = () => {
         photo = null;
         photoInput.clear();
       };
+      function menuRewardName() {
+        return products.find(product => product.id === settings.reward_id)?.name || 'brinde do cardápio';
+      }
+      function updateRemoveReward() {
+        removeReward.hidden = !settings.reward_id;
+        removeReward.textContent = 'Apagar brinde (' + menuRewardName() + ')';
+      }
+      function setCampaignBusy(busy) {
+        save.disabled = busy;
+        removeReward.disabled = busy;
+        fields.reward.disabled = busy;
+        rewardDetails.disabled = busy || !fields.reward.value;
+      }
+      async function saveCampaign(campaign) {
+        await call('caseirao-fidelidade', { action:'save', settings:campaign });
+        Object.assign(settings, campaign);
+        updateRemoveReward();
+      }
+      removeReward.onclick = async () => {
+        if (!settings.reward_id || save.disabled) return;
+        if (!window.confirm('Apagar “' + menuRewardName() + '” dos resgates do Clube Pontos? O produto continua no cardápio para venda.')) return;
+        setCampaignBusy(true);
+        $status.textContent = 'Apagando brinde…';
+        try {
+          await saveCampaign({
+            active:settings.active, step_cents:settings.step_cents, goal:settings.goal,
+            reward_id:null, photo_url:null,
+          });
+          fields.reward.value = '';
+          fields.goal.value = settings.goal;
+          photo = null;
+          updateReward();
+          $status.textContent = 'Brinde apagado do Clube Pontos. Você pode escolher outro produto ou cadastrar um brinde.';
+        } catch (error) {
+          $status.textContent = error.message;
+        } finally {
+          setCampaignBusy(false);
+          if (!settings.reward_id) fields.reward.focus();
+        }
+      };
       form.onsubmit = async event => {
         event.preventDefault();
-        const button = form.querySelector('[type=submit]');
-        if (button.disabled) return;
-        button.disabled = true;
-        fields.reward.disabled = true;
-        fields.photo.disabled = true;
-        defaultPhoto.disabled = true;
+        if (save.disabled) return;
+        setCampaignBusy(true);
         $status.textContent = 'Salvando…';
         try {
           const payload = await photoInput.selection;
@@ -306,22 +365,19 @@
             goal:fields.reward.value ? fields.goal.valueAsNumber : settings.goal,
             reward_id:fields.reward.value || null, photo_url:fields.reward.value ? photo : null,
           };
-          await call('caseirao-fidelidade', { action:'save', settings:campaign });
-          settings.goal = campaign.goal;
+          await saveCampaign(campaign);
           if (!fields.reward.value) photo = null;
           $status.textContent = 'Campanha salva.';
         } catch (error) {
           $status.textContent = error.message;
         } finally {
-          defaultPhoto.disabled = false;
-          fields.photo.disabled = false;
-          fields.reward.disabled = false;
-          button.disabled = false;
+          setCampaignBusy(false);
         }
       };
       updateReward();
+      updateRemoveReward();
 
-      bindGiftEditor(box, gifts);
+      bindGiftEditor(box, gifts, products);
 
       const lookup = box.querySelector('[data-wallet-search]');
       lookup.onsubmit = async event => {

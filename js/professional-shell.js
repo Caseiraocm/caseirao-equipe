@@ -3,7 +3,7 @@
   'use strict';
   const sections=[
     {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
-    {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade_pontos','★','Fidelidade Caseirão'],['fidelidade','★','Brindes anteriores'],['promocoes','🔥','Promoções']]},
+    {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade_pontos','★','Clube Pontos'],['promocoes','🔥','Promoções']]},
     {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['reserva_impostos','%','Reserva de impostos'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
