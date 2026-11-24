@@ -51,13 +51,112 @@
   const picked=new Map(),addons=new Map(),notes=new Map();
   const unit=p=>Math.round((Number(p.promo_price)>0?Number(p.promo_price):Number(p.price||0))*100)+(addons.get(p.id)||[]).reduce((sum,id)=>sum+Math.round(Number(state.addons.find(a=>a.id===id)?.price||0)*100),0);
   const total=()=>state.products.reduce((sum,p)=>sum+(picked.get(p.id)||0)*unit(p),0);
-  shell(gift?'Registrar cortesia':shared?'Dividir consumo entre pessoas':'Lançar consumo',`<div class="staffFormInfo">${gift?'Os produtos ficam registrados como cortesia e não aumentam a dívida.':shared?'Selecione os produtos e distribua o valor. Cada ficha receberá apenas a parte correspondente.':'Os produtos selecionados serão somados à ficha deste funcionário.'}</div><div class="staffFilters"><label>Data do consumo<input type="date" id="staffConsumedOn" class="in" value="${now()}" max="${now()}"></label><label>Buscar produto<input class="in" id="staffProductSearch" placeholder="Hambúrguer, refrigerante…"></label></div><div class="staffProductList">${state.products.map(p=>`<article data-staff-product="${p.id}" data-search="${esc(p.name.toLowerCase())}"><div><b>${esc(p.name)}</b><small>${money(unit(p))} / unidade${p.stock_enabled?' · '+Number(p.stock_quantity)+' disponível(is)':''}</small></div><div class="staffQty"><button data-staff-qty="${p.id}" data-step="-1">−</button><b id="staffQty-${p.id}">0</b><button data-staff-qty="${p.id}" data-step="1" ${p.stock_enabled&&p.stock_quantity<=0?'disabled':''}>+</button></div><details class="staffCustomize"><summary>Adicionais e observação</summary><div>${state.addons.map(a=>`<label><input type="checkbox" data-staff-addon="${p.id}" value="${a.id}"> ${esc(a.name)} · ${fmt(a.price)}</label>`).join('')}<input class="in" data-staff-note="${p.id}" placeholder="Observação do item" maxlength="200"></div></details></article>`).join('')||'<div class="notice">Nenhum produto ativo no cardápio.</div>'}</div>${shared?sharingHtml():''}<div class="field"><label>${gift?'Motivo da cortesia (obrigatório)':'Observação do lançamento'}</label><input class="in" id="staffConsumptionNote" maxlength="400" placeholder="${gift?'Ex.: refeição liberada pela casa':'Ex.: consumo no intervalo'}"></div><div class="staffSaveBar"><span>${gift?'Valor de referência':'Total a cobrar'}<b id="staffCartTotal">${money(0)}</b></span><button class="primary" id="staffSaveConsumption" disabled>${gift?'Registrar cortesia':shared?'Salvar divisão nas fichas':'Lançar na ficha'}</button></div>`);
-  const update=()=>{$('#staffCartTotal').textContent=money(total());$('#staffSaveConsumption').disabled=total()<=0;if(shared)updateSharing(total());};
+  const catalog = new Map((admin?.products || []).map(product => [String(product.id), product]));
+  const products = state.products.map(product => {
+   const details = catalog.get(String(product.id));
+   return {
+    ...product,
+    category: String(details?.category || product.category || 'Outros').trim() || 'Outros',
+    image_url: String(details?.image_url || product.image_url || '').trim(),
+   };
+  });
+  products.sort((a,b) => a.name.localeCompare(b.name,'pt-BR'));
+  const categories = [...new Set(products.map(product => product.category))].sort((a,b) => a.localeCompare(b,'pt-BR'));
+  const normalizeSearch = value => value.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('pt-BR').trim();
+  const cards = products.map(product => `
+   <article data-staff-product="${esc(product.id)}">
+    <div class="staffProductPhoto">
+     <span aria-hidden="true">Sem foto</span>
+     ${product.image_url ? `<img src="${esc(product.image_url)}" alt="" loading="lazy" decoding="async">` : ''}
+    </div>
+    <div class="staffProductInfo">
+     <small>${esc(product.category)}</small>
+     <b>${esc(product.name)}</b>
+     <strong data-staff-unit>${money(unit(product))}</strong>
+     ${product.stock_enabled ? `<small>${Number(product.stock_quantity)>0 ? Number(product.stock_quantity)+' em estoque' : 'Sem estoque'}</small>` : ''}
+    </div>
+    <div class="staffQty">
+     <button type="button" data-step="-1" aria-label="Remover uma unidade de ${esc(product.name)}" disabled>−</button>
+     <b data-staff-quantity>0</b>
+     <button type="button" data-step="1" aria-label="Adicionar uma unidade de ${esc(product.name)}" ${product.stock_enabled&&product.stock_quantity<=0?'disabled':''}>+</button>
+    </div>
+    <details class="staffCustomize">
+     <summary>Adicionais e observação</summary>
+     <div>
+      ${state.addons.map(addon => `<label><input type="checkbox" data-staff-addon value="${esc(addon.id)}"> ${esc(addon.name)} · ${fmt(addon.price)}</label>`).join('')}
+      <input class="in" data-staff-note aria-label="Observação de ${esc(product.name)}" placeholder="Observação do item" maxlength="200">
+     </div>
+    </details>
+   </article>`).join('');
+  const description = gift?'Os produtos ficam registrados como cortesia e não aumentam a dívida.':shared?'Selecione os produtos e distribua o valor. Cada ficha receberá apenas a parte correspondente.':'Os produtos selecionados serão somados à ficha deste funcionário.';
+  shell(gift?'Registrar cortesia':shared?'Dividir consumo entre pessoas':'Lançar consumo',`
+   <div class="staffConsumption">
+    <div class="staffFormInfo">${description}</div>
+    <div class="staffFilters staffCatalogFilters">
+     <label>Buscar produto<input type="search" class="in" id="staffProductSearch" placeholder="Digite o nome do produto"></label>
+     <label>Categoria<select class="in" id="staffProductCategory"><option value="">Todas as categorias</option>${categories.map(category => `<option value="${esc(category)}">${esc(category)}</option>`).join('')}</select></label>
+     <label>Data do consumo<input type="date" id="staffConsumedOn" class="in" value="${now()}" max="${now()}"></label>
+    </div>
+    <div id="staffProductResults" class="staffProductResults" role="status"></div>
+    <div class="staffProductList">${cards}</div>
+    ${shared?sharingHtml():''}
+    <div class="field"><label for="staffConsumptionNote">${gift?'Motivo da cortesia (obrigatório)':'Observação do lançamento'}</label><input class="in" id="staffConsumptionNote" maxlength="400" placeholder="${gift?'Ex.: refeição liberada pela casa':'Ex.: consumo no intervalo'}"></div>
+    <div class="staffSaveBar"><span>${gift?'Valor de referência':'Total a cobrar'}<b id="staffCartTotal">${money(0)}</b></span><button class="primary" id="staffSaveConsumption" disabled>${gift?'Registrar cortesia':shared?'Salvar divisão nas fichas':'Lançar na ficha'}</button></div>
+   </div>`);
+  const update = () => {
+   const cents = total();
+   $('#staffCartTotal').textContent = money(cents);
+   $('#staffSaveConsumption').disabled = cents<=0;
+   if(shared)updateSharing(cents);
+  };
   if(shared)bindSharing(total);
-  document.querySelectorAll('[data-staff-qty]').forEach(b=>b.onclick=()=>{const id=b.dataset.staffQty,product=state.products.find(p=>p.id===id),q=Math.min(product?.stock_enabled?Number(product.stock_quantity):999,Math.max(0,(picked.get(id)||0)+Number(b.dataset.step)));picked.set(id,q);$('#staffQty-'+id).textContent=q;update();});
-  document.querySelectorAll('[data-staff-addon]').forEach(b=>b.onchange=()=>{const id=b.dataset.staffAddon;addons.set(id,[...document.querySelectorAll('[data-staff-addon="'+id+'"]:checked')].map(e=>e.value));update();});
-  document.querySelectorAll('[data-staff-note]').forEach(b=>b.oninput=()=>notes.set(b.dataset.staffNote,b.value));
-  $('#staffProductSearch').oninput=()=>{const q=$('#staffProductSearch').value.toLowerCase().trim();document.querySelectorAll('[data-staff-product]').forEach(p=>p.hidden=!p.dataset.search.includes(q));};
+  const rows = [...document.querySelectorAll('[data-staff-product]')].map((card,index) => {
+   const product = products[index];
+   const id = product.id;
+   const max = product.stock_enabled ? Math.max(0,Number(product.stock_quantity)||0) : 999;
+   const minus = card.querySelector('[data-step="-1"]');
+   const plus = card.querySelector('[data-step="1"]');
+   const count = card.querySelector('[data-staff-quantity]');
+   const photo = card.querySelector('img');
+   if(photo){
+    photo.onerror = () => photo.remove();
+    if(photo.complete&&!photo.naturalWidth)photo.remove();
+   }
+   function setQuantity(quantity){
+    picked.set(id,quantity);
+    count.textContent = quantity;
+    minus.disabled = quantity===0;
+    plus.disabled = quantity>=max;
+    card.classList.toggle('staffProductSelected',quantity>0);
+    update();
+   }
+   plus.disabled = max===0;
+   minus.onclick = () => setQuantity(Math.max(0,(picked.get(id)||0)-1));
+   plus.onclick = () => setQuantity(Math.min(max,(picked.get(id)||0)+1));
+   const choices = [...card.querySelectorAll('[data-staff-addon]')];
+   choices.forEach(input => input.onchange = () => {
+    addons.set(id,choices.filter(input => input.checked).map(input => input.value));
+    card.querySelector('[data-staff-unit]').textContent = money(unit(product));
+    update();
+   });
+   const note = card.querySelector('[data-staff-note]');
+   note.oninput = () => notes.set(id,note.value);
+   return {card,category:product.category,search:normalizeSearch(product.name+' '+product.category)};
+  });
+  const search = $('#staffProductSearch');
+  const category = $('#staffProductCategory');
+  function filterProducts(){
+   const terms = normalizeSearch(search.value).split(/\s+/).filter(Boolean);
+   let visible = 0;
+   for(const row of rows){
+    row.card.hidden = (category.value!==''&&row.category!==category.value)||!terms.every(term => row.search.includes(term));
+    if(!row.card.hidden)visible++;
+   }
+   $('#staffProductResults').textContent = rows.length===0 ? 'Nenhum produto ativo no cardápio.' : visible===0 ? 'Nenhum produto encontrado. Tente outro nome ou categoria.' : visible===1 ? '1 produto' : visible+' produtos';
+  }
+  search.oninput = filterProducts;
+  category.onchange = filterProducts;
+  filterProducts();
   $('#staffSaveConsumption').onclick=()=>{const note=$('#staffConsumptionNote').value.trim(),consumed_on=$('#staffConsumedOn').value;if(!consumed_on||consumed_on>now()){alert('Confira a data do consumo.');return;}if(gift&&note.length<3){alert('Informe o motivo da cortesia.');return;}const items=state.products.filter(p=>picked.get(p.id)>0).map(p=>({product_id:p.id,qty:picked.get(p.id),addon_ids:addons.get(p.id)||[],note:notes.get(p.id)||''}));let shares=null;if(shared){try{shares=readShares(total());}catch(e){alert(e.message);return;}}if(!confirm(shared?'Salvar a divisão de '+money(total())+' entre '+shares.length+' pessoas?':(gift?'Registrar cortesia de ':'Lançar ')+money(total())+' para '+currentMember().name+'?'))return;saveOperation(shared?'split':gift?'gift':'charge',{items,expected_cents:total(),note,consumed_on},$('#staffSaveConsumption'),shares);};
  }
  function sharingHtml(){return `<section class="staffSharing"><h3>Quanto fica para cada pessoa?</h3><p>Marque os participantes e informe cada parte, ou divida igualmente.</p><div class="staffShares">${state.members.map(m=>`<div><label><input type="checkbox" data-staff-share="${m.id}" ${m.id===selected?'checked':''} ${pending(m.id)?'disabled':''}> ${esc(m.name)}</label><input class="in" data-staff-share-amount="${m.id}" inputmode="decimal" placeholder="0,00" aria-label="Parte de ${esc(m.name)}" ${m.id===selected?'':'disabled'}></div>`).join('')}</div><button class="secondary" id="staffEqualShares">Dividir igualmente</button><div id="staffShareTotal" aria-live="polite"></div><small>Para incluir outra pessoa, cadastre em “+ Funcionário” antes de iniciar.</small></section>`;}
