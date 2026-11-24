@@ -8,14 +8,47 @@
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Não foi possível abrir a foto.'));
+      reader.onerror = reader.onabort = () => reject(new Error(
+        'Não foi possível ler a foto. Escolha o arquivo novamente pela Galeria ou por Downloads.'
+      ));
       reader.readAsDataURL(file);
     });
   }
-  async function uploadPhoto(file) {
+  async function preparePhoto(file) {
     if (file.size > 5 * 1024 * 1024) throw new Error('Escolha uma foto de até 5 MB.');
-    const upload = await call('admin-upload-image', { content_type:file.type, base64:await readPhoto(file) });
+    const base64 = await readPhoto(file);
+    return { content_type:file.type, base64 };
+  }
+  async function uploadPhoto(payload) {
+    const upload = await call('admin-upload-image', payload);
     return upload.public_url;
+  }
+
+  function bindPhotoInput(input, status, showPreview) {
+    let pending;
+    input.onchange = async () => {
+      const file = input.files[0];
+      const selection = file ? preparePhoto(file) : null;
+      pending = selection;
+      showPreview(null);
+      status.textContent = selection ? 'Carregando foto…' : '';
+      try {
+        if (!selection) return;
+        const payload = await selection;
+        if (pending !== selection) return;
+        showPreview(payload.base64);
+        if (status.textContent === 'Carregando foto…') status.textContent = '';
+      } catch (error) {
+        if (pending === selection) status.textContent = error.message;
+      }
+    };
+    return {
+      get selection() { return pending; },
+      clear() {
+        input.value = '';
+        input.onchange();
+      },
+    };
   }
 
   function bindGiftEditor(box, gifts) {
@@ -30,17 +63,13 @@
     const submit = form.querySelector('[type=submit]');
     let id;
     let photo;
-    let preview;
 
-    function showPhoto() {
-      if (preview) URL.revokeObjectURL(preview);
-      const file = fields.photo.files[0];
-      preview = file ? URL.createObjectURL(file) : null;
+    const photoInput = bindPhotoInput(fields.photo, status, preview => {
       const url = preview || photo;
       img.hidden = !url;
       if (url) img.src = url;
       else img.removeAttribute('src');
-    }
+    });
 
     function edit(gift) {
       if (submit.disabled) return;
@@ -53,9 +82,8 @@
       fields.goal.value = gift?.goal ?? '';
       fields.stock.value = gift?.stock ?? '';
       fields.active.checked = gift?.active ?? false;
-      status.textContent = '';
       feedback.textContent = '';
-      showPhoto();
+      photoInput.clear();
       form.hidden = false;
       fields.giftName.focus();
     }
@@ -85,16 +113,13 @@
     }
 
     add.onclick = () => edit();
-    fields.photo.onchange = showPhoto;
     form.querySelector('[data-remove-photo]').onclick = () => {
       photo = null;
-      fields.photo.value = '';
-      showPhoto();
+      photoInput.clear();
     };
     form.querySelector('[data-cancel-gift]').onclick = () => {
       if (submit.disabled) return;
-      fields.photo.value = '';
-      showPhoto();
+      photoInput.clear();
       form.hidden = true;
       add.focus();
     };
@@ -115,11 +140,11 @@
       fields.editor.disabled = true;
       status.textContent = 'Salvando…';
       try {
-        const file = fields.photo.files[0];
-        if (file) {
-          photo = gift.photo_url = await uploadPhoto(file);
-          fields.photo.value = '';
-          showPhoto();
+        const payload = await photoInput.selection;
+        if (payload) {
+          photo = gift.photo_url = await uploadPhoto(payload);
+          photoInput.clear();
+          status.textContent = 'Salvando…';
         }
         const { gift:saved } = await call('caseirao-fidelidade', { action:'save-gift', gift });
         const existing = gifts.findIndex(item => item.id === saved.id);
@@ -210,34 +235,40 @@
       }
       fields.reward.value = settings.reward_id || '';
       fields.reward.onchange = updateImage;
-      fields.photo.onchange = () => {
-        if (preview) URL.revokeObjectURL(preview);
-        preview = fields.photo.files[0] ? URL.createObjectURL(fields.photo.files[0]) : null;
+      const photoInput = bindPhotoInput(fields.photo, $status, url => {
+        preview = url;
         updateImage();
-      };
-      form.querySelector('[data-default-photo]').onclick = () => {
+      });
+      const defaultPhoto = form.querySelector('[data-default-photo]');
+      defaultPhoto.onclick = () => {
         photo = null;
-        fields.photo.value = '';
-        fields.photo.onchange();
+        photoInput.clear();
       };
       form.onsubmit = async event => {
         event.preventDefault();
         const button = form.querySelector('[type=submit]');
+        if (button.disabled) return;
         button.disabled = true;
+        fields.photo.disabled = true;
+        defaultPhoto.disabled = true;
         $status.textContent = 'Salvando…';
         try {
-          const file = fields.photo.files[0];
-          if (file) photo = await uploadPhoto(file);
+          const payload = await photoInput.selection;
+          if (payload) {
+            photo = await uploadPhoto(payload);
+            photoInput.clear();
+            $status.textContent = 'Salvando…';
+          }
           await call('caseirao-fidelidade', { action:'save', settings:{
             active:fields.active.checked, step_cents:Math.round(fields.amount.valueAsNumber * 100),
             goal:fields.goal.valueAsNumber, reward_id:fields.reward.value, photo_url:photo,
           } });
-          fields.photo.value = '';
-          fields.photo.onchange();
           $status.textContent = 'Campanha salva.';
         } catch (error) {
           $status.textContent = error.message;
         } finally {
+          defaultPhoto.disabled = false;
+          fields.photo.disabled = false;
           button.disabled = false;
         }
       };
