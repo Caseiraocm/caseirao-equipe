@@ -12,6 +12,22 @@ const driverAppStyle=document.createElement('style');driverAppStyle.textContent=
 .driverDeparturePicker label{display:flex;align-items:center;gap:6px;min-height:40px;padding:4px 9px;margin:0;border:1px solid #c9dfdc;border-radius:7px;background:#fff;font-size:14px;font-weight:700;cursor:pointer}
 .driverDeparturePicker input{width:17px;height:17px;accent-color:#084547}
 .driverDeparturePicker button{min-height:42px}
+.bagReminder{margin:8px 0 12px;padding:10px 12px;border:1px solid #f0ce9a;border-radius:10px;background:#fff8e9;color:#693a0b}
+.bagReminder strong{display:block;margin-bottom:4px}
+.bagReminder ul{margin:0;padding-left:20px}
+.bagReminder li+li{margin-top:4px}
+.driverBagDialog{width:min(92vw,520px);max-height:86vh;overflow:auto;padding:18px;border:1px solid #dfd6c9;border-radius:16px;background:#fff;color:#24282d}
+.driverBagDialog::backdrop{background:#18130f99}
+.driverBagDialog h2{margin:0 0 6px;font-size:21px}
+.driverBagDialog p{margin:0 0 12px}
+.driverBagDialog fieldset{margin:0 0 10px;padding:8px;border:1px solid #e4d7c2;border-radius:10px}
+.driverBagDialog legend{padding:0 4px;font-weight:700}
+.driverBagDialog label{display:flex;align-items:center;gap:10px;min-height:44px;padding:5px 8px;border-radius:8px;background:#fff8e9;font-weight:700}
+.driverBagDialog label+label{margin-top:5px}
+.driverBagDialog input{flex:none;width:20px;height:20px;accent-color:#176b3b}
+.driverBagActions{display:grid;gap:8px}
+.driverBagActions button{min-height:44px}
+.driverBagActions button:disabled{opacity:.5}
 `;document.head.appendChild(driverAppStyle);
 
 let deliveryHub=null,driverSnapshot=null,driverLocationWatch=null,driverLocationTimer=null;
@@ -206,6 +222,121 @@ function driverReadyForPickup(assignment){
 function driverReadyNotice(count){
   return count===1?'1 entrega pronta para retirada.':`${count} entregas prontas para retirada.`;
 }
+
+function bagWords(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+
+function bagItemType(name,category){
+  if(/hamburg|combo/.test(category)||/\bcombos?\b/.test(name))return '';
+  if(/batata/.test(category)||/^(batata|fritas)\b/.test(name))return 'fries';
+  if(/bebida|refrigerante|suco|^agua/.test(category)
+    || /^(coca|coca[- ]?cola|guarana|fanta|pepsi|papsi|refrigerante|refri|suco|agua|sprite|soda|schweppes|del valle)\b/.test(name))return 'drink';
+  return '';
+}
+
+function bagExtras(order){
+  const rows=new Map();
+  const products=typeof data==='undefined'?[]:(data?.products||[]);
+  const add=(type,name,quantity)=>{
+    const key=`${type}:${bagWords(name)}`;
+    const previous=rows.get(key);
+    rows.set(key,{type,name:previous?.name??name,quantity:(previous?.quantity??0)+quantity});
+  };
+  for(const item of order.order_items||[]){
+    const name=String(item.product_name??item.name??'').trim();
+    const quantity=Number(item.quantity??item.qty??1);
+    if(!name||!Number.isFinite(quantity)||quantity<=0)continue;
+    const product=item.product??(item.product_id==null?null:products.find(p=>String(p.id)===String(item.product_id)));
+    const category=bagWords(item.product_category??product?.category??item.category);
+    const type=bagItemType(bagWords(name),category);
+    if(type)add(type,name,quantity);
+    let hasDrink=false;
+    let hasFries=false;
+    for(const addon of item.order_item_addons||[]){
+      const label=String(addon.addon_name??addon.name??'').trim();
+      const kind=window.CaseiraoComboDrinks?.includes(addon.addon_id??addon.id)?'drink':bagItemType(bagWords(label),'');
+      if(!kind||!label)continue;
+      const perUnit=Number(addon.quantity??addon.qty??1);
+      add(kind,label,quantity*(Number.isFinite(perUnit)&&perUnit>0?perUnit:1));
+      if(kind==='drink')hasDrink=true;
+      if(kind==='fries')hasFries=true;
+    }
+    if(!category.includes('combo')&&!/\bcombos?\b/.test(bagWords(name)))continue;
+    const description=bagWords(product?.description??item.product_description);
+    if(!hasFries&&/\b(batata|fritas)\b/.test(description)&&!/\bsem (batata|fritas)\b/.test(description)){
+      add('fries',`Batata do combo · ${name}`,quantity);
+    }
+    if(!hasFries&&!description){
+      add('fries',`Conferir na comanda se há batata · ${name}`,quantity);
+    }
+    if(!hasDrink){
+      add('combo',`Conferir a bebida na comanda · ${name}`,quantity);
+    }
+  }
+  return [...rows.values()].sort((a,b)=>Number(a.type==='fries')-Number(b.type==='fries'));
+}
+
+function bagExtraText({type,name,quantity}){
+  const icon=type==='fries'?'🍟':'🥤';
+  return `${icon} ${quantity} × ${name}`;
+}
+
+function bagReminderHtml(extras){
+  if(!extras.length)return '';
+  return `<div class="bagReminder"><strong>Bebidas e batatas para conferir</strong>
+    <ul>${extras.map(item=>`<li>${esc(bagExtraText(item))}</li>`).join('')}</ul></div>`;
+}
+
+function driverBagOrders(assignments){
+  return assignments.map(assignment=>{
+    const order=driverFullOrder(assignment);
+    const extras=bagExtras(order).map(bagExtraText);
+    if(!order.order_items.length)extras.push('Confira as bebidas e batatas na comanda impressa');
+    return {id:String(assignment.id),number:order.order_number,extras};
+  }).filter(order=>order.extras.length);
+}
+
+function confirmDriverBag(orders){
+  if(!orders.length)return Promise.resolve(true);
+  if(document.querySelector('.driverBagDialog'))return Promise.resolve(false);
+  const dialog=document.createElement('dialog');
+  dialog.className='driverBagDialog';
+  dialog.setAttribute('aria-labelledby','driverBagTitle');
+  dialog.innerHTML=`<form method="dialog">
+    <h2 id="driverBagTitle">Conferir sacola antes de sair</h2>
+    <p>Marque cada linha depois de pegar a quantidade indicada.</p>
+    ${orders.map(order=>`<fieldset><legend>Pedido #${esc(order.number||'—')}</legend>
+      ${order.extras.map(extra=>`<label><input type="checkbox"> ${esc(extra)}</label>`).join('')}
+    </fieldset>`).join('')}
+    <div class="driverBagActions">
+      <button class="primary" value="confirmed" disabled>Conferi · iniciar rota</button>
+      <button class="secondary" value="back">Voltar</button>
+    </div></form>`;
+  const checks=[...dialog.querySelectorAll('input[type="checkbox"]')];
+  const confirmButton=dialog.querySelector('[value="confirmed"]');
+  dialog.addEventListener('change',()=>{confirmButton.disabled=checks.some(input=>!input.checked);});
+  document.body.appendChild(dialog);
+  return new Promise(resolve=>{
+    dialog.addEventListener('close',()=>{
+      const confirmed=dialog.returnValue==='confirmed'&&checks.every(input=>input.checked);
+      dialog.remove();
+      resolve(confirmed);
+    },{once:true});
+    dialog.showModal();
+  });
+}
+
+async function checkDriverDepartureBags(assignments){
+  const before=driverBagOrders(assignments);
+  if(!await confirmDriverBag(before))return false;
+  const current=assignments.map(assignment=>driverSnapshot?.assignments?.find(item=>String(item.id)===String(assignment.id)));
+  if(current.every(item=>item&&driverReadyForPickup(item))
+      &&JSON.stringify(driverBagOrders(current))===JSON.stringify(before))return true;
+  alert('Um pedido da saída foi atualizado. Confira a lista de pedidos prontos e tente novamente.');
+  return false;
+}
+
 function showDriverDashboardView(screen,view){
   driverDashboardView=view;
   screen.querySelectorAll('[data-driver-view]').forEach(button=>{
@@ -325,7 +456,21 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
       if(enabled)playOrderSound();
       showAppToast(enabled?'Alerta sonoro ativado nesta tela.':'Alerta sonoro desativado.','ok');
     };
-    screen.querySelectorAll('[data-driver-status]').forEach(b=>b.onclick=()=>updateDriverDelivery(b.dataset.driverAssignment,b.dataset.driverStatus));
+    screen.querySelectorAll('[data-driver-status]').forEach(button=>{
+      button.onclick=async()=>{
+        const {driverAssignment:id,driverStatus:status}=button.dataset;
+        if(status!=='route')return updateDriverDelivery(id,status);
+        const assignment=ready.find(item=>String(item.id)===id);
+        if(!assignment||startingDeparture||!await checkDriverDepartureBags([assignment])||startingDeparture)return;
+        button.disabled=true;
+        if(groupButton)groupButton.disabled=true;
+        try{await updateDriverDelivery(id,status);}
+        finally{
+          if(button.isConnected)button.disabled=false;
+          updateGroup();
+        }
+      };
+    });
     const groupButton=screen.querySelector('#driverStartDeparture');
     const groupChoices=[...screen.querySelectorAll('[data-departure-pick]')];
     const updateGroup=()=>{
@@ -353,10 +498,12 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
     };
     if(groupButton)groupButton.onclick=async()=>{
       if(startingDeparture||selectedDeparture.size<2||selectedDeparture.size>30)return;
+      const stops=orderedDriverStops(ready);
+      if(!await checkDriverDepartureBags(stops)||startingDeparture)return;
       startingDeparture=true;
       updateGroup();
       try{
-        await driverAppApi('start_departure',{ordered:true,assignment_ids:orderedDriverStops(ready).map(assignment=>String(assignment.id))});
+        await driverAppApi('start_departure',{ordered:true,assignment_ids:stops.map(assignment=>String(assignment.id))});
         selectedDeparture.clear();
         customDepartureOrder=[];
         driverDashboardView='route';
@@ -402,7 +549,7 @@ async function renderDriverArea(snapshot=null,{returnedFromDelivery=false}={}){
 }
 
 function driverAssignmentSignature(snapshot){
-  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.departure_position,a.delivered_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at,a.orders?.ready_at])]);
+  return JSON.stringify([snapshot?.driver_gas_allowance,(snapshot?.assignments||[]).map(a=>[a.id,a.status,a.updated_at,a.route_started_at,a.departure_position,a.delivered_at,a.orders?.status,a.orders?.archived_at,a.orders?.updated_at,a.orders?.ready_at,a.orders?.order_items])]);
 }
 async function refreshAutomaticDriver(){
   if(startingDeparture||driverSyncBusy||document.hidden||!localStorage.getItem(driverTokenKey)||!document.querySelector('.driverScreenNew'))return;
@@ -464,6 +611,7 @@ function driverOrderCard(a){
   const hood=esc(a.neighborhood_name||order.neighborhood_name||'Bairro não informado');
   const phone=String(order.customer_phone||'').replace(/\D/g,'');
   const ready=driverReadyForPickup(a);
+  const extras=ready?bagExtras(order):[];
   const pending=a.status==='assigned'&&!ready;
   const timer=pending?'':driverDeliveryTimerHtml(order.ready_at);
   const action=ready
@@ -474,11 +622,12 @@ function driverOrderCard(a){
   return `<details class="driverOrder driverQueueOrder" name="caseirao-driver-order" data-driver-detail="${id}">
     <summary${timer?' class="has-driver-timer"':''}>
       <span class="driverOrderMarker" aria-hidden="true"></span>
-      <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small></span>
+      <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small>${extras.length?'<small><b>🥤🍟 Conferir bebidas ou batatas</b></small>':''}</span>
       ${timer}
       <span class="driverOrderChevron" aria-hidden="true"></span>
     </summary>
     <div class="driverOrderExpanded">
+      ${bagReminderHtml(extras)}
       ${action?`<div class="driverNextAction">${action}</div>`:''}
       ${pending||a.status==='problem'? `<p class="driverOrderStatus">${esc(pending?(order.status==='preparando'?'Em preparo':'Aguardando preparo'):(a.problem_note||deliveryStatusLabel(a.status)))}</p>` : ''}
       <div class="driverDeliveryInfo">
@@ -509,7 +658,12 @@ function driverOrderCard(a){
   </details>`;
 }
 
-async function updateDriverDelivery(id,status){try{const payload={assignment_id:id,status};if(status==='problem'){const note=prompt('O que aconteceu na entrega?','Cliente não localizado');if(note===null)return;payload.problem_note=note}if(status==='delivered'){const a=(driverSnapshot.assignments||[]).find(x=>x.id===id),o=a?.orders||{};if(o.payment==='Dinheiro'){const cash=prompt('Quanto em dinheiro ficou com você após devolver o troco?',String(Number(o.total||0).toFixed(2)).replace('.',','));if(cash===null)return;const change=prompt('Quanto de troco você entregou ao cliente?','0,00');if(change===null)return;payload.cash_received=num(cash);payload.change_given=num(change)}payload.payment_confirmed=true}await driverAppApi('status',payload);if(status==='delivered'){stopDriverAreaGps();await renderDriverArea(null,{returnedFromDelivery:true})}else{await renderDriverArea();showAppToast(deliveryStatusLabel(status),'ok')}}catch(e){alert(e.message)}}
+async function updateDriverDelivery(id,status){try{const payload={assignment_id:id,status};if(status==='problem'){const note=prompt('O que aconteceu na entrega?','Cliente não localizado');if(note===null)return;payload.problem_note=note}if(status==='delivered'){const a=(driverSnapshot.assignments||[]).find(x=>x.id===id),o=a?.orders||{};if(o.payment==='Dinheiro'){const cash=prompt('Quanto em dinheiro ficou com você após devolver o troco?',String(Number(o.total||0).toFixed(2)).replace('.',','));if(cash===null)return;const change=prompt('Quanto de troco você entregou ao cliente?','0,00');if(change===null)return;payload.cash_received=num(cash);payload.change_given=num(change)}payload.payment_confirmed=true}if(status==='route'){
+  startingDeparture=true;
+  try{await driverAppApi('status',payload);}
+  finally{startingDeparture=false;}
+}else await driverAppApi('status',payload);
+if(status==='delivered'){stopDriverAreaGps();await renderDriverArea(null,{returnedFromDelivery:true})}else{await renderDriverArea();showAppToast(deliveryStatusLabel(status),'ok')}}catch(e){alert(e.message)}}
 function stopDriverAreaGps(){if(driverLocationWatch!=null)navigator.geolocation.clearWatch(driverLocationWatch);driverLocationWatch=null;if(driverLocationTimer)clearInterval(driverLocationTimer);driverLocationTimer=null}
 function startDriverAreaGps(assignmentId,button){if(!navigator.geolocation)return alert('GPS indisponível neste celular.');stopDriverAreaGps();button.disabled=true;button.textContent='SOLICITANDO LOCALIZAÇÃO...';let last=0;const send=async pos=>{if(Date.now()-last<5000)return;last=Date.now();try{await driverAppApi('location',{assignment_id:assignmentId,latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy});button.classList.add('gpsActive');button.textContent='● GPS ATIVO — MANTENHA A TELA ABERTA'}catch(e){button.textContent='FALHA NO GPS — TOQUE PARA TENTAR'}};driverLocationWatch=navigator.geolocation.watchPosition(send,()=>{button.disabled=false;button.textContent='PERMITA O GPS E TENTE NOVAMENTE'},{enableHighAccuracy:true,maximumAge:0,timeout:20000});button.disabled=false}
 
