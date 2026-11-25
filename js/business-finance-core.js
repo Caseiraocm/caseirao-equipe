@@ -33,7 +33,7 @@
   function calculate(snapshot, reportCore) {
     const report = reportCore.build(snapshot.report);
     const { start, end } = report;
-    const { inventory, prior_inventory, entries, today, tax, rate_bps, reserved } = snapshot.operation;
+    const { inventory, prior_inventory, entries, staff_members = [], today, tax, rate_bps, reserved } = snapshot.operation;
     const inside = date => date && date >= start && date <= end;
     const days = new Map();
     for (let i = 1; i <= Number(end.slice(-2)); i++) {
@@ -123,7 +123,7 @@
       preliminary: !stockValid || tax == null || today <= end,
       incoming, outgoing, cashChange: incoming - outgoing, byAccount, transfers,
       cardPaid, cardRefunds, cardSettled, unidentified, undated: report.totals.undated,
-      payables, overdue, receivables, orderDue: report.totals.due, issues: report.issues.length, entries,
+      payables, overdue, receivables, orderDue: report.totals.due, issues: report.issues.length, entries, staffMembers: staff_members,
     };
   }
   const api = { calculate, categories, categoryLabels, accountLabels, shopDay, brl, moneyInput };

@@ -86,6 +86,7 @@
   }
 
   function ledger(data) {
+    const memberNames = new Map(data.staffMembers.map(member => [member.id, member.name]));
     return `<section class="bf-card"><div class="bf-section-head"><h3>Lançamentos manuais</h3><label>Exibir
       <select data-bf-filter><option value="all">Todos</option><option value="open">Em aberto</option><option value="paid">Liquidados</option><option value="void">Anulados</option></select></label></div>
       <p>As vendas e os pagamentos já registrados no sistema aparecem nos totais da visão geral.</p>
@@ -93,7 +94,9 @@
       <table><thead><tr><th>Descrição</th><th>Competência</th><th>Vencimento</th><th>Pagamento</th><th>Valor</th><th>Ações</th></tr></thead>
       <tbody>${data.entries.map(row => {
         const state = row.voided_at ? 'void' : row.paid_on ? 'paid' : 'open';
+        const member = memberNames.get(row.staff_member_id);
         return `<tr data-bf-state="${state}"><td><b>${esc(row.description)}</b><small>${kinds[row.kind]} · ${categoryLabels[row.category]}</small>
+          ${member ? `<small>Ficha de ${esc(member)}</small>` : ''}
           ${row.voided_at ? `<small>Anulado · ${esc(row.void_reason)}</small>` : ''}</td>
           <td>${prettyDate(row.competence)}</td><td>${prettyDate(row.due_on)}</td><td>${prettyDate(row.paid_on)}
           ${row.account ? `<small>${accountLabels[row.account]}${row.destination ? ' → ' + accountLabels[row.destination] : ''}</small>` : ''}</td>
@@ -203,6 +206,8 @@
       <label>Tipo<select name="kind">${options(kinds)}</select></label>
       <p class="bf-note bf-wide" data-bf-hint></p>
       <label data-bf-field="category">Categoria<select name="category"><option value="">Selecione</option>${options(categories)}</select></label>
+      <label data-bf-field="staff_member">Funcionário<select name="staff_member"><option value="">Selecione, se aplicável</option>${data.staffMembers.map(member =>
+        `<option value="${esc(member.id)}">${esc(member.name)}</option>`).join('')}</select></label>
       <label class="bf-wide">Descrição<input name="description" maxlength="180" required placeholder="Ex.: Compra de insumos"></label>
       <label data-bf-field="competence">Data de competência<input type="date" name="competence" required value="${defaultDay}" min="2000-01-01" max="2099-12-31"></label>
       <label><span data-bf-amount>Valor (R$)</span><input name="amount" inputmode="decimal" required placeholder="0,00"></label>
@@ -224,6 +229,7 @@
         kind, category: fields.get('category') || fixedCategory[kind], description: fields.get('description'),
         competence: fields.get('competence') || fields.get('paid'), paid_on: fields.get('paid'),
         due_on: fields.get('due') || null, account, destination, amount_cents: amount, net_cents: net,
+        staff_member_id: fields.get('staff_member') || null,
       };
       const payload = JSON.stringify(entry);
       if (submitted && payload !== submitted) id = crypto.randomUUID();
@@ -236,6 +242,7 @@
       const paid = !regular || form.elements.status.value === 'paid';
       const visible = {
         category: kind === 'expense', competence: regular || kind === 'settlement', net: kind === 'settlement',
+        staff_member: kind === 'expense' && form.elements.category.value === 'equipe' && data.staffMembers.length > 0,
         due: regular, status: regular, paid, account: paid, destination: kind === 'transfer',
       };
       for (const [key, show] of Object.entries(visible)) {
@@ -246,7 +253,19 @@
       form.querySelector('[data-bf-amount]').textContent = kind === 'settlement' ? 'Valor bruto do repasse (R$)' : 'Valor (R$)';
       form.querySelector('[data-bf-hint]').textContent = hints[kind];
     };
-    form.elements.kind.onchange = form.elements.status.onchange = sync;
+    form.elements.kind.onchange = form.elements.status.onchange = form.elements.category.onchange = sync;
+    let suggestedDescription = '';
+    let suggestedAmount = '';
+    form.elements.staff_member.onchange = () => {
+      const member = data.staffMembers.find(item => item.id === form.elements.staff_member.value);
+      const { description, amount } = form.elements;
+      const nextDescription = member?.payment_frequency === 'daily' ? 'Pagamento diário de ' + member.name : '';
+      const nextAmount = member?.payment_frequency === 'daily' ? inputMoney(member.payment_base_cents) : '';
+      if (!description.value || description.value === suggestedDescription) description.value = nextDescription;
+      if (!amount.value || amount.value === suggestedAmount) amount.value = nextAmount;
+      suggestedDescription = nextDescription;
+      suggestedAmount = nextAmount;
+    };
     sync();
   }
 
