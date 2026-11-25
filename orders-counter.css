@@ -1,0 +1,82 @@
+.shiftLanchesCounter {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 10px;
+}
+
+.shiftLanchesCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  max-width: 100%;
+  padding: 8px 13px 8px 10px;
+  border: 1px solid #e4dcef;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #f5f0fa, #fdfbff 76%);
+  box-shadow: 0 2px 6px #43216812, inset 3px 0 #9266bb;
+  color: #38254d;
+}
+
+.shiftLanchesIcon {
+  display: grid;
+  flex: 0 0 33px;
+  height: 33px;
+  place-items: center;
+  border-radius: 9px;
+  background: #eae0f5;
+  font-size: 18px;
+}
+
+.shiftLanchesMetric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.shiftLanchesNumber {
+  color: #583575;
+  font-size: clamp(25px, 3.8vw, 35px);
+  line-height: 1;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+.shiftLanchesLabel {
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.shiftLanchesTime {
+  display: grid;
+  gap: 1px;
+  padding-left: 10px;
+  border-left: 1px solid #e4dcef;
+  color: #5e5168;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.shiftLanchesTime time {
+  color: #38254d;
+  font-size: 16px;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.shiftLanchesHours {
+  white-space: nowrap;
+}
+
+@media (max-width: 460px) {
+  .shiftLanchesCard {
+    padding: 7px 10px;
+  }
+
+  .shiftLanchesIcon {
+    display: none;
+  }
+}
