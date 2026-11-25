@@ -36,11 +36,12 @@
     const products = availableProducts();
     if (!products.length) return alert('Nenhum produto disponível para acrescentar.');
     const quantities = new Map(), notes = new Map(), extras = new Map();
+    const productPrice = order.source === 'manual' ? regularPriceOf : priceOf;
     const subtotal = () => products.reduce((sum, p) => {
       const id = String(p.id), q = quantities.get(id) || 0;
       const addonTotal = allowedAddons(id).filter(a => (extras.get(id) || new Set()).has(String(a.id)))
         .reduce((a, b) => a + Number(b.price || 0), 0);
-      return sum + q * (priceOf(p) + addonTotal);
+      return sum + q * (productPrice(p) + addonTotal);
     }, 0);
     const show = () => {
       const n = subtotal();
@@ -51,7 +52,7 @@
       <div class="caseiraoAddHint"><b>Pedido original: ${fmt(order.total)}</b><br>Escolha os novos produtos. Os itens já cadastrados, os adicionais e os descontos do pedido serão preservados.</div>
       ${payExtraNotice(order)}
       <div class="employeeProductSearch"><span>⌕</span><input id="caseiraoItemSearch" class="in" placeholder="Buscar produto, bebida ou combo…"></div>
-      <div class="employeeCatalog">${operationalCatalogHtml(products)}</div>
+      <div class="employeeCatalog">${operationalCatalogHtml(products, productPrice)}</div>
       <div class="caseiraoAddSummary"><span>Valor a acrescentar <b id="caseiraoExtraTotal">${fmt(0)}</b></span><span>Novo total do pedido <b id="caseiraoUpdatedTotal">${fmt(order.total)}</b></span></div>
       <div class="manualFooter"><button id="caseiraoSaveExtra" class="primary">CONFIRMAR NOVOS ITENS</button></div>`, true);
     $('#caseiraoBackToOrders').onclick = () => renderAdmin();
