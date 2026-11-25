@@ -4,7 +4,7 @@
   const sections=[
     {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade_pontos','★','Clube Pontos'],['promocoes','🔥','Promoções']]},
-    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['reserva_impostos','%','Reserva de impostos'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
+    {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['financeiro','▤','Financeiro'],['reserva_impostos','%','Reserva de impostos'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
   const money=value=>Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const paymentKey=value=>{const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(key.includes('pix'))return'pix';if(key.includes('dinheiro'))return'dinheiro';if(key.includes('cartao')||key.includes('credito')||key.includes('debito'))return'cartao';return''};
@@ -125,6 +125,11 @@
     const manualOrder=$('#proManualOrder');
     if(manualOrder)manualOrder.onclick=()=>openManualOrder();
     if (adminTab === 'reserva_impostos') openTaxReserve($('#admContent'));
+    else if (adminTab === 'financeiro') {
+      const box = $('#admContent');
+      if (typeof window.renderBusinessFinance === 'function') window.renderBusinessFinance(box);
+      else box.innerHTML = '<p class="notice">O Financeiro não carregou. Atualize a Central e tente novamente.</p>';
+    }
     else if (adminTab === 'fidelidade_pontos') window.renderCaseiraoPointsAdmin($('#admContent'));
     else renderAdminTab();
   };
