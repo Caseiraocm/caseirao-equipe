@@ -9,12 +9,6 @@ function orderPaymentConfirmed(o){
   return String(o?.payment||'').toLowerCase()!=='pix'||String(o?.payment_status||'').toLowerCase()==='confirmed';
 }
 function orderCountsAsSale(o){return o?.status!=='cancelado'&&orderPaymentConfirmed(o)}
-function renderAdmin(){
-  if(!admin)return;
-  const current=shiftOrders(),valid=current.filter(orderCountsAsSale),sales=valid.reduce((s,o)=>s+Number(o.total||0),0);
-  modal(`<div class="sheeth adminHead"><div><h2>Caixa do Caseirão</h2><div class="adminSub">${admin.settings.store_open?'Expediente em andamento':'Caixa encerrado'}</div></div><button class="x" data-close>×</button></div><div class="admgrid compactMetrics"><div class="metric"><span>Pedidos do caixa</span><b>${current.length}</b></div><div class="metric"><span>Vendas do caixa</span><b>${fmt(sales)}</b></div><div class="metric storeMetric"><span>Status</span><b class="${admin.settings.store_open?'green':'red'}">${admin.settings.store_open?'ABERTO':'FECHADO'}</b></div></div><div class="admbar cleanTabs">${[['pedidos','Pedidos'],['relatorios','Relatórios'],['produtos','Produtos'],['bairros','Bairros'],['adicionais','Adicionais'],['cupons','Cupons'],['banner','Banner'],['loja','Loja']].map(([k,n])=>`<button data-tab="${k}" class="${adminTab===k?'on':''}">${n}</button>`).join('')}</div><div id="admContent"></div>`,true);
-  bindClose();document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.tab;renderAdmin()});renderAdminTab();
-}
 function customerWhatsAppNumber(phone){
   let digits=String(phone||'').replace(/\D/g,'');
   if(digits.startsWith('00'))digits=digits.slice(2);
@@ -84,8 +78,45 @@ function customerWhatsAppRouteOrder(order,status=order.status){
   return status==='em_rota'&&order.status==='em_rota'&&order.type==='delivery'?String(order.id||''):'';
 }
 
+let whatsappWebConnectionPrepared=false;
+function prepareWhatsAppWebConnection(){
+  if(whatsappWebConnectionPrepared)return;
+  whatsappWebConnectionPrepared=true;
+  const hint=document.createElement('link');
+  hint.rel='preconnect';
+  hint.href='https://web.whatsapp.com';
+  document.head.append(hint);
+}
+
+const whatsappRouteLookups=new WeakMap();
+function getWhatsAppRouteQueue(link,id){
+  const cached=whatsappRouteLookups.get(link);
+  const now=Date.now();
+  if(cached&&cached.id===id&&now-cached.startedAt<4000)return cached.request;
+
+  const request=Promise.resolve()
+    .then(()=>driverAppApi('admin_route_queue',{order_id:id},true))
+    .catch(()=>{
+      if(whatsappRouteLookups.get(link)?.request===request)whatsappRouteLookups.delete(link);
+      return null;
+    });
+  whatsappRouteLookups.set(link,{id,startedAt:now,request});
+  return request;
+}
+
 document.addEventListener('click',async event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const summary=event.target.closest?.('.orderSummary');
+  const card=summary?.closest('details.orderDetailed');
+  if(card&&!card.open&&!event.target.closest('a,button,input,select,textarea')){
+    const link=card.querySelector('a[data-whatsapp-route-order]');
+    if(link){
+      prepareWhatsAppWebConnection();
+      if(link.dataset.whatsappRouteOrder)getWhatsAppRouteQueue(link,link.dataset.whatsappRouteOrder);
+    }
+    return;
+  }
+
   const link=event.target.closest?.('a[data-whatsapp-route-order]');
   const id=link?.dataset.whatsappRouteOrder;
   if(!id)return;
@@ -101,10 +132,12 @@ document.addEventListener('click',async event=>{
   let timeout;
   try{
     const result=await Promise.race([
-      driverAppApi('admin_route_queue',{order_id:id},true),
+      getWhatsAppRouteQueue(link,id),
       new Promise(resolve=>{timeout=setTimeout(()=>resolve(null),4000);})
     ]);
-    destination.location.replace(customerWhatsAppUrl(order,'em_rota',Number(result?.stops_ahead||0)));
+    destination.location.replace(result
+      ?customerWhatsAppUrl(order,'em_rota',Number(result.stops_ahead||0))
+      :link.href);
   }catch{
     destination.location.replace(link.href);
   }finally{
@@ -166,11 +199,6 @@ function openManualOrder(){
   document.querySelectorAll('[data-mtype]').forEach(b=>b.onclick=()=>{manualType=b.dataset.mtype;document.querySelectorAll('[data-mtype]').forEach(x=>x.classList.toggle('on',x===b));drawAddress()});
   document.querySelectorAll('[data-mproduct]').forEach(b=>b.onclick=()=>{const id=String(b.dataset.mproduct),next=Math.max(0,(quantities.get(id)||0)+Number(b.dataset.d));quantities.set(id,next);const q=document.querySelector(`[data-mqty="${CSS.escape(id)}"]`);if(q)q.textContent=next;drawTotal()});
   $('#saveManual').onclick=async()=>{const btn=$('#saveManual');try{const name=$('#mName').value.trim(),phone=$('#mPhone').value.trim(),items=products.map(p=>({product_id:p.id,qty:quantities.get(String(p.id))||0,addon_ids:[],note:''})).filter(i=>i.qty>0);if(!name)throw new Error('Informe o nome.');if(!phone)throw new Error('Informe o telefone.');if(!items.length)throw new Error('Adicione pelo menos um item.');const payload={customer:{name,phone},type:manualType,payment:$('#mPayment').value,change_for:$('#mChange').value.trim(),coupon_code:'',notes:('[PEDIDO MANUAL] '+$('#mNotes').value.trim()).trim(),items};if(manualType==='delivery'){const n=$('#mNeighborhood').value;if(!$('#mStreet').value.trim()||!$('#mNumber').value.trim()||!n)throw new Error('Preencha rua, número e bairro.');payload.address={street:$('#mStreet').value.trim(),number:$('#mNumber').value.trim(),neighborhood_id:n,complement:$('#mComplement').value.trim(),reference:$('#mReference').value.trim()}}btn.disabled=true;btn.textContent='Criando...';const made=await api('create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});admin=await adminCall('snapshot');knownOrderIds=new Set((admin.orders||[]).map(o=>o.id));adminTab='pedidos';renderAdmin();alert(`Pedido #${made.order_number} criado.`)}catch(e){alert(e.message||String(e));btn.disabled=false;btn.textContent='CRIAR PEDIDO'}};
-}
-function renderOrders(box){
-  const visible=shiftOrders(),active=visible.filter(o=>!['entregue','cancelado'].includes(o.status)),finished=visible.filter(o=>['entregue','cancelado'].includes(o.status)).slice(0,12);
-  box.innerHTML=`<div class="orderToolbar"><button id="manualOrder" class="primary">+ PEDIDO MANUAL</button><button id="refreshOrders" class="secondary">Atualizar</button></div>${!admin.settings.store_open?'<div class="empty cleanEmpty"><b>Caixa fechado</b><span>Abra a loja para iniciar um novo expediente. Os pedidos anteriores estão em Relatórios.</span></div>':`<div class="sectionTitle">Em andamento <span class="countPill">${active.length}</span></div>${active.length?active.map(o=>orderAdminCard(o,false)).join(''):'<div class="empty cleanEmpty"><b>Nenhum pedido agora</b><span>Os novos pedidos aparecerão aqui.</span></div>'}${finished.length?`<div class="sectionTitle">Finalizados neste caixa</div>${finished.map(o=>orderAdminCard(o,true)).join('')}`:''}`}`;
-  $('#refreshOrders').onclick=refreshAdmin;$('#manualOrder').onclick=openManualOrder;bindPrintButtons();document.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const next=b.dataset.st;if(next==='cancelado'&&!confirm('Cancelar este pedido?'))return;if(next==='entregue'&&!confirm(completionConfirmText(b.dataset.oid)))return;try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.oid,status:next});if(['entregue','cancelado'].includes(next))await deliveryApi('admin_stop',{order_id:b.dataset.oid},true).catch(()=>{});admin=await adminCall('snapshot');renderAdmin()}catch(e){b.disabled=false;alert(e.message)}});
 }
 function renderStoreAdmin(box){
   const s=admin.settings,isOpen=!!s.store_open;
@@ -277,8 +305,39 @@ async function openDriverTrackingReliable(token){
   }catch(e){modal(`<div class="driverScreen"><div class="err"><b>Link indisponível</b><br>${esc(e.message)}</div></div>`,true)}
 }
 openDriverTracking=openDriverTrackingReliable;
-function exposeDeliveryTrackingButtons(root=document){root.querySelectorAll('details.orderDetailed').forEach(card=>{const source=card.querySelector('.orderBody [data-delivery-map]'),summary=card.querySelector('.orderSummary .summaryRight');if(!source||!summary||summary.querySelector('[data-delivery-map]'))return;const quick=document.createElement('button');quick.type='button';quick.className='trackingQuick';quick.dataset.deliveryMap=source.dataset.deliveryMap;quick.dataset.orderNumber=source.dataset.orderNumber;quick.textContent='📍 RASTREAMENTO';summary.prepend(quick)})}
-const trackingObserver=new MutationObserver(()=>exposeDeliveryTrackingButtons($('#modalRoot')));trackingObserver.observe($('#modalRoot'),{childList:true,subtree:true});
+function exposeDeliveryTrackingButton(card){
+  const source=card.querySelector('.orderBody [data-delivery-map]');
+  const summary=card.querySelector('.orderSummary .summaryRight');
+  if(!source||!summary||summary.querySelector('[data-delivery-map]'))return;
+  const quick=document.createElement('button');
+  quick.type='button';
+  quick.className='trackingQuick';
+  quick.dataset.deliveryMap=source.dataset.deliveryMap;
+  quick.dataset.orderNumber=source.dataset.orderNumber;
+  quick.textContent='📍 RASTREAMENTO';
+  summary.prepend(quick);
+}
+const orderTrackingCardSelector='details.orderDetailed';
+const trackingObserver=new MutationObserver(records=>{
+  const changedCards=new Set();
+  for(const {target,addedNodes} of records){
+    for(const node of addedNodes){
+      if(node.nodeType!==Node.ELEMENT_NODE||!node.isConnected)continue;
+      if(node.matches(orderTrackingCardSelector)){
+        changedCards.add(node);
+        continue;
+      }
+      node.querySelectorAll(orderTrackingCardSelector).forEach(card=>changedCards.add(card));
+      if(node.matches('[data-delivery-map]:not(.trackingQuick), .orderSummary, .summaryRight')
+        ||node.querySelector('[data-delivery-map]:not(.trackingQuick), .summaryRight')){
+        const card=target.closest?.(orderTrackingCardSelector);
+        if(card)changedCards.add(card);
+      }
+    }
+  }
+  changedCards.forEach(exposeDeliveryTrackingButton);
+});
+trackingObserver.observe($('#modalRoot'),{childList:true,subtree:true});
 document.addEventListener('click',event=>{const button=event.target.closest('[data-delivery-map]');if(button){event.preventDefault();event.stopPropagation();openAdminDeliveryTracking(button.dataset.deliveryMap,button.dataset.orderNumber)}});
 
 /* CASEIRAO PROFESSIONAL V2 — camada organizada de experiência e operação */
@@ -427,8 +486,6 @@ function renderOrders(box){
         alert(e.message)
       }
     });
-
-    exposeDeliveryTrackingButtons(box)
   };
 
   draw()

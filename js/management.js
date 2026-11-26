@@ -210,9 +210,24 @@ const tableOrderContentSignature=order=>JSON.stringify({
 });
 const notifiedTableEdits=new Map();
 const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function(){
-  const before=new Map((admin?.orders||[]).map(order=>[String(order.id),{signature:tableOrderContentSignature(order),status:String(order.status||'')}]))
+  const before=new Map();
+  for(const order of admin?.orders||[]){
+    before.set(String(order.id),{
+      order,
+      signature:order.table_session_id?tableOrderContentSignature(order):null,
+      status:String(order.status||'')
+    });
+  }
   await checkNewOrdersTableEditBase();
-  const edited=(admin?.orders||[]).filter(order=>{const id=String(order.id),old=before.get(id),signature=tableOrderContentSignature(order);if(!old||!order.table_session_id||signature===old.signature||String(order.status||'')!==old.status)return false;if(notifiedTableEdits.get(id)===signature)return false;notifiedTableEdits.set(id,signature);return true});
+  const edited=(admin?.orders||[]).filter(order=>{
+    if(!order.table_session_id)return false;
+    const id=String(order.id),old=before.get(id);
+    if(!old||String(order.status||'')!==old.status)return false;
+    const signature=tableOrderContentSignature(order);
+    if(notifiedTableEdits.get(id)===signature||signature===(old.signature??tableOrderContentSignature(old.order)))return false;
+    notifiedTableEdits.set(id,signature);
+    return true;
+  });
   if(!edited.length)return;
   const box=$('#admContent');
   if(box){if(adminTab==='pedidos')renderOrders(box);else if(adminTab==='producao')renderKitchen(box);else if(adminTab==='caixa')renderCash(box);else if(adminTab==='mesas')await renderRemoteTables(box)}
