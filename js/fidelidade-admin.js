@@ -62,7 +62,6 @@
     const fields = form.elements;
     const submit = form.querySelector('[type=submit]');
     const remove = form.querySelector('[data-delete-gift]');
-    const productPicker = form.querySelector('[data-gift-product]');
     let id;
     let photo;
     let savedGift;
@@ -81,7 +80,11 @@
       remove.hidden = !gift;
       photo = gift?.photo_url || null;
       form.reset();
-      productPicker.hidden = Boolean(gift);
+      fields.giftProduct.value = gift?.product_id || '';
+      if (gift?.product_id && !fields.giftProduct.value) {
+        fields.giftProduct.add(new Option('Produto indisponível',gift.product_id));
+        fields.giftProduct.value = gift.product_id;
+      }
       title.textContent = gift ? 'Editar recompensa' : 'Nova recompensa';
       fields.giftName.value = gift?.name ?? '';
       fields.description.value = gift?.description ?? '';
@@ -107,7 +110,7 @@
         const button = document.createElement('button');
         name.textContent = gift.name;
         const state = !gift.active ? 'Pausado' : gift.remaining === 0 ? 'Esgotado' : 'Disponível';
-        details.textContent = gift.goal + ' pontos · ' + gift.remaining + ' em estoque · ' + state;
+        details.textContent = gift.goal + ' pontos · ' + (gift.product_id ? 'No pedido · ' : 'Retirada · ') + gift.remaining + ' em estoque · ' + state;
         button.type = 'button';
         button.className = 'secondary';
         button.textContent = 'Editar';
@@ -172,7 +175,7 @@
       const gift = {
         id, name:fields.giftName.value.trim(), description:fields.description.value.trim(),
         goal:fields.goal.valueAsNumber, stock:fields.stock.valueAsNumber, active:fields.active.checked,
-        photo_url:photo,
+        photo_url:photo, product_id:fields.giftProduct.value || null,
       };
       if (!gift.name) {
         status.textContent = 'Informe o nome do brinde.';
@@ -207,6 +210,193 @@
     renderList();
   }
 
+  const claimLabels = { pending:'Aguardando retirada', delivered:'Entregue', cancelled:'Cancelado' };
+  const historyLabels = { pedido:'Pedido', resgate:'Resgate no pedido', estorno:'Estorno',
+    ajuste:'Ajuste manual', brinde:'Solicitação de brinde', devolucao:'Pontos devolvidos' };
+  const pointsLabel = value => value + (value === 1 ? ' ponto' : ' pontos');
+  const dateLabel = value => new Date(value).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+
+  function secondary(label, handler) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'secondary';
+    button.textContent = label;
+    button.onclick = handler;
+    return button;
+  }
+
+  function bindManagement(box) {
+    const clients = box.querySelector('[data-points-clients]');
+    const claims = box.querySelector('[data-points-claims]');
+    const run = (action, args = {}) => call('caseirao-fidelidade', { action, ...args });
+    let walletPanel;
+    let selected;
+
+    function paginate(panel, action, render) {
+      const list = panel.querySelector('[data-list]');
+      const feedback = panel.querySelector('[role=status]');
+      const refresh = panel.querySelector('[data-refresh]');
+      const pages = panel.querySelector('[data-pages]');
+      let offset = 0;
+      let revision = 0;
+      async function load(next = offset, message = '') {
+        const request = ++revision;
+        feedback.textContent = 'Carregando…';
+        try {
+          const result = await run(action, { offset:next });
+          if (request !== revision || !panel.isConnected) return;
+          offset = next;
+          list.replaceChildren(...result.rows.map(render));
+          if (!result.rows.length) list.textContent = next ? 'Nenhum registro nesta página.' :
+            action === 'wallets' ? 'Ainda não há clientes com movimentação de pontos.' : 'Nenhuma solicitação de brinde.';
+          const navigation = [];
+          if (offset) navigation.push(secondary('Página anterior', () => load(offset - 25)));
+          if (result.more) navigation.push(secondary('Próxima página', () => load(offset + 25)));
+          pages.replaceChildren(...navigation);
+          feedback.textContent = message;
+        } catch (error) {
+          if (request === revision) feedback.textContent = error.message;
+        }
+      }
+      refresh.onclick = () => load();
+      load();
+      return load;
+    }
+
+    function showWallet(wallet, summary, message = '') {
+      if (selected !== wallet.id || !walletPanel.isConnected) return;
+      wallet.balance = summary.balance;
+      walletPanel.innerHTML = `
+        <h4 data-wallet-name></h4><p data-balance></p>
+        <form style="display:grid;gap:10px">
+          <fieldset name="fields" style="display:grid;gap:10px">
+            <legend>Ajustar saldo</legend>
+            <label class="field">Ação<select class="input" name="operation">
+              <option value="add">Adicionar pontos</option>
+              <option value="subtract">Descontar pontos</option>
+              <option value="reset">Zerar saldo</option>
+            </select></label>
+            <label class="field" data-quantity>Quantidade<input class="input" name="points" type="number" min="1" max="100000" step="1" required></label>
+            <label class="field">Motivo<input class="input" name="reason" maxlength="200" required></label>
+            <button class="primary" type="submit">Confirmar ajuste</button>
+          </fieldset>
+        </form>
+        <p role="status"></p><h4>Histórico de pontos</h4><ul></ul>`;
+      walletPanel.querySelector('[data-wallet-name]').textContent = wallet.name || 'Cliente sem nome';
+      walletPanel.querySelector('[data-balance]').textContent = 'Saldo atual · ' + pointsLabel(summary.balance);
+      const status = walletPanel.querySelector('[role=status]');
+      const list = walletPanel.querySelector('ul');
+      status.textContent = message;
+      if (!summary.history.length) {
+        const empty = document.createElement('li');
+        empty.textContent = 'Nenhuma movimentação registrada.';
+        list.append(empty);
+      }
+      for (const entry of summary.history) {
+        const item = document.createElement('li');
+        const label = historyLabels[entry.kind] || 'Movimentação';
+        item.textContent = label + (entry.order_number == null ? '' : ' #' + entry.order_number)
+          + ' · ' + (entry.points < 0 ? '−' : '+') + pointsLabel(Math.abs(entry.points))
+          + (entry.detail ? ' · ' + entry.detail : '') + (entry.created_at ? ' · ' + dateLabel(entry.created_at) : '');
+        if (entry.kind === 'pedido' && entry.points > 0 && entry.order_id) {
+          item.append(' ', secondary('Estornar pedido', async event => {
+            if (!confirm('Estornar ' + pointsLabel(entry.points) + ' do pedido #' + entry.order_number + '?')) return;
+            const button = event.currentTarget;
+            button.disabled = true;
+            try {
+              const result = await run('reverse-credit', { id:wallet.id, order_id:entry.order_id });
+              showWallet(wallet, result, 'Pontos do pedido estornados.');
+              loadWallets();
+            } catch (error) {
+              status.textContent = error.message;
+            } finally {
+              button.disabled = false;
+            }
+          }));
+        }
+        list.append(item);
+      }
+      const form = walletPanel.querySelector('form');
+      const fields = form.elements;
+      fields.operation.onchange = () => {
+        const fixed = fields.operation.value === 'reset';
+        form.querySelector('[data-quantity]').hidden = fixed;
+        fields.points.disabled = fixed;
+      };
+      let previous;
+      form.onsubmit = async event => {
+        event.preventDefault();
+        const operation = fields.operation.value;
+        const reason = fields.reason.value.trim();
+        if (!reason) { status.textContent = 'Informe o motivo do ajuste.'; return; }
+        if (operation === 'reset' && !confirm('Zerar o saldo atual desta carteira?')) return;
+        const args = { id:wallet.id, operation, reason, points:operation === 'reset' ? 0 : fields.points.valueAsNumber };
+        const key = JSON.stringify(args);
+        const request_id = previous?.key === key ? previous.id : crypto.randomUUID();
+        previous = { key, id:request_id };
+        fields.fields.disabled = true;
+        status.textContent = 'Salvando…';
+        try {
+          const result = await run('adjust', { ...args, request_id });
+          showWallet(wallet, result, 'Ajuste registrado.');
+          loadWallets();
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          fields.fields.disabled = false;
+        }
+      };
+    }
+
+    walletPanel = clients.querySelector('[data-wallet]');
+    const loadWallets = paginate(clients, 'wallets', wallet => {
+      const li = document.createElement('li');
+      const name = wallet.name || 'Cliente sem nome';
+      li.append(secondary(name + ' · ' + pointsLabel(wallet.balance), async () => {
+        selected = wallet.id;
+        walletPanel.textContent = 'Carregando carteira de ' + name + '…';
+        try {
+          showWallet(wallet, await run('wallet', { id:wallet.id }));
+        } catch (error) {
+          if (selected === wallet.id) walletPanel.textContent = error.message;
+        }
+      }));
+      return li;
+    });
+
+    const loadClaims = paginate(claims, 'claims', claim => {
+      const li = document.createElement('li');
+      const title = document.createElement('strong');
+      title.textContent = claim.gift_name;
+      const info = document.createElement('p');
+      info.textContent = (claim.customer_name || 'Cliente sem nome') + ' · ' + claimLabels[claim.status]
+        + ' · Código ' + claim.id.slice(0,12).toUpperCase() + ' · ' + dateLabel(claim.created_at);
+      li.append(title, info);
+      if (claim.status !== 'pending') return li;
+      const finish = status => async () => {
+        const delivered = status === 'delivered';
+        if (!confirm(delivered ? 'Confirmar a entrega deste brinde?' : 'Cancelar e devolver os pontos ao cliente?')) return;
+        li.querySelectorAll('button').forEach(button => { button.disabled = true; });
+        try {
+          await run('finish-claim', { id:claim.id, status });
+          await loadClaims(undefined, delivered ? 'Entrega registrada.' : 'Solicitação cancelada e pontos devolvidos.');
+          if (!delivered) {
+            selected = null;
+            walletPanel.replaceChildren();
+            loadWallets();
+          }
+        } catch (error) {
+          claims.querySelector('[role=status]').textContent = error.message;
+        } finally {
+          li.querySelectorAll('button').forEach(button => { button.disabled = false; });
+        }
+      };
+      li.append(secondary('Marcar como entregue', finish('delivered')), ' ',
+        secondary('Cancelar solicitação', finish('cancelled')));
+      return li;
+    });
+  }
+
   window.renderCaseiraoPointsAdmin = async box => {
     box.innerHTML = '<p class="notice" role="status">Carregando Clube Pontos…</p>';
     try {
@@ -214,7 +404,7 @@
       if (!box.isConnected) return;
       box.innerHTML = `
         <form style="display:grid;gap:10px;max-width:580px">
-          <h2>Clube Pontos</h2>
+          <h3>Configuração da campanha</h3>
           <p>Os pedidos feitos pelo cardápio somam pontos após o pagamento e a conclusão.</p>
           <label><input name="active" type="checkbox"> Campanha ativa</label>
           <label class="field">Valor em produtos para ganhar 1 ponto (R$)<input class="input" name="amount" type="number" min="0.01" max="10000" step="0.01" required></label>
@@ -239,7 +429,7 @@
           <form data-gift-form hidden>
             <fieldset name="editor" style="display:grid;gap:10px">
               <legend><h4>Nova recompensa</h4></legend>
-              <label class="field" data-gift-product>Preencher com produto do cardápio<select class="input" name="giftProduct"><option value="">Brinde personalizado</option></select></label>
+              <label class="field" data-gift-product>Forma de resgate<select class="input" name="giftProduct"><option value="">Brinde físico · retirada</option></select></label>
               <label class="field">Nome<input class="input" name="giftName" maxlength="100" required></label>
               <label class="field">Descrição<textarea class="input" name="description" maxlength="500" rows="3"></textarea></label>
               <label class="field">Pontos para resgatar<input class="input" name="goal" type="number" min="1" max="100000" step="1" required></label>
@@ -256,13 +446,21 @@
             </fieldset>
           </form>
         </section>
-        <form data-wallet-search style="display:grid;gap:10px;max-width:580px;margin-top:22px">
-          <h2>Consultar pontos por WhatsApp</h2>
-          <input class="input" name="phone" type="tel" inputmode="tel" required aria-label="WhatsApp com DDD">
-          <button class="secondary" type="submit">Consultar histórico</button>
-          <p data-wallet-feedback role="status"></p>
-          <div data-wallet-results></div>
-        </form>`;
+        <section data-points-clients style="display:grid;gap:10px;max-width:680px;margin:22px 0">
+          <h3>Clientes do Clube Pontos</h3>
+          <button class="secondary" type="button" data-refresh>Atualizar clientes</button>
+          <p role="status"></p>
+          <ul data-list style="display:grid;gap:8px;padding-left:20px"></ul>
+          <div data-pages></div>
+          <section data-wallet></section>
+        </section>
+        <section data-points-claims style="display:grid;gap:10px;max-width:680px;margin:22px 0">
+          <h3>Solicitações de brindes físicos</h3>
+          <button class="secondary" type="button" data-refresh>Atualizar solicitações</button>
+          <p role="status"></p>
+          <ul data-list style="display:grid;gap:10px;padding-left:20px"></ul>
+          <div data-pages></div>
+        </section>`;
       const form = box.querySelector('form');
       const fields = form.elements;
       const $status = form.querySelector('[role=status]');
@@ -380,89 +578,12 @@
 
       bindGiftEditor(box, gifts, products);
 
-      const lookup = box.querySelector('[data-wallet-search]');
-      const phoneInput = lookup.elements.phone;
-      const feedback = lookup.querySelector('[data-wallet-feedback]');
-      const results = lookup.querySelector('[data-wallet-results]');
-      let walletBusy = false;
-      function setWalletBusy(busy) {
-        walletBusy = busy;
-        phoneInput.disabled = busy;
-        lookup.querySelectorAll('button').forEach(button => { button.disabled = busy; });
-      }
-      async function showWallets(phone) {
-        const { wallets } = await call('caseirao-fidelidade', { action:'lookup', phone });
-        if (!wallets.length) {
-          results.textContent = 'Ainda não há pontos nesse WhatsApp.';
-          return;
-        }
-        results.replaceChildren(...wallets.map((wallet, index) => {
-          const section = document.createElement('section');
-          const heading = document.createElement('h3');
-          heading.textContent = (wallets.length > 1 ? 'Carteira ' + (index + 1) + ' · ' : '') + wallet.balance + ' pontos';
-          const list = document.createElement('ul');
-          for (const item of wallet.history) {
-            const row = document.createElement('li');
-            const kind = { resgate:'Resgate', estorno:'Estorno' }[item.kind] || 'Pedido';
-            const quantity = Math.abs(item.points);
-            const amount = quantity + (quantity === 1 ? ' ponto' : ' pontos');
-            row.textContent = kind + ' #' + item.order_number + ' · ' + (item.points > 0 ? '+' : '−') + amount;
-            if (item.can_remove && item.kind === 'pedido' && item.points > 0 && item.order_id) {
-              const button = document.createElement('button');
-              button.type = 'button';
-              button.className = 'secondary';
-              button.textContent = 'Estornar pontos';
-              button.setAttribute('aria-label', 'Estornar pontos do pedido #' + item.order_number);
-              button.style.cssText = 'display:block;margin:6px 0 10px;min-height:44px';
-              button.onclick = async () => {
-                if (walletBusy || !confirm('Estornar ' + amount + ' do pedido #' + item.order_number + '? O estorno ficará no histórico.')) return;
-                setWalletBusy(true);
-                feedback.textContent = 'Estornando pontos…';
-                try {
-                  const result = await call('caseirao-fidelidade', { action:'remove-credit', phone, order_id:item.order_id });
-                  feedback.textContent = result.already_removed
-                    ? 'Os pontos desse pedido já foram estornados.'
-                    : 'Pontos do pedido #' + item.order_number + ' estornados.';
-                  results.replaceChildren();
-                  try { await showWallets(phone); }
-                  catch { feedback.textContent += ' Consulte o histórico novamente para ver o saldo atualizado.'; }
-                } catch (error) {
-                  feedback.textContent = error.message;
-                } finally {
-                  setWalletBusy(false);
-                  if (!button.isConnected) lookup.querySelector('[type=submit]').focus();
-                }
-              };
-              row.append(button);
-            }
-            list.append(row);
-          }
-          section.append(heading, list);
-          return section;
-        }));
-      }
-      phoneInput.oninput = () => {
-        feedback.textContent = '';
-        results.replaceChildren();
-      };
-      lookup.onsubmit = async event => {
-        event.preventDefault();
-        if (walletBusy) return;
-        const phone = phoneInput.value;
-        setWalletBusy(true);
-        feedback.textContent = 'Consultando…';
-        results.replaceChildren();
-        try {
-          await showWallets(phone);
-          feedback.textContent = '';
-        } catch (error) {
-          feedback.textContent = error.message;
-        } finally {
-          setWalletBusy(false);
-        }
-      };
+      box.prepend(box.querySelector('[data-points-claims]'));
+      box.prepend(box.querySelector('[data-points-clients]'));
+      bindManagement(box);
     } catch (error) {
       if (box.isConnected) box.querySelector('[role=status]').textContent = error.message;
     }
   };
 })();
+
