@@ -1,0 +1,57 @@
+.orderSummary .centralPaymentBadge,
+.paymentMetrics .centralPaymentBadge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 4px;
+  width: fit-content;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: #edf0f3;
+  color: #394351;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: left;
+  white-space: normal;
+}
+
+.orderSummary .centralPaymentBadge {
+  max-width: 100px;
+}
+
+.centralPaymentBadge[data-kind="pix"] {
+  background: #d9f4f0;
+  color: #075950;
+}
+
+.centralPaymentBadge[data-kind="dinheiro"] {
+  background: #e3f4dd;
+  color: #24551a;
+}
+
+.centralPaymentBadge[data-kind="cartao"] {
+  background: #e9e7fc;
+  color: #3f367a;
+}
+
+.centralPaymentBadge .centralPaymentIcon {
+  display: inline-flex;
+  flex: 0 0 13px;
+  width: 13px;
+  color: inherit;
+}
+
+.centralPaymentIcon svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.centralPaymentBadge .centralPaymentLabel {
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
