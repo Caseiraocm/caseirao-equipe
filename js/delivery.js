@@ -254,8 +254,11 @@ function bagExtras(order){
     let hasDrink=false;
     let hasFries=false;
     for(const addon of item.order_item_addons||[]){
-      const label=String(addon.addon_name??addon.name??'').trim();
-      const kind=window.CaseiraoComboDrinks?.includes(addon.addon_id??addon.id)?'drink':bagItemType(bagWords(label),'');
+      const addonName=String(addon.addon_name??addon.name??'').trim();
+      const comboDrinkPrefix=/^refrigerante do combo\s*:\s*/i;
+      const isComboDrink=comboDrinkPrefix.test(addonName)||window.CaseiraoComboDrinks?.includes(addon.addon_id??addon.id);
+      const label=addonName.replace(comboDrinkPrefix,'');
+      const kind=isComboDrink?'drink':bagItemType(bagWords(label),'');
       if(!kind||!label)continue;
       const perUnit=Number(addon.quantity??addon.qty??1);
       add(kind,label,quantity*(Number.isFinite(perUnit)&&perUnit>0?perUnit:1));
@@ -611,8 +614,9 @@ function driverOrderCard(a){
   const hood=esc(a.neighborhood_name||order.neighborhood_name||'Bairro não informado');
   const phone=String(order.customer_phone||'').replace(/\D/g,'');
   const ready=driverReadyForPickup(a);
-  const extras=ready?bagExtras(order):[];
   const pending=a.status==='assigned'&&!ready;
+  const extras=pending?[]:bagExtras(order);
+  const drinks=extras.filter(item=>item.type==='drink').map(bagExtraText).join(' · ');
   const timer=pending?'':driverDeliveryTimerHtml(order.ready_at);
   const action=ready
     ? `<button type="button" class="primary" data-driver-status="route" data-driver-assignment="${id}">Retirei · iniciar rota</button>`
@@ -622,7 +626,7 @@ function driverOrderCard(a){
   return `<details class="driverOrder driverQueueOrder" name="caseirao-driver-order" data-driver-detail="${id}">
     <summary${timer?' class="has-driver-timer"':''}>
       <span class="driverOrderMarker" aria-hidden="true"></span>
-      <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small>${extras.length?'<small><b>🥤🍟 Conferir bebidas ou batatas</b></small>':''}</span>
+      <span class="driverOrderCaption"><strong>Pedido #${number}</strong><small>${hood}</small>${extras.length?`<small><b>${esc(drinks||'🥤🍟 Conferir bebidas ou batatas')}</b></small>`:''}</span>
       ${timer}
       <span class="driverOrderChevron" aria-hidden="true"></span>
     </summary>
