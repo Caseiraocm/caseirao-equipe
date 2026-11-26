@@ -260,7 +260,8 @@
           <h2>Consultar pontos por WhatsApp</h2>
           <input class="input" name="phone" type="tel" inputmode="tel" required aria-label="WhatsApp com DDD">
           <button class="secondary" type="submit">Consultar histórico</button>
-          <div role="status"></div>
+          <p data-wallet-feedback role="status"></p>
+          <div data-wallet-results></div>
         </form>`;
       const form = box.querySelector('form');
       const fields = form.elements;
@@ -380,29 +381,84 @@
       bindGiftEditor(box, gifts, products);
 
       const lookup = box.querySelector('[data-wallet-search]');
+      const phoneInput = lookup.elements.phone;
+      const feedback = lookup.querySelector('[data-wallet-feedback]');
+      const results = lookup.querySelector('[data-wallet-results]');
+      let walletBusy = false;
+      function setWalletBusy(busy) {
+        walletBusy = busy;
+        phoneInput.disabled = busy;
+        lookup.querySelectorAll('button').forEach(button => { button.disabled = busy; });
+      }
+      async function showWallets(phone) {
+        const { wallets } = await call('caseirao-fidelidade', { action:'lookup', phone });
+        if (!wallets.length) {
+          results.textContent = 'Ainda não há pontos nesse WhatsApp.';
+          return;
+        }
+        results.replaceChildren(...wallets.map((wallet, index) => {
+          const section = document.createElement('section');
+          const heading = document.createElement('h3');
+          heading.textContent = (wallets.length > 1 ? 'Carteira ' + (index + 1) + ' · ' : '') + wallet.balance + ' pontos';
+          const list = document.createElement('ul');
+          for (const item of wallet.history) {
+            const row = document.createElement('li');
+            const kind = { resgate:'Resgate', estorno:'Estorno' }[item.kind] || 'Pedido';
+            const quantity = Math.abs(item.points);
+            const amount = quantity + (quantity === 1 ? ' ponto' : ' pontos');
+            row.textContent = kind + ' #' + item.order_number + ' · ' + (item.points > 0 ? '+' : '−') + amount;
+            if (item.can_remove && item.kind === 'pedido' && item.points > 0 && item.order_id) {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'secondary';
+              button.textContent = 'Estornar pontos';
+              button.setAttribute('aria-label', 'Estornar pontos do pedido #' + item.order_number);
+              button.style.cssText = 'display:block;margin:6px 0 10px;min-height:44px';
+              button.onclick = async () => {
+                if (walletBusy || !confirm('Estornar ' + amount + ' do pedido #' + item.order_number + '? O estorno ficará no histórico.')) return;
+                setWalletBusy(true);
+                feedback.textContent = 'Estornando pontos…';
+                try {
+                  const result = await call('caseirao-fidelidade', { action:'remove-credit', phone, order_id:item.order_id });
+                  feedback.textContent = result.already_removed
+                    ? 'Os pontos desse pedido já foram estornados.'
+                    : 'Pontos do pedido #' + item.order_number + ' estornados.';
+                  results.replaceChildren();
+                  try { await showWallets(phone); }
+                  catch { feedback.textContent += ' Consulte o histórico novamente para ver o saldo atualizado.'; }
+                } catch (error) {
+                  feedback.textContent = error.message;
+                } finally {
+                  setWalletBusy(false);
+                  if (!button.isConnected) lookup.querySelector('[type=submit]').focus();
+                }
+              };
+              row.append(button);
+            }
+            list.append(row);
+          }
+          section.append(heading, list);
+          return section;
+        }));
+      }
+      phoneInput.oninput = () => {
+        feedback.textContent = '';
+        results.replaceChildren();
+      };
       lookup.onsubmit = async event => {
         event.preventDefault();
-        const results = lookup.querySelector('[role=status]');
-        results.textContent = 'Consultando…';
+        if (walletBusy) return;
+        const phone = phoneInput.value;
+        setWalletBusy(true);
+        feedback.textContent = 'Consultando…';
+        results.replaceChildren();
         try {
-          const { wallets } = await call('caseirao-fidelidade', { action:'lookup', phone:lookup.elements.phone.value });
-          if (!wallets.length) { results.textContent = 'Ainda não há pontos nesse WhatsApp.'; return; }
-          results.replaceChildren(...wallets.map((wallet, index) => {
-            const section = document.createElement('section');
-            const heading = document.createElement('h3');
-            heading.textContent = (wallets.length > 1 ? 'Carteira ' + (index + 1) + ' · ' : '') + wallet.balance + ' pontos';
-            const list = document.createElement('ul');
-            for (const item of wallet.history) {
-              const row = document.createElement('li');
-              row.textContent = (item.kind === 'resgate' ? 'Resgate' : 'Pedido') + ' #' + item.order_number +
-                ' · ' + (item.points > 0 ? '+' : '−') + Math.abs(item.points) + ' pontos';
-              list.append(row);
-            }
-            section.append(heading, list);
-            return section;
-          }));
+          await showWallets(phone);
+          feedback.textContent = '';
         } catch (error) {
-          results.textContent = error.message;
+          feedback.textContent = error.message;
+        } finally {
+          setWalletBusy(false);
         }
       };
     } catch (error) {
