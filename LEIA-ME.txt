@@ -1,17 +1,14 @@
-CASEIRÃO BURGER — CONFERÊNCIA DA SACOLA
+CASEIRÃO BURGER — REFRIGERANTE DO COMBO NO PAINEL DO ENTREGADOR
 
-Publique index.html, sw.js, js/delivery.js e js/team.js na raiz do
-repositório Caseiraocm/caseirao-equipe, mantendo a pasta js. Este pacote
-foi montado sobre a versão atual do repositório. O LEIA-ME é só para consulta.
+Aplicar no repositório Caseiraocm/caseirao-equipe, na Central/Equipe.
 
-Depois que o GitHub Pages atualizar, feche e reabra o app da equipe.
+Copie index.html e sw.js para a raiz e js/delivery.js para a pasta js.
+Publique os três arquivos juntos. A atualização inclui a versão nova do cache.
+Se a Central tiver recebido mudanças depois do commit f4ba1c4, aplique o
+arquivo refrigerante-entregador.patch ou incorpore o mesmo diff na versão atual.
 
-No entregador, abra a aba Prontas. Os cartões destacam bebidas e batatas.
-Ao iniciar uma saída individual ou em grupo, marque as quantidades da
-lista antes de confirmar. Pedidos só com lanche seguem direto para a rota.
-Quando um combo antigo não detalha a bebida ou a batata, confira na comanda.
+Depois da publicação, reabra o painel do entregador. O cartão mostra a
+quantidade e o sabor da bebida nas entregas prontas e em rota, e a conferência
+da sacola também identifica a bebida escolhida.
 
-Na tela Embalagem da cozinha, o aviso aparece acima dos itens. A equipe
-continua usando o botão Pedido no ponto para liberar a comanda.
-A confirmação acontece na tela do entregador no momento da saída.
-A atualização usa os dados que o aplicativo já recebe do Supabase.
+Exemplo com o pedido #2274: 1 × Fanta Uva.
