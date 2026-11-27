@@ -1,12 +1,13 @@
-BLACK FRIDAY | CENTRAL DO CASEIRÃO BURGER
+CONTROLE DE PÃES | CENTRAL DO CASEIRÃO BURGER
 
-A atualização da tela pertence ao repositório Caseiraocm/caseirao-equipe.
-Extraia o ZIP e publique index.html, sw.js e os seis arquivos da pasta js
-em um único commit na branch main, mantendo os caminhos do ZIP.
+1. Extraia o ZIP e publique index.html, sw.js, css/orders-counter.css e
+   js/orders-counter.js na branch main de Caseiraocm/caseirao-equipe,
+   mantendo os caminhos. Publique os quatro arquivos no mesmo commit.
+2. Quando a publicação terminar, feche e reabra a Central no tablet.
+3. Em Pedidos, ao lado de Lanches que saíram na noite, confira Pães
+   disponíveis. Toque em Ajustar pães para informar o total físico atual.
 
-Quando o GitHub Pages concluir a publicação, feche e reabra a Central
-no tablet. A lista de produtos e o total do pedido manual mostrarão
-os valores da promoção antes de confirmar.
-
-Os preços e a regra dos pedidos manuais já foram ativados no sistema.
-A promoção termina à meia-noite de 27 para 28/11, no horário de Campo Maior.
+O saldo foi inicializado com 138 pães no banco. Um pão é descontado
+por hambúrguer preparado, inclusive em combos. O fechamento do
+expediente não zera o estoque. Se precisar repor ou corrigir, informe
+o novo total disponível no ajuste da própria Central.
