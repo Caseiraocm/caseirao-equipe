@@ -36,7 +36,7 @@
     const products = availableProducts();
     if (!products.length) return alert('Nenhum produto disponível para acrescentar.');
     const quantities = new Map(), notes = new Map(), extras = new Map();
-    const productPrice = order.source === 'manual' ? regularPriceOf : priceOf;
+    const productPrice = order.source === 'manual' ? counterPriceOf : priceOf;
     const subtotal = () => products.reduce((sum, p) => {
       const id = String(p.id), q = quantities.get(id) || 0;
       const addonTotal = allowedAddons(id).filter(a => (extras.get(id) || new Set()).has(String(a.id)))

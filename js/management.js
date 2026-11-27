@@ -164,7 +164,7 @@ function openTableOrderEditor(table,session,order,adminMode){
     const quantity=Math.max(1,Number(item.quantity)||1),current=quantities.get(id)||0,notes=unitNotes.get(id)||[];
     quantities.set(id,current+quantity);for(let index=0;index<quantity;index++)notes.push(index===0?String(item.note||''):'');unitNotes.set(id,notes);
   });
-  const total=()=>products.reduce((sum,product)=>sum+(quantities.get(String(product.id))||0)*regularPriceOf(product),0);
+  const total=()=>products.reduce((sum,product)=>sum+(quantities.get(String(product.id))||0)*counterPriceOf(product),0);
   modal(`<div class="sheeth"><div><h2>Corrigir pedido #${esc(order.order_number)}</h2><div class="adminSub">Mesa ${String(table.table_number).padStart(2,'0')} • ${adminMode?'Administrador':'Atendimento'}</div></div><button class="x" id="backTableEdit">←</button></div><div class="tableEditNotice"><b>Atenção:</b> ao salvar, a comanda e o total da mesa serão atualizados. Confira os itens antes de confirmar.</div><div class="employeeProductSearch"><span>⌕</span><input id="tableEditSearch" class="in" placeholder="Buscar produto..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="field"><label>Observação geral do pedido</label><textarea id="tableEditNotes" class="ta" placeholder="Opcional">${esc(order.notes||'')}</textarea></div><div class="manualFooter"><div><span>Novo total</span><b id="tableEditTotal">${fmt(total())}</b></div><button id="saveTableEdit" class="primary">SALVAR CORREÇÃO</button></div>`,true);
   const refresh=()=>{products.forEach(product=>{const id=String(product.id),quantity=quantities.get(id)||0,counter=$(`[data-rqty="${CSS.escape(id)}"]`);if(counter){counter.textContent=quantity;counter.closest('.employeeProductCard')?.classList.toggle('selected',quantity>0)}if(quantity)renderUnitNotes(id,product.name||'Item',quantity,unitNotes)});$('#tableEditTotal').textContent=fmt(total())};
   $('#backTableEdit').onclick=()=>adminMode?renderRemoteAdminAccount(table,session):openEmployeeTable(table.id);
@@ -187,7 +187,7 @@ function tableAllowedAddons(productId,adminMode){
 }
 openRemoteOrderForm=function(table,session,adminMode){
   const products=(adminMode?(admin?.products||data.products||[]):(employeeSnapshot?.products||[])).filter(product=>product.active!==false&&!product.sold_out),quantities=new Map(),unitNotes=new Map(),addonSelections=new Map();
-  const total=()=>products.reduce((sum,product)=>{const id=String(product.id),quantity=quantities.get(id)||0,selected=addonSelections.get(id)||new Set(),extra=tableAllowedAddons(id,adminMode).filter(addon=>selected.has(String(addon.id))).reduce((value,addon)=>value+Number(addon.price||0),0);return sum+quantity*(regularPriceOf(product)+extra)},0);
+  const total=()=>products.reduce((sum,product)=>{const id=String(product.id),quantity=quantities.get(id)||0,selected=addonSelections.get(id)||new Set(),extra=tableAllowedAddons(id,adminMode).filter(addon=>selected.has(String(addon.id))).reduce((value,addon)=>value+Number(addon.price||0),0);return sum+quantity*(counterPriceOf(product)+extra)},0);
   const drawTotal=()=>{const output=$('#remoteOrderTotal');if(output)output.textContent=fmt(total())};
   modal(`<div class="sheeth"><div><h2>Mesa ${String(table.table_number).padStart(2,'0')}</h2><div class="adminSub">Escolha os produtos e adicionais</div></div><button class="x" id="backRemoteOrder">←</button></div><div class="employeeProductSearch"><span>⌕</span><input id="remoteProductSearch" class="in" placeholder="Buscar lanche, bebida, batata..."></div><div class="employeeCatalog">${operationalCatalogHtml(products)}</div><div class="field"><label>Observação geral da mesa</label><textarea id="remoteOrderNotes" class="ta" placeholder="Opcional: recado geral para toda a rodada"></textarea></div><div class="manualFooter"><div><span>Total com adicionais</span><b id="remoteOrderTotal">${fmt(0)}</b></div><button id="saveRemoteOrder" class="primary">ENVIAR À PRODUÇÃO</button></div>`,true);
   products.forEach(product=>{const id=String(product.id),card=$(`[data-rqty="${CSS.escape(id)}"]`)?.closest('.employeeProductCard'),addons=tableAllowedAddons(id,adminMode);if(!card||!addons.length)return;card.insertAdjacentHTML('beforeend',`<div class="manualAddonBox tableAddonBox" data-table-addons="${esc(id)}"><b>ADICIONAIS</b><div>${addons.map(addon=>`<label><input type="checkbox" data-table-addon="${esc(id)}" value="${esc(addon.id)}"><span>${esc(addon.name)}</span><strong>+ ${fmt(addon.price)}</strong></label>`).join('')}</div><small>Os adicionais selecionados valem para todas as unidades deste item.</small></div>`)});
@@ -274,7 +274,7 @@ const checkNewOrdersTableEditBase=checkNewOrders;checkNewOrders=async function()
     };
     const itemPrice=product=>{
       const id=String(product.id),selected=addonSelections.get(id)||new Set();
-      return regularPriceOf(product)+addonsFor(id).filter(addon=>selected.has(String(addon.id)))
+      return counterPriceOf(product)+addonsFor(id).filter(addon=>selected.has(String(addon.id)))
         .reduce((sum,addon)=>sum+Number(addon.price||0),0);
     };
 
