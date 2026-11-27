@@ -1,0 +1,12 @@
+CASEIRÃO BURGER | RESUMO FINANCEIRO DA CENTRAL ADM
+
+No repositório Caseiraocm/caseirao-equipe (branch main), publique
+index.html, sw.js e os arquivos nas pastas css/ e js/ juntos,
+mantendo a estrutura do ZIP. O arquivo de instruções pode ficar de fora.
+
+Depois da publicação no GitHub Pages, reabra a Central com internet e
+acesse Gestão > Financeiro. A visão geral mostra o período acumulado,
+o faturamento de vendas, os custos e despesas, quanto já foi pago
+no período e o resultado. Entradas e saídas do caixa ficam abaixo.
+
+O pacote não altera lançamentos existentes nem requer migração no Supabase.
