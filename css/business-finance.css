@@ -41,7 +41,7 @@
 }
 .bf-panel :focus-visible { outline: 3px solid #1b8e78; outline-offset: 2px; }
 .bf-status:not(:empty) { margin-top: 12px; color: var(--bf-green); font-size: .9rem; font-weight: 700; }
-.bf-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.bf-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
 .bf-tile, .bf-card { min-width: 0; background: var(--bf-surface); border: 1px solid var(--bf-line); border-radius: 16px; padding: clamp(12px, 1.8vw, 20px); }
 .bf-tile { display: grid; gap: 7px; align-content: start; }
 .bf-tile span { font-size: .88rem; font-weight: 700; }
@@ -95,10 +95,11 @@
 .bf-form-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bf-wide { grid-column: 1 / -1; }
 @media (max-width: 1000px) {
-  .bf-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bf-charts { grid-template-columns: 1fr; }
 }
 @media (max-width: 650px) {
+  .bf-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bf-summary .bf-tile:last-child { grid-column: 1 / -1; }
   .bf-columns { grid-template-columns: 1fr; }
   .bf-header { align-items: stretch; }
   .bf-actions label { flex: 1 1 100%; }
