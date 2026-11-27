@@ -48,7 +48,8 @@
   }
 
   function expenseChart(data) {
-    const rows = [['Insumos e embalagens usados', data.cost], ['Imposto do mês', data.taxExpense],
+    const rows = [[data.stockValid ? 'Insumos e embalagens usados' : 'Compras de insumos e embalagens', data.cost],
+      [data.tax == null ? 'Imposto estimado' : 'DAS informado', data.taxExpense],
       ...Object.entries(data.expenses).map(([key, value]) => [categories[key], value])]
       .filter(([, value]) => value !== 0).sort((a, b) => b[1] - a[1]);
     const max = Math.max(1, ...rows.map(([, value]) => Math.abs(value)));
@@ -63,7 +64,21 @@
   }
 
   function overview(data) {
-    return `<div class="bf-charts">${chart(data)}${expenseChart(data)}</div>
+    return `<div class="bf-columns">
+      <section class="bf-card"><h3>Como o resultado foi calculado</h3>${lines([
+        ['Pedidos finalizados', data.customerSales],
+        ...(data.staffSales ? [['Vendas à equipe', data.staffSales]] : []),
+        ...(data.extra ? [['Outras receitas do período', data.extra]] : []),
+        ['Total de receitas', data.revenue],
+        ['Custos e despesas do período', data.totalCosts],
+        ['Resultado do período', data.result],
+      ])}
+      <p>As despesas entram no resultado na data em que pertencem à operação, inclusive em aberto. O valor pago segue a data da baixa.</p>
+      ${data.preliminary ? '<p>O resultado é parcial. O imposto e o custo dos insumos podem mudar no fechamento.</p>' : ''}</section>
+      <section class="bf-card"><h3>Movimento do caixa</h3>${lines([
+        ['Entradas registradas', data.incoming], ['Saídas registradas', data.outgoing], ['Variação do caixa', data.cashChange],
+      ])}<p>As entradas seguem a data do recebimento, inclusive quando a maquininha repassa uma venda em outro dia.</p></section>
+      </div><div class="bf-charts">${expenseChart(data)}${chart(data)}</div>
       <div class="bf-columns">
       <section class="bf-card"><h3>Contas a pagar e a receber</h3>${lines([
         ['Despesas em aberto', data.payables], ['Despesas vencidas', data.overdue],
@@ -129,11 +144,14 @@
   function exportReport(data) {
     const decimal = window.CaseiraoFinance.decimal;
     const csv = window.CaseiraoFinance.csv([
-      ['Financeiro Caseirão', data.start, data.end],
+      ['Financeiro Caseirão', data.start, data.through],
       ['Resultado', data.preliminary ? 'Provisório' : 'Apurado'],
-      ['Receita', decimal(data.revenue)], ['Insumos e embalagens', decimal(data.cost)],
+      ['Faturamento de vendas', decimal(data.sales)], ['Pedidos finalizados', decimal(data.customerSales)],
+      ['Vendas à equipe', decimal(data.staffSales)], ['Outras receitas', decimal(data.extra)],
+      ['Receita total', decimal(data.revenue)], ['Insumos e embalagens', decimal(data.cost)],
       ...Object.entries(data.expenses).map(([key, value]) => [categories[key], decimal(value)]),
-      ['Impostos', decimal(data.taxExpense)], ['Lucro ou prejuízo', decimal(data.result)],
+      ['Impostos', decimal(data.taxExpense)], ['Custos e despesas', decimal(data.totalCosts)],
+      ['Despesas pagas no período', decimal(data.paidExpenses)], ['Lucro ou prejuízo', decimal(data.result)],
       ['Entradas', decimal(data.incoming)], ['Saídas', decimal(data.outgoing)], ['Movimento líquido', decimal(data.cashChange)],
       [], ['Dia', 'Vendas', 'Entradas', 'Saídas'],
       ...data.days.map(row => [row.day, decimal(row.sales), decimal(row.in), decimal(row.out)]),
@@ -272,15 +290,16 @@
   function draw(panel, data, load, message) {
     const views = { overview: 'Visão geral', ledger: 'Lançamentos', closing: 'Fechamento mensal' };
     panel.innerHTML = `<header class="bf-header"><div><h2>Financeiro do Caseirão</h2>
-      <p>${monthLabel(selectedMonth)} · Valores em reais</p></div>
-      <div class="bf-actions"><label>Mês<input type="month" aria-label="Mês do relatório" value="${selectedMonth}" min="2000-01" max="${data.today.slice(0, 7)}"></label>
+      <p>Período de ${prettyDate(data.start)} a ${prettyDate(data.through)}</p></div>
+      <div class="bf-actions"><label>Mês<input type="month" aria-label="Mês do relatório" value="${selectedMonth}" min="${data.financeStart?.slice(0, 7) || '2000-01'}" max="${data.today.slice(0, 7)}"></label>
       <button type="button" data-bf-export>Baixar CSV</button><button type="button" class="bf-primary" data-bf-new>+ Novo lançamento</button></div></header>
       <div class="bf-status" role="status">${message}</div>
       <div class="bf-summary">
-      ${tile('Faturamento', brl(data.revenue), 'Vendas e outras receitas')}
-      ${tile('Custo da operação', brl(data.cost + data.operating + data.taxExpense), data.stockValid ? 'Inclui estoque e imposto' : 'Inclui as compras registradas')}
-      ${tile(data.result < 0 ? 'Prejuízo' : 'Lucro', brl(data.result), (data.preliminary ? 'Provisório' : 'Apurado') + ' · Margem ' + percent(data.margin), data.result < 0 ? 'bf-loss' : 'bf-profit')}
-      ${tile('Variação de caixa', brl(data.cashChange), brl(data.incoming) + ' entrou · ' + brl(data.outgoing) + ' saiu')}
+      ${tile('Faturamento de vendas', brl(data.sales), 'Pedidos finalizados' + (data.staffSales ? ' e vendas à equipe' : ''))}
+      ${tile('Custos e despesas', brl(data.totalCosts), 'Pago no período: ' + brl(data.paidExpenses))}
+      ${tile(data.preliminary ? 'Resultado parcial' : 'Resultado apurado', brl(data.result),
+        (data.result < 0 ? 'Prejuízo' : data.result > 0 ? 'Lucro' : 'Sem lucro ou prejuízo') + ' no período',
+        data.result < 0 ? 'bf-loss' : data.result > 0 ? 'bf-profit' : 'bf-neutral')}
       </div><nav class="bf-tabs" aria-label="Seções do financeiro">${Object.entries(views).map(([key, label]) => `<button type="button" data-bf-view="${key}" aria-pressed="${key === selectedView}">${label}</button>`).join('')}</nav>
       ${{ overview, ledger, closing }[selectedView](data)}`;
     panel.querySelector('input[type=month]').onchange = event => {
@@ -329,7 +348,7 @@
         const closing = moneyInput(fields.get('closing'));
         if (opening == null || closing == null) throw new Error('Informe os valores do estoque em reais.');
         if (closing > opening + data.purchases) throw new Error('O estoque final supera o estoque inicial mais as compras registradas.');
-        return call('inventory', { month: data.start, inventory: {
+        return call('inventory', { month: data.start.slice(0, 7) + '-01', inventory: {
           revision: data.inventory?.revision || 0, opening_cents: opening, closing_cents: closing,
         } });
       }, () => load('Estoque salvo.'));

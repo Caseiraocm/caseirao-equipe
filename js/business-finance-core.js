@@ -31,16 +31,19 @@
   };
 
   function calculate(snapshot, reportCore) {
-    const report = reportCore.build(snapshot.report);
-    const { start, end } = report;
-    const { inventory, prior_inventory, entries, staff_members = [], today, tax, rate_bps, reserved } = snapshot.operation;
-    const inside = date => date && date >= start && date <= end;
+    const { inventory, prior_inventory, entries, staff_members = [], today, tax, rate_bps, reserved, finance_start: financeStart } = snapshot.operation;
+    const { start: monthStart, end } = snapshot.report;
+    const start = financeStart && financeStart > monthStart ? financeStart : monthStart;
+    const through = end < today ? end : today;
+    const report = reportCore.build({ ...snapshot.report, start, end: through });
+    const inside = date => date && date >= start && date <= through;
     const days = new Map();
-    for (let i = 1; i <= Number(end.slice(-2)); i++) {
+    for (let i = Number(start.slice(-2)); i <= Number(through.slice(-2)); i++) {
       const day = start.slice(0, 8) + String(i).padStart(2, '0');
-      if (day <= today) days.set(day, { day, sales: 0, in: 0, out: 0 });
+      days.set(day, { day, sales: 0, in: 0, out: 0 });
     }
     let sales = 0, extra = 0, purchases = 0, incoming = 0, outgoing = 0;
+    let paidExpenses = 0;
     let cardPaid = 0, cardRefunds = 0, cardSettled = 0, unidentified = 0, taxesPaid = 0;
     let payables = 0, receivables = 0, overdue = 0, transfers = 0;
     const expenses = {}, byAccount = {};
@@ -72,6 +75,7 @@
     for (const payroll of report.payrollOutflows) {
       const sign = payroll.event_label === 'Pagamento ao funcionário' ? 1 : -1;
       add(expenses, 'equipe', payroll.signed_cents + sign * Number(payroll.staff_discount_cents || 0));
+      paidExpenses += payroll.signed_cents;
       cash(reportCore.day(payroll.event_at), payroll.payment_method === 'Dinheiro' ? 'caixa' : 'outro', payroll.signed_cents, 'out');
     }
     for (const advance of report.staffOutflows) {
@@ -80,7 +84,7 @@
     for (const entry of entries) {
       if (entry.voided_at) continue;
       const { kind, category, competence, paid_on, due_on, account, destination, amount_cents: amount, net_cents: net } = entry;
-      if (!paid_on && (competence <= end)) {
+      if (!paid_on && (competence <= through)) {
         if (kind === 'expense') {
           payables += amount;
           if (due_on && due_on < today && due_on <= end) overdue += amount;
@@ -102,8 +106,10 @@
         add(byAccount, destination, amount);
       } else if (kind === 'settlement') {
         cardSettled += amount;
+        paidExpenses += amount - net;
         cash(paid_on, account, net, 'in');
       } else {
+        if (kind === 'expense') paidExpenses += amount;
         if (category === 'impostos') taxesPaid += amount;
         cash(paid_on, account, amount, kind === 'expense' || kind === 'capital_out' ? 'out' : 'in');
       }
@@ -115,11 +121,13 @@
     const operating = Object.values(expenses).reduce((sum, amount) => sum + amount, 0);
     const taxExpense = tax ?? estimatedTax;
     const revenue = sales + extra;
-    const result = revenue - cost - operating - taxExpense;
+    const totalCosts = cost + operating + taxExpense;
+    const result = revenue - totalCosts;
     return {
-      start, end, today, days: [...days.values()], sales, extra, revenue, purchases, cost, stockValid, inventory,
+      start, end, through, today, financeStart, days: [...days.values()], sales, customerSales: report.totals.sales,
+      staffSales: report.totals.staffSales, extra, revenue, purchases, cost, stockValid, inventory,
       priorInventory: prior_inventory, expenses, operating, tax, taxExpense, taxesPaid, reserved,
-      result, margin: revenue > 0 ? result / revenue : null,
+      totalCosts, paidExpenses, result, margin: revenue > 0 ? result / revenue : null,
       preliminary: !stockValid || tax == null || today <= end,
       incoming, outgoing, cashChange: incoming - outgoing, byAccount, transfers,
       cardPaid, cardRefunds, cardSettled, unidentified, undated: report.totals.undated,
