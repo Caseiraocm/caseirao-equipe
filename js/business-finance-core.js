@@ -40,13 +40,17 @@
     const days = new Map();
     for (let i = Number(start.slice(-2)); i <= Number(through.slice(-2)); i++) {
       const day = start.slice(0, 8) + String(i).padStart(2, '0');
-      days.set(day, { day, sales: 0, in: 0, out: 0 });
+      days.set(day, { day, sales: 0, paidExpenses: 0, in: 0, out: 0 });
     }
     let sales = 0, extra = 0, purchases = 0, incoming = 0, outgoing = 0;
     let paidExpenses = 0;
     let cardPaid = 0, cardRefunds = 0, cardSettled = 0, unidentified = 0, taxesPaid = 0;
     let payables = 0, receivables = 0, overdue = 0, transfers = 0;
     const expenses = {}, byAccount = {};
+    const recordPaidExpense = (date, amount) => {
+      paidExpenses += amount;
+      days.get(date).paidExpenses += amount;
+    };
     const cash = (date, account, value, direction) => {
       if (direction === 'in') incoming += value;
       else outgoing += value;
@@ -73,10 +77,11 @@
       }
     }
     for (const payroll of report.payrollOutflows) {
+      const date = reportCore.day(payroll.event_at);
       const sign = payroll.event_label === 'Pagamento ao funcionário' ? 1 : -1;
       add(expenses, 'equipe', payroll.signed_cents + sign * Number(payroll.staff_discount_cents || 0));
-      paidExpenses += payroll.signed_cents;
-      cash(reportCore.day(payroll.event_at), payroll.payment_method === 'Dinheiro' ? 'caixa' : 'outro', payroll.signed_cents, 'out');
+      recordPaidExpense(date, payroll.signed_cents);
+      cash(date, payroll.payment_method === 'Dinheiro' ? 'caixa' : 'outro', payroll.signed_cents, 'out');
     }
     for (const advance of report.staffOutflows) {
       cash(reportCore.day(advance.created_at), advance.method === 'Dinheiro' ? 'caixa' : 'outro', advance.signed_cents, 'out');
@@ -106,10 +111,10 @@
         add(byAccount, destination, amount);
       } else if (kind === 'settlement') {
         cardSettled += amount;
-        paidExpenses += amount - net;
+        recordPaidExpense(paid_on, amount - net);
         cash(paid_on, account, net, 'in');
       } else {
-        if (kind === 'expense') paidExpenses += amount;
+        if (kind === 'expense') recordPaidExpense(paid_on, amount);
         if (category === 'impostos') taxesPaid += amount;
         cash(paid_on, account, amount, kind === 'expense' || kind === 'capital_out' ? 'out' : 'in');
       }
@@ -125,7 +130,7 @@
     const result = revenue - totalCosts;
     return {
       start, end, through, today, financeStart, days: [...days.values()], sales, customerSales: report.totals.sales,
-      staffSales: report.totals.staffSales, extra, revenue, purchases, cost, stockValid, inventory,
+      staffSales: report.totals.staffSales, orderCount: report.sales.length, extra, revenue, purchases, cost, stockValid, inventory,
       priorInventory: prior_inventory, expenses, operating, tax, taxExpense, taxesPaid, reserved,
       totalCosts, paidExpenses, result, margin: revenue > 0 ? result / revenue : null,
       preliminary: !stockValid || tax == null || today <= end,

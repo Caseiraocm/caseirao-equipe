@@ -35,16 +35,30 @@
   }
 
   function chart(data) {
-    const rows = data.days;
-    const max = Math.max(1, ...rows.flatMap(row => [Math.abs(row.in), Math.abs(row.out)]));
-    const height = value => value === 0 ? 0 : Math.max(2, Math.abs(value) / max * 100);
-    return `<section class="bf-card"><h3>Fluxo de caixa diário</h3>
-      <div class="bf-legend"><span>Entradas</span><span>Saídas</span></div>
+    let sales = 0;
+    let paid = 0;
+    const rows = data.days.map(row => {
+      sales += row.sales;
+      paid += row.paidExpenses;
+      return { ...row, salesToDate: sales, paidToDate: paid };
+    });
+    const amounts = rows.flatMap(row => [row.salesToDate, row.paidToDate]);
+    const min = Math.min(0, ...amounts);
+    const max = Math.max(1, ...amounts);
+    const position = value => (value - min) * 100 / (max - min);
+    const baseline = position(0);
+    const bar = value => {
+      const point = position(value);
+      return `<i style="bottom:${Math.min(baseline, point)}%;height:${Math.abs(point - baseline)}%"></i>`;
+    };
+    return `<section class="bf-card bf-trend"><h3>Evolução do mês</h3>
+      <div class="bf-legend"><span>Faturamento acumulado</span><span>Despesas pagas acumuladas</span></div>
       <div class="bf-chart-scroll"><div class="bf-chart" style="--bf-days:${Math.max(rows.length, 1)}" aria-hidden="true">
-      ${rows.map(row => `<div class="bf-day" title="${prettyDate(row.day)} · Entradas ${brl(row.in)} · Saídas ${brl(row.out)}">
-        <div class="bf-day-bars"><i style="height:${height(row.in)}%" class="${row.in < 0 ? 'bf-reversal' : ''}"></i><i style="height:${height(row.out)}%" class="${row.out < 0 ? 'bf-reversal' : ''}"></i></div><span>${row.day.slice(-2)}</span></div>`).join('')}
-      </div></div><details><summary>Ver valores por dia</summary><div class="bf-table-scroll"><table><thead><tr><th>Dia</th><th>Vendas</th><th>Entradas</th><th>Saídas</th></tr></thead>
-      <tbody>${rows.map(row => `<tr><td>${prettyDate(row.day)}</td><td>${brl(row.sales)}</td><td>${brl(row.in)}</td><td>${brl(row.out)}</td></tr>`).join('')}</tbody></table></div></details></section>`;
+      ${rows.map(row => `<div class="bf-day" title="${prettyDate(row.day)} · Vendas acumuladas ${brl(row.salesToDate)} · Despesas pagas acumuladas ${brl(row.paidToDate)}">
+        <div class="bf-day-bars">${bar(row.salesToDate)}${bar(row.paidToDate)}</div><span>${row.day.slice(-2)}</span></div>`).join('')}
+      </div></div><details><summary>Ver valores por dia</summary><div class="bf-table-scroll" tabindex="0" aria-label="Detalhamento diário"><table>
+      <thead><tr><th>Dia</th><th>Vendas do dia</th><th>Despesas pagas no dia</th><th>Vendas acumuladas</th><th>Despesas pagas acumuladas</th><th>Entradas de caixa</th><th>Saídas de caixa</th></tr></thead>
+      <tbody>${rows.map(row => `<tr><td>${prettyDate(row.day)}</td><td>${brl(row.sales)}</td><td>${brl(row.paidExpenses)}</td><td>${brl(row.salesToDate)}</td><td>${brl(row.paidToDate)}</td><td>${brl(row.in)}</td><td>${brl(row.out)}</td></tr>`).join('')}</tbody></table></div></details></section>`;
   }
 
   function expenseChart(data) {
@@ -64,7 +78,18 @@
   }
 
   function overview(data) {
-    return `<div class="bf-columns">
+    return `<div class="bf-charts">${chart(data)}${expenseChart(data)}</div>
+      <details class="bf-card bf-sources">
+        <summary>De onde vêm os valores?</summary>
+        <dl class="bf-source-list">
+          <div><dt>Faturamento</dt><dd>${data.orderCount} ${data.orderCount === 1 ? 'pedido finalizado' : 'pedidos finalizados'} somaram ${brl(data.customerSales)}. Vendas à equipe somaram ${brl(data.staffSales)}.</dd></div>
+          <div><dt>Custos e despesas</dt><dd>Compras, contas lançadas, recibos da equipe e taxas de repasse. ${data.stockValid ? 'O custo dos insumos considera o estoque informado.' : 'As compras de insumos entram pelo valor lançado até o estoque ser conferido.'}</dd></div>
+          <div><dt>Imposto</dt><dd>${data.tax == null ? 'O Financeiro aplica às vendas o percentual configurado na Reserva de Impostos.' : 'O Financeiro usa o valor da guia do DAS informado na Reserva de Impostos.'}</dd></div>
+          <div><dt>Caixa</dt><dd>Usa a data de recebimento ou pagamento de cada movimento registrado.</dd></div>
+        </dl>
+        <button type="button" data-bf-view="ledger">Conferir lançamentos</button>
+      </details>
+      <div class="bf-columns">
       <section class="bf-card"><h3>Como o resultado foi calculado</h3>${lines([
         ['Pedidos finalizados', data.customerSales],
         ...(data.staffSales ? [['Vendas à equipe', data.staffSales]] : []),
@@ -78,7 +103,7 @@
       <section class="bf-card"><h3>Movimento do caixa</h3>${lines([
         ['Entradas registradas', data.incoming], ['Saídas registradas', data.outgoing], ['Variação do caixa', data.cashChange],
       ])}<p>As entradas seguem a data do recebimento, inclusive quando a maquininha repassa uma venda em outro dia.</p></section>
-      </div><div class="bf-charts">${expenseChart(data)}${chart(data)}</div>
+      </div>
       <div class="bf-columns">
       <section class="bf-card"><h3>Contas a pagar e a receber</h3>${lines([
         ['Despesas em aberto', data.payables], ['Despesas vencidas', data.overdue],
@@ -153,8 +178,8 @@
       ['Impostos', decimal(data.taxExpense)], ['Custos e despesas', decimal(data.totalCosts)],
       ['Despesas pagas no período', decimal(data.paidExpenses)], ['Lucro ou prejuízo', decimal(data.result)],
       ['Entradas', decimal(data.incoming)], ['Saídas', decimal(data.outgoing)], ['Movimento líquido', decimal(data.cashChange)],
-      [], ['Dia', 'Vendas', 'Entradas', 'Saídas'],
-      ...data.days.map(row => [row.day, decimal(row.sales), decimal(row.in), decimal(row.out)]),
+      [], ['Dia', 'Vendas', 'Despesas pagas', 'Entradas de caixa', 'Saídas de caixa'],
+      ...data.days.map(row => [row.day, decimal(row.sales), decimal(row.paidExpenses), decimal(row.in), decimal(row.out)]),
       [], ['Tipo', 'Categoria', 'Descrição', 'Competência', 'Vencimento', 'Liquidação', 'Valor bruto', 'Líquido do repasse', 'Conta', 'Destino', 'Anulado'],
       ...data.entries.map(row => [kinds[row.kind], categoryLabels[row.category], row.description, row.competence, row.due_on,
         row.paid_on, decimal(row.amount_cents), row.net_cents == null ? '' : decimal(row.net_cents),
