@@ -1,0 +1,12 @@
+BLACK FRIDAY | CENTRAL DO CASEIRÃO BURGER
+
+A atualização da tela pertence ao repositório Caseiraocm/caseirao-equipe.
+Extraia o ZIP e publique index.html, sw.js e os seis arquivos da pasta js
+em um único commit na branch main, mantendo os caminhos do ZIP.
+
+Quando o GitHub Pages concluir a publicação, feche e reabra a Central
+no tablet. A lista de produtos e o total do pedido manual mostrarão
+os valores da promoção antes de confirmar.
+
+Os preços e a regra dos pedidos manuais já foram ativados no sistema.
+A promoção termina à meia-noite de 27 para 28/11, no horário de Campo Maior.
