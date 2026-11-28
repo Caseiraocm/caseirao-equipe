@@ -71,6 +71,9 @@ body.teamApp .proAdmin.ca-orders-page .orderDetailed .statusAdvancedOptions>summ
 .caseiraoNotice{padding:13px 16px;border:1px solid #d5dde5;border-left:4px solid #4a789e;border-radius:13px;background:#fff;color:#233240;box-shadow:0 5px 22px #18283824;font:600 14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere;pointer-events:none!important}
 .caseiraoNotice.ok{border-left-color:#29945c;background:#f0fbf4;color:#165232}
 .caseiraoNotice.err{border-left-color:#c74343;background:#fff4f4;color:#802828}
+.caseiraoNotice.schedule{border-left-color:#b87418;background:#fff7e5;color:#603a0d}
+.proHeader .scheduleShortcut{position:relative;flex:0 0 auto;min-width:42px}
+.proHeader .scheduleShortcut strong{position:absolute;top:-5px;right:-5px;min-width:19px;padding:2px 4px;border-radius:12px;background:#ffce68;color:#442400;font:700 12px/1.2 system-ui,sans-serif;text-align:center;pointer-events:none}
 
 @media screen {
   body.teamApp .proAdmin .ca-order-shortcuts {
