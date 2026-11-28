@@ -1,7 +1,7 @@
 'use strict';
 
-const CACHE = 'caseirao-equipe-20261128-whatsapp-business';
-const APP_SHELL = ['./css/central-payment.css', './css/orders-counter.css', './js/orders-counter.js', './js/business-finance-core.js', './js/business-finance-ui.js', './css/business-finance.css', './js/fidelidade-admin.js','./js/tax-reserve.js', './css/tax-reserve.css','./js/customer-support.js','./css/customer-support.css','./css/order-card-actions.css','./css/driver-dashboard.css','./css/balcao-carrossel.css','./css/balcao-adm.css','./js/balcao-carrossel.js','./js/balcao-adm.js','./js/combo-refrigerantes.js','./css/combo-refrigerantes.css',
+const CACHE = 'caseirao-equipe-20261128-avaliacoes';
+const APP_SHELL = ['./js/feedback-admin.js', './css/central-payment.css', './css/orders-counter.css', './js/orders-counter.js', './js/business-finance-core.js', './js/business-finance-ui.js', './css/business-finance.css', './js/fidelidade-admin.js','./js/tax-reserve.js', './css/tax-reserve.css','./js/customer-support.js','./css/customer-support.css','./css/order-card-actions.css','./css/driver-dashboard.css','./css/balcao-carrossel.css','./css/balcao-adm.css','./js/balcao-carrossel.js','./js/balcao-adm.js','./js/combo-refrigerantes.js','./css/combo-refrigerantes.css',
   './css/caseirao-card-pilot.css','./js/caseirao-card-pilot.js','./js/caseirao-card-admin.js',
   './css/central-menu.css',
  './js/payroll-core.js', './js/payroll-ui.js', './css/payroll.css',
