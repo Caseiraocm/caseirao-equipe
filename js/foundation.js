@@ -16,7 +16,7 @@ function showPassiveNotice(message,type='info',key=''){
   let host=document.getElementById('caseiraoNotices');
   if(!host){host=document.createElement('div');host.id='caseiraoNotices';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.setAttribute('aria-relevant','additions');document.body.appendChild(host)}
   if(key&&[...host.children].some(item=>item.dataset.noticeKey===key))return;
-  const notice=document.createElement('div');notice.className='caseiraoNotice '+(type==='err'?'err':type==='ok'?'ok':'info');notice.dataset.noticeKey=key;notice.textContent=String(message||'Pronto.');
+  const notice=document.createElement('div');notice.className='caseiraoNotice '+(type==='err'?'err':type==='ok'?'ok':type==='schedule'?'schedule':'info');notice.dataset.noticeKey=key;notice.textContent=String(message||'Pronto.');
   while(host.children.length>=3)host.firstElementChild.remove();
   host.appendChild(notice);setTimeout(()=>notice.remove(),type==='err'?6500:5000);
 }

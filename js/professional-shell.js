@@ -48,6 +48,7 @@
   }
   window.renderAdmin=function(){
     if(!admin)return;
+    operationalMode='admin';
     const opened=!!admin.settings?.store_open;
     const title=sections.flatMap(x=>x.items).find(x=>x[0]===adminTab)?.[2]||'Central';
     modal(`<div class="proAdmin proCaseiraoHeader" data-pro-section="${adminTab}"><header class="proHeader">
@@ -61,6 +62,10 @@
       <span class="proHeaderSection" aria-current="page">${title}</span>
       <div class="proHeaderStatus ${opened?'open':'closed'}"><i aria-hidden="true"></i>${opened?'Loja aberta':'Loja fechada'}</div>
       <button type="button" id="proSupport" class="proHeaderButton" aria-label="Atendimento"><span>Atendimento</span><strong class="supportBadge" data-support-unread hidden></strong></button>
+      <button type="button" id="proSchedules" class="proHeaderButton scheduleShortcut" aria-label="Ver agendamentos" title="Ver agendamentos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4m-7 8h6"/></svg>
+        <strong hidden></strong>
+      </button>
       <button type="button" id="proRefresh" class="proHeaderButton" aria-label="Atualizar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4v6h-6M21 10a9 9 0 1 0 0 5"/></svg>
         <span>Atualizar</span>
@@ -102,6 +107,7 @@
     $('#proHome').onclick=()=>{clearInternalResume();leaveOperationalMode()};
     $('#adminLogout').onclick=()=>{sessionStorage.removeItem('caseirao_admin_pin');clearInternalResume();if(orderWatcher)clearInterval(orderWatcher);admin=null;openAdmin()};
     $('#proSupport').onclick=()=>{adminTab='atendimento_chat';renderAdmin()};
+    window.caseiraoMountScheduleAlerts?.($('#proSchedules'));
     $('#proRefresh').onclick=async()=>{
       const button=$('#proRefresh');
       const label=button.querySelector('span');

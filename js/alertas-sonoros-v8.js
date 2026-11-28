@@ -48,10 +48,17 @@
     });
   }
   function play(kind){
-    if(!validTypes.has(kind))return 0;
+    if(!validTypes.has(kind)&&kind!=='agendamento')return 0;
     const ctx=prepare();if(!ctx)return 0;
     const start=ctx.currentTime+.045;
     try{
+      if(kind==='agendamento'){
+        if(Number(pref.volume)>0){
+          simpleTone(ctx,523.25,start,.18,'sine',.32);
+          simpleTone(ctx,698.46,start+.19,.26,'sine',.28);
+        }
+        return 480;
+      }
       if(kind==='novo'){
         const master=ctx.createGain(),limiter=ctx.createDynamicsCompressor();
         limiter.threshold.value=-10;limiter.knee.value=6;limiter.ratio.value=12;
@@ -129,10 +136,11 @@
       const oldPayment=new Map((admin?.orders||[]).map(o=>[String(o.id),orderPaymentConfirmed(o)]));
       const fresh=await adminCall('snapshot'),orders=fresh.orders||[];
       if(!sessionStorage.getItem('caseirao_admin_pin'))return;
-      const newOrders=orders.filter(o=>!knownOrderIds.has(o.id));
-      const changed=orders.filter(o=>old.has(String(o.id))&&old.get(String(o.id))!==String(o.status||'').toLowerCase());
-      const paymentChanged=orders.some(o=>oldPayment.has(String(o.id))&&oldPayment.get(String(o.id))!==orderPaymentConfirmed(o));
-      const edited=orders.filter(o=>oldContent.has(String(o.id))&&oldContent.get(String(o.id))!==contentKey(o)&&old.get(String(o.id))===String(o.status||'').toLowerCase());
+      const operationalOrders=orders.filter(o=>!['agendado','agendado_confirmado'].includes(o.status));
+      const newOrders=operationalOrders.filter(o=>!knownOrderIds.has(o.id));
+      const changed=operationalOrders.filter(o=>old.has(String(o.id))&&old.get(String(o.id))!==String(o.status||'').toLowerCase());
+      const paymentChanged=operationalOrders.some(o=>oldPayment.has(String(o.id))&&oldPayment.get(String(o.id))!==orderPaymentConfirmed(o));
+      const edited=operationalOrders.filter(o=>oldContent.has(String(o.id))&&oldContent.get(String(o.id))!==contentKey(o)&&old.get(String(o.id))===String(o.status||'').toLowerCase());
       orders.forEach(o=>{knownOrderIds.add(o.id);knownOrderStatuses.set(String(o.id),String(o.status||'').toLowerCase())});
       admin=fresh;
       for(const order of newOrders){dispatch('novo',order);showOrderToast(order)}
@@ -210,6 +218,7 @@
     <div class="caseiraoV8SoundBody"><div class="caseiraoV8SoundTitle">🔔 ALERTAS POR ETAPA <small>Campainha forte exclusiva do pedido novo</small></div>
     <div class="caseiraoV8SoundActions">
       <button type="button" data-caseirao-sound="novo">🔔 Pedido novo</button>
+      <button type="button" data-caseirao-sound="agendamento">▣ Agendamento</button>
       <button type="button" data-caseirao-sound="confirmado">✓ Confirmado</button>
       <button type="button" data-caseirao-sound="pronto">📦 No ponto</button>
       <button type="button" data-caseirao-sound="em_rota">🛵 Saiu</button>
