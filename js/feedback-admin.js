@@ -47,6 +47,9 @@
         node('p', timestamp.format(new Date(review.created_at)) + (review.category ? ' · ' + categories[review.category] : ''), 'mini'),
         node('p', 'Produtos ' + review.rating_products + '/5 · Qualidade ' + review.rating_quality + '/5 · Atendimento ' + review.rating_service + '/5')
       );
+      if (review.allow_public) {
+        card.append(node('p', 'Nome no cardápio: ' + (review.public_name || 'Cliente anônimo'), 'mini'));
+      }
       if (review.comment) {
         const comment = node('p', review.comment);
         comment.style.overflowWrap = 'anywhere';
