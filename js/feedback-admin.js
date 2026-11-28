@@ -27,7 +27,7 @@
     const filter = document.createElement('select');
     filter.className = 'sel';
     filter.setAttribute('aria-label', 'Filtrar avaliações');
-    for (const [value, label] of Object.entries({ ...labels, all:'Todas' })) {
+    for (const [value, label] of Object.entries({ all:'Todas', ...labels })) {
       filter.append(new Option(label, value));
     }
     const status = node('p', '', 'mini');
