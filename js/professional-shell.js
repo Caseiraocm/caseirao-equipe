@@ -2,7 +2,7 @@
 (()=>{
   'use strict';
   const sections=[
-    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
+    {group:'Operação',items:[['visao','⌂','Visão geral'],['pedidos','⚡','Pedidos'],['atendimento_chat','◌','Atendimento'],['feedback','★','Feedback'],['agendados','▣','Agendados'],['mesas','▦','Mesas'],['producao','🍔','Produção'],['entregas','🛵','Entregas'],['caixa','$','Caixa']]},
     {group:'Clientes e vendas',items:[['cartao_caseirao','▣','Cartão Caseirão'],['cashback','◆','Cashback'],['premiado','🎁','Pedido premiado'],['fidelidade_pontos','★','Clube Pontos'],['promocoes','🔥','Promoções']]},
     {group:'Gestão',items:[['gestao','▥','Indicadores'],['relatorios','▥','Relatórios'],['financeiro','▤','Financeiro'],['reserva_impostos','%','Reserva de impostos'],['consumo','▤','Consumo funcionários'],['pagamentos_equipe','▣','Pagamentos da equipe'],['estoque','▥','Estoque'],['produtos','🍔','Produtos'],['adicionais','＋','Adicionais'],['bairros','⌖','Bairros e taxas'],['cupons','%','Cupons'],['banner','▣','Banners'],['funcionarios','♟','Funcionários'],['loja','⚙','Loja e expediente']]}
   ];
@@ -137,6 +137,7 @@
       else box.innerHTML = '<p class="notice">O Financeiro não carregou. Atualize a Central e tente novamente.</p>';
     }
     else if (adminTab === 'fidelidade_pontos') window.renderCaseiraoPointsAdmin($('#admContent'));
+    else if (adminTab === 'feedback') window.renderCaseiraoFeedbackAdmin($('#admContent'));
     else renderAdminTab();
   };
   new MutationObserver(enhanceHome).observe(document.body,{childList:true,subtree:true});enhanceHome();
