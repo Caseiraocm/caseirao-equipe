@@ -17,10 +17,21 @@ function customerWhatsAppNumber(phone){
   if(digits.length===8||digits.length===9)return '5586'+digits;
   return '';
 }
-function customerWhatsAppWebUrl(phone,message=''){
+const useWhatsAppBusinessApp=navigator.userAgentData?.platform==='Android'
+  || /Android/i.test(navigator.userAgent)
+  || (/Linux/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1&&window.matchMedia('(pointer: coarse)').matches);
+const customerWhatsAppTarget=useWhatsAppBusinessApp?'_self':'_blank';
+const customerWhatsAppName=useWhatsAppBusinessApp?'WhatsApp Business':'WhatsApp Web';
+
+function customerWhatsAppContactUrl(phone,message=''){
   const number=customerWhatsAppNumber(phone);
   if(!number)return '';
-  return 'https://web.whatsapp.com/send?phone='+encodeURIComponent(number)+'&text='+encodeURIComponent(message);
+  const query='phone='+number+'&text='+encodeURIComponent(message);
+  if(useWhatsAppBusinessApp){
+    const fallback=encodeURIComponent('https://play.google.com/store/apps/details?id=com.whatsapp.w4b');
+    return `intent://send?${query}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${fallback};end`;
+  }
+  return 'https://web.whatsapp.com/send?'+query;
 }
 function customerWhatsAppMessage(order, status=order.status, stopsAhead=0){
   const name=String(order.customer_name||'').trim().split(/\s+/)[0];
@@ -72,7 +83,7 @@ function customerWhatsAppMessage(order, status=order.status, stopsAhead=0){
   }
 }
 function customerWhatsAppUrl(order,status=order.status,stopsAhead=0){
-  return customerWhatsAppWebUrl(order.customer_phone,customerWhatsAppMessage(order,status,stopsAhead));
+  return customerWhatsAppContactUrl(order.customer_phone,customerWhatsAppMessage(order,status,stopsAhead));
 }
 function customerWhatsAppRouteOrder(order,status=order.status){
   return status==='em_rota'&&order.status==='em_rota'&&order.type==='delivery'?String(order.id||''):'';
@@ -80,7 +91,7 @@ function customerWhatsAppRouteOrder(order,status=order.status){
 
 let whatsappWebConnectionPrepared=false;
 function prepareWhatsAppWebConnection(){
-  if(whatsappWebConnectionPrepared)return;
+  if(useWhatsAppBusinessApp||whatsappWebConnectionPrepared)return;
   whatsappWebConnectionPrepared=true;
   const hint=document.createElement('link');
   hint.rel='preconnect';
@@ -90,18 +101,34 @@ function prepareWhatsAppWebConnection(){
 
 const whatsappRouteLookups=new WeakMap();
 function getWhatsAppRouteQueue(link,id){
-  const cached=whatsappRouteLookups.get(link);
+  const key=link.closest('details.orderDetailed')||link;
+  const cached=whatsappRouteLookups.get(key);
   const now=Date.now();
-  if(cached&&cached.id===id&&now-cached.startedAt<4000)return cached.request;
+  if(cached?.id===id&&(!cached.ready||now-cached.finishedAt<10000))return cached;
 
-  const request=Promise.resolve()
-    .then(()=>driverAppApi('admin_route_queue',{order_id:id},true))
-    .catch(()=>{
-      if(whatsappRouteLookups.get(link)?.request===request)whatsappRouteLookups.delete(link);
-      return null;
-    });
-  whatsappRouteLookups.set(link,{id,startedAt:now,request});
-  return request;
+  const lookup={id,ready:false};
+  let timer;
+  lookup.request=Promise.race([
+    Promise.resolve().then(()=>driverAppApi('admin_route_queue',{order_id:id},true)),
+    new Promise(resolve=>{timer=setTimeout(()=>resolve(null),4000);})
+  ]).catch(()=>null).then(result=>{
+    clearTimeout(timer);
+    lookup.result=result;
+    lookup.ready=true;
+    lookup.finishedAt=Date.now();
+    return result;
+  });
+  whatsappRouteLookups.set(key,lookup);
+  return lookup;
+}
+
+if(useWhatsAppBusinessApp){
+  const prefetchWhatsAppRoute=event=>{
+    const link=event.target.closest?.('a[data-whatsapp-route-order]');
+    if(link?.dataset.whatsappRouteOrder)getWhatsAppRouteQueue(link,link.dataset.whatsappRouteOrder);
+  };
+  document.addEventListener('pointerover',prefetchWhatsAppRoute,true);
+  document.addEventListener('focusin',prefetchWhatsAppRoute,true);
 }
 
 document.addEventListener('click',async event=>{
@@ -122,6 +149,26 @@ document.addEventListener('click',async event=>{
   if(!id)return;
   const order=(admin?.orders||[]).find(item=>String(item.id)===id);
   if(!order||!customerWhatsAppRouteOrder(order))return;
+  const lookup=getWhatsAppRouteQueue(link,id);
+  const routeUrl=result=>customerWhatsAppUrl(order,'em_rota',Number(result?.stops_ahead||0));
+  if(useWhatsAppBusinessApp){
+    if(lookup.ready){
+      link.href=routeUrl(lookup.result);
+      return;
+    }
+    // Chrome needs a fresh tap to launch the app after an asynchronous lookup.
+    event.preventDefault();
+    event.stopPropagation();
+    if(link.getAttribute('aria-busy')==='true')return;
+    const originalLabel=link.textContent;
+    link.setAttribute('aria-busy','true');
+    link.textContent='Consultando rota…';
+    link.href=routeUrl(await lookup.request);
+    link.removeAttribute('aria-busy');
+    link.textContent=originalLabel;
+    showAppToast('Mensagem pronta. Toque novamente para abrir o WhatsApp Business.','ok');
+    return;
+  }
   const destination=window.open('about:blank','_blank');
   if(!destination)return;
   event.preventDefault();
@@ -129,20 +176,7 @@ document.addEventListener('click',async event=>{
   destination.opener=null;
   destination.document.title='Abrindo WhatsApp';
   destination.document.body.textContent='Consultando a rota…';
-  let timeout;
-  try{
-    const result=await Promise.race([
-      getWhatsAppRouteQueue(link,id),
-      new Promise(resolve=>{timeout=setTimeout(()=>resolve(null),4000);})
-    ]);
-    destination.location.replace(result
-      ?customerWhatsAppUrl(order,'em_rota',Number(result.stops_ahead||0))
-      :link.href);
-  }catch{
-    destination.location.replace(link.href);
-  }finally{
-    clearTimeout(timeout);
-  }
+  destination.location.replace(routeUrl(await lookup.request));
 },true);
 function driverAddressWhatsAppUrl(o){
   if(o.type!=='delivery')return '';
@@ -181,7 +215,7 @@ function orderAdminCard(o,finished=false){
   const when=new Date(o.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),delivery=Number(o.delivery_fee||0),deliveryDiscount=Number(o.delivery_discount||0),discount=Number(o.discount||0),cashback=Number(o.cashback_used||0),change=o.change_for?String(o.change_for):'';
   const waUrl=customerWhatsAppUrl(o);
   const driverWaUrl=driverAddressWhatsAppUrl(o);
-  return `<details class="order orderDetailed ${finished?'finishedOrder':''}" data-order-id="${esc(o.id)}"><summary class="orderSummary"><div class="summaryMain"><div class="orderNumber">#${o.order_number}</div><div class="summaryCustomer"><b>${esc(o.customer_name||'Cliente')}</b><span class="centralOrderDate">${esc(orderTypeLabel(o.type))} • ${esc(when)}</span></div></div><div class="summaryRight"><span class="statusBadge ${statusTone(o.status)}">${esc(statusLabel[o.status]||o.status)}</span><b>${fmt(o.total)}</b>${centralPaymentBadge(o.payment)}</div></summary><div class="orderBody"><div class="orderInfoGrid"><div class="orderInfo"><span>Cliente</span><b>${esc(o.customer_name||'Não informado')}</b><small>${esc(o.customer_phone||'Sem telefone')}</small></div><div class="orderInfo"><span>Pagamento</span><b>${esc(paymentLabel(o.payment))}</b><small>${change?`Troco para ${esc(change)}`:'Sem troco'}</small></div></div>${waUrl?`<a class="whatsappAction" href="${esc(waUrl)}" data-whatsapp-route-order="${esc(customerWhatsAppRouteOrder(o))}" target="_blank" rel="noopener">💬 AVISAR CLIENTE NO WHATSAPP WEB</a>`:`<span class="whatsappAction disabled">⚠️ TELEFONE INVÁLIDO</span>`}${driverWaUrl?`<a class="deliveryAction" href="${esc(driverWaUrl)}" target="_blank" rel="noopener">📲 ENVIAR AO ENTREGADOR NO APP</a>`:''}${o.type==='delivery'?`<div class="addressBoxAdmin"><b>Endereço</b>${esc(orderAddress(o))}</div>`:''}<div class="orderItemsBox">${orderItemsHtml(o)}</div>${o.notes?`<div class="notesBoxAdmin"><b>Observações</b>${esc(o.notes)}</div>`:''}<div class="orderTotalsBox"><div class="orderTotalLine"><span>Subtotal</span><b>${fmt(o.subtotal)}</b></div>${delivery?`<div class="orderTotalLine"><span>Taxa de entrega</span><b>+ ${fmt(delivery)}</b></div>`:''}${deliveryDiscount?`<div class="orderTotalLine"><span>Desconto na entrega</span><b>- ${fmt(deliveryDiscount)}</b></div>`:''}${discount?`<div class="orderTotalLine"><span>Desconto</span><b>- ${fmt(discount)}</b></div>`:''}${cashback?`<div class="orderTotalLine"><span>Cashback usado</span><b>- ${fmt(cashback)}</b></div>`:''}<div class="orderTotalLine grand"><span>Total final</span><b>${fmt(o.total)}</b></div></div><div class="printActions"><button class="mainPrint" data-webprint="${o.id}">IMPRIMIR</button>${navigator.bluetooth?`<button class="bt" data-btprint="${o.id}">Bluetooth direto</button>`:''}</div>${finished?`<div class="orderactions"><button class="statusAction selected" disabled>${esc(statusLabel[o.status]||o.status)} ✓</button></div>`:`<div class="orderactions statusGrid">${actions.map(([st,label])=>`<button data-st="${st}" data-oid="${o.id}" class="statusAction ${statusTone(st)} ${o.status===st?'selected':''}">${o.status===st?'✓ ':''}${label}</button>`).join('')}</div>`}</div></details>`;
+  return `<details class="order orderDetailed ${finished?'finishedOrder':''}" data-order-id="${esc(o.id)}"><summary class="orderSummary"><div class="summaryMain"><div class="orderNumber">#${o.order_number}</div><div class="summaryCustomer"><b>${esc(o.customer_name||'Cliente')}</b><span class="centralOrderDate">${esc(orderTypeLabel(o.type))} • ${esc(when)}</span></div></div><div class="summaryRight"><span class="statusBadge ${statusTone(o.status)}">${esc(statusLabel[o.status]||o.status)}</span><b>${fmt(o.total)}</b>${centralPaymentBadge(o.payment)}</div></summary><div class="orderBody"><div class="orderInfoGrid"><div class="orderInfo"><span>Cliente</span><b>${esc(o.customer_name||'Não informado')}</b><small>${esc(o.customer_phone||'Sem telefone')}</small></div><div class="orderInfo"><span>Pagamento</span><b>${esc(paymentLabel(o.payment))}</b><small>${change?`Troco para ${esc(change)}`:'Sem troco'}</small></div></div>${waUrl?`<a class="whatsappAction" href="${esc(waUrl)}" data-whatsapp-route-order="${esc(customerWhatsAppRouteOrder(o))}" target="${customerWhatsAppTarget}" rel="noopener">💬 AVISAR CLIENTE NO ${customerWhatsAppName.toUpperCase()}</a>`:`<span class="whatsappAction disabled">⚠️ TELEFONE INVÁLIDO</span>`}${driverWaUrl?`<a class="deliveryAction" href="${esc(driverWaUrl)}" target="_blank" rel="noopener">📲 ENVIAR AO ENTREGADOR NO APP</a>`:''}${o.type==='delivery'?`<div class="addressBoxAdmin"><b>Endereço</b>${esc(orderAddress(o))}</div>`:''}<div class="orderItemsBox">${orderItemsHtml(o)}</div>${o.notes?`<div class="notesBoxAdmin"><b>Observações</b>${esc(o.notes)}</div>`:''}<div class="orderTotalsBox"><div class="orderTotalLine"><span>Subtotal</span><b>${fmt(o.subtotal)}</b></div>${delivery?`<div class="orderTotalLine"><span>Taxa de entrega</span><b>+ ${fmt(delivery)}</b></div>`:''}${deliveryDiscount?`<div class="orderTotalLine"><span>Desconto na entrega</span><b>- ${fmt(deliveryDiscount)}</b></div>`:''}${discount?`<div class="orderTotalLine"><span>Desconto</span><b>- ${fmt(discount)}</b></div>`:''}${cashback?`<div class="orderTotalLine"><span>Cashback usado</span><b>- ${fmt(cashback)}</b></div>`:''}<div class="orderTotalLine grand"><span>Total final</span><b>${fmt(o.total)}</b></div></div><div class="printActions"><button class="mainPrint" data-webprint="${o.id}">IMPRIMIR</button>${navigator.bluetooth?`<button class="bt" data-btprint="${o.id}">Bluetooth direto</button>`:''}</div>${finished?`<div class="orderactions"><button class="statusAction selected" disabled>${esc(statusLabel[o.status]||o.status)} ✓</button></div>`:`<div class="orderactions statusGrid">${actions.map(([st,label])=>`<button data-st="${st}" data-oid="${o.id}" class="statusAction ${statusTone(st)} ${o.status===st?'selected':''}">${o.status===st?'✓ ':''}${label}</button>`).join('')}</div>`}</div></details>`;
 }
 function printOrderBrowser(id,sourceOrders=null){
   const o=(sourceOrders||admin?.orders||[]).find(x=>String(x.id)===String(id));if(!o)return alert('Pedido não encontrado.');
@@ -497,8 +531,8 @@ function kitchenWhatsAppHtml(o){
     ['pronto',o.type==='pickup'?'PODE BUSCAR':'PRONTO']];
   if(o.type==='delivery')stages.push(['em_rota','EM ROTA']);
   stages.push(['entregue',o.type==='pickup'?'RETIRADO':o.type==='delivery'?'ENTREGUE':'FINALIZADO']);
-  return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO WHATSAPP WEB</b><div>${stages.map(([stage,label])=>
-    `<a href="${esc(customerWhatsAppUrl(o,stage))}" data-whatsapp-route-order="${esc(customerWhatsAppRouteOrder(o,stage))}" target="_blank" rel="noopener">${label}</a>`).join('')}</div></div>`;
+  return `<div class="kitchenWhatsApp"><b>💬 AVISAR CLIENTE NO ${customerWhatsAppName.toUpperCase()}</b><div>${stages.map(([stage,label])=>
+    `<a href="${esc(customerWhatsAppUrl(o,stage))}" data-whatsapp-route-order="${esc(customerWhatsAppRouteOrder(o,stage))}" target="${customerWhatsAppTarget}" rel="noopener">${label}</a>`).join('')}</div></div>`;
 }
 function renderKitchen(box){const orders=shiftOrders().filter(o=>['novo','confirmado','preparando','pronto'].includes(o.status));box.innerHTML=`<div class="kitchenToolbar"><button id="manualOrderKitchen" class="primary">+ PEDIDO MANUAL</button><button id="connectPrinterKitchen" class="secondary">🖨️ CONECTAR BLUETOOTH</button><button id="refreshKitchen" class="secondary">↻ ATUALIZAR</button></div><div id="printerState" class="printerState kitchenPrinterState">${btWriteChar&&btDevice?.gatt?.connected?`Conectada: ${esc(btPrinterName)}`:navigator.bluetooth?'Impressora Bluetooth disponível no Chrome.':'Bluetooth indisponível neste navegador.'}</div><div class="operationHint">Produção completa: cliente, tempo, pagamento, endereço, itens, impressão e mensagens do WhatsApp.</div><div class="kitchenGrid">${orders.length?orders.map(o=>{const m=orderMinutes(o),late=m>=35,created=new Date(o.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),change=o.change_for?` • Troco para ${esc(o.change_for)}`:'';return `<article class="kitchenCard kitchenFullCard ${late?'late':''}"><div class="ordertop kitchenOrderTop"><div><b class="orderNumber">#${o.order_number}</b><div class="kitchenCreated">Recebido às ${esc(created)}</div></div><span class="grow"></span>${orderWaitHtml(o)}</div><div class="kitchenCustomer"><div><span>CLIENTE</span><b>${esc(o.customer_name||'Não informado')}</b><a href="tel:${esc(o.customer_phone||'')}">${esc(o.customer_phone||'Sem telefone')}</a></div><div><span>PEDIDO E PAGAMENTO</span><b>${esc(orderTypeLabel(o.type))}</b><small>${esc(paymentLabel(o.payment))} • ${fmt(o.total)}${change}</small></div></div>${o.type==='delivery'?`<div class="kitchenAddress"><b>📍 ENDEREÇO COMPLETO</b><span>${esc(orderAddress(o))}</span></div>`:`<div class="kitchenAddress pickup"><b>📦 ${esc(orderTypeLabel(o.type))}</b><span>Cliente busca no estabelecimento</span></div>`}<div class="kitchenItems">${(o.order_items||[]).map(i=>`<div class="kitchenItem"><b>${Number(i.quantity||1)}x ${esc(i.product_name||'Item')}</b>${(i.order_item_addons||[]).map(a=>`<div class="kitchenAddon">+ ${esc(a.addon_name)}</div>`).join('')}${i.note?`<div class="kitchenNote">Observação do item: ${esc(i.note)}</div>`:''}</div>`).join('')}</div>${o.notes?`<div class="kitchenNote"><b>OBSERVAÇÃO GERAL:</b> ${esc(o.notes)}</div>`:''}<div class="printActions kitchenPrintActions"><button class="mainPrint" data-webprint="${o.id}">🧾 IMPRIMIR PEDIDO</button><button class="bt" data-btprint="${o.id}">🖨️ BLUETOOTH</button></div>${kitchenWhatsAppHtml(o)}${o.status==='pronto'?'<div class="notice">✓ Pedido pronto</div>':`<button class="primary kitchenMainAction" data-kitchen="${o.id}" data-next="${o.status==='novo'||o.status==='confirmado'?'preparando':'pronto'}">${o.status==='novo'||o.status==='confirmado'?'INICIAR PREPARO':'MARCAR COMO PRONTO'}</button>`}</article>`}).join(''):'<div class="empty">Nenhum pedido aguardando produção.</div>'}</div>`;$('#manualOrderKitchen').onclick=openManualOrder;$('#refreshKitchen').onclick=async()=>{admin=await adminCall('snapshot');renderKitchen(box)};$('#connectPrinterKitchen').onclick=async()=>{try{await connectBluetoothPrinter()}catch(e){setPrinterState(e.message||String(e),'error');alert(e.message||String(e))}};bindPrintButtons(orders);document.querySelectorAll('[data-kitchen]').forEach(b=>b.onclick=async()=>{try{b.disabled=true;await adminCall('update_status',{order_id:b.dataset.kitchen,status:b.dataset.next});admin=await adminCall('snapshot');renderKitchen(box)}catch(e){b.disabled=false;alert(e.message)}})}
 
