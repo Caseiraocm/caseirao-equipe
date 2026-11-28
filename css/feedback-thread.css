@@ -1,0 +1,72 @@
+.feedbackThread {
+  margin-top: 8px;
+  border-top: 1px solid var(--menu-borda, #ccd4db);
+  padding-top: 5px;
+  color: var(--menu-texto, #172a27);
+}
+.feedbackThread summary {
+  padding: 8px 0;
+  color: var(--menu-ambar, #28584c);
+  font-weight: 700;
+  cursor: pointer;
+}
+.feedbackThread [hidden], .feedbackThreadStatus:empty { display: none !important; }
+.feedbackThreadActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.feedbackThreadButton {
+  min-height: 36px;
+  padding: 5px 9px;
+  border: 1px solid var(--menu-borda, #a4b3af);
+  border-radius: 8px;
+  background: var(--menu-panel, #f6faf9);
+  color: var(--menu-texto, #172a27);
+  font: inherit;
+  font-size: .8125rem;
+  cursor: pointer;
+}
+.feedbackThreadButton[aria-pressed="true"], .feedbackReplyForm [type="submit"] {
+  background: var(--menu-ambar, #28584c);
+  border-color: var(--menu-ambar, #28584c);
+  color: var(--menu-gold-ink, white);
+}
+.feedbackThreadButton:disabled { opacity: .65; cursor: wait; }
+.feedbackReplyList { display: grid; gap: 6px; margin: 6px 0; }
+.feedbackReply {
+  min-width: 0;
+  padding: 8px;
+  border-left: 2px solid var(--menu-borda, #a4b3af);
+  background: var(--menu-panel, #f6faf9);
+  overflow-wrap: anywhere;
+  font-size: .875rem;
+}
+.feedbackReplyTeam { border-left-color: var(--menu-ambar, #28584c); }
+.feedbackReply time, .feedbackReply small {
+  display: block;
+  color: var(--menu-muted, #485d57);
+  font-size: .75rem;
+}
+.feedbackThread .feedbackReply p { margin: 4px 0; white-space: pre-wrap; }
+.feedbackThread .feedbackThreadStatus { margin: 6px 0; }
+.feedbackReplyForm { display: grid; gap: 6px; margin-top: 8px; }
+.feedbackReplyForm :is(input, textarea):not(.feedbackThreadTrap) {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--menu-borda, #a4b3af);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--menu-petroleo, white);
+  color: var(--menu-texto, #172a27);
+  -webkit-text-fill-color: currentColor;
+  font: inherit;
+  font-size: 16px;
+}
+.feedbackReplyForm :is(input, textarea)::placeholder { color: var(--menu-muted, #485d57); }
+.feedbackThreadTrap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+}
